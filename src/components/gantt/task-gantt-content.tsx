@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { EventOption, OnArrowDoubleClick } from "../../types/public-types";
 import { BarTask } from "../../types/bar-task";
@@ -288,6 +288,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
         taskHalfHeight,
         relationCircleOffset,
         relationCircleRadius,
+        rtl,
       );
 
       if (endTargetRelationCircle) {
@@ -309,6 +310,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     };
   }, [
     svg,
+    rtl,
     point,
     startRelationTarget,
     startRelationTask,
@@ -391,11 +393,11 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   /**
    * Method is Start point of start draw relation
    */
-  const handleBarRelationStart = (
+  const handleBarRelationStart = useCallback((
     target: RelationMoveTarget,
     task: BarTask,
   ) => {
-    const startX = target === 'startOfTask' ? task.x1 - 10 : task.x2 + 10;
+    const startX = ((target === 'startOfTask') !== rtl) ? task.x1 - 10 : task.x2 + 10;
     const startY = (task.y + Math.round(task.height / 2));
 
     setGanttRelationEvent({
@@ -406,7 +408,10 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       endX: startX,
       endY: startY,
     });
-  };
+  }, [
+    setGanttRelationEvent,
+    rtl,
+  ]);
 
   return (
     <g className="content">
