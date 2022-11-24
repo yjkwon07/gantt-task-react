@@ -1,5 +1,13 @@
-import React from "react";
+import React, {
+  useCallback,
+} from "react";
+
+import cx from 'classnames';
+
 import { BarTask } from "../../types/bar-task";
+import { OnArrowDoubleClick } from "../../types/public-types";
+
+import styles from "./arrow.module.css";
 
 type ArrowProps = {
   taskFrom: BarTask;
@@ -8,6 +16,7 @@ type ArrowProps = {
   taskHeight: number;
   arrowIndent: number;
   rtl: boolean;
+  onArrowDoubleClick?: OnArrowDoubleClick;
 };
 export const Arrow: React.FC<ArrowProps> = ({
   taskFrom,
@@ -16,9 +25,21 @@ export const Arrow: React.FC<ArrowProps> = ({
   taskHeight,
   arrowIndent,
   rtl,
+  onArrowDoubleClick = undefined,
 }) => {
   let path: string;
   let trianglePoints: string;
+
+  const onDoubleClick = useCallback(() => {
+    if (onArrowDoubleClick) {
+      onArrowDoubleClick(taskFrom, taskTo);
+    }
+  }, [
+    taskFrom,
+    taskTo,
+    onArrowDoubleClick,
+  ]);
+
   if (rtl) {
     [path, trianglePoints] = drownPathAndTriangleRTL(
       taskFrom,
@@ -38,8 +59,24 @@ export const Arrow: React.FC<ArrowProps> = ({
   }
 
   return (
-    <g className="arrow">
-      <path strokeWidth="1.5" d={path} fill="none" />
+    <g
+      className={cx("arrow", {
+        [styles.arrow_clickable]: onDoubleClick,
+      })}
+      onDoubleClick={onDoubleClick}
+    >
+      {onArrowDoubleClick && (
+        <path
+          d={path}
+          className={styles.clickZone}
+        />
+      )}
+
+      <path
+        className={styles.mainPath}
+        d={path}
+      />
+
       <polygon points={trianglePoints} />
     </g>
   );

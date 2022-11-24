@@ -1,5 +1,14 @@
-import React from "react";
-import { Task, ViewMode, Gantt, OnRelationChange } from "gantt-task-react";
+import React, {
+  useCallback,
+} from "react";
+import {
+  Dependency,
+  Gantt,
+  OnRelationChange,
+  OnArrowDoubleClick,
+  Task,
+  ViewMode,
+} from "gantt-task-react";
 import { ViewSwitcher } from "./components/view-switcher";
 import { getStartEndDateForProject, initTasks } from "./helper";
 import "gantt-task-react/dist/index.css";
@@ -37,61 +46,76 @@ const App = () => {
     setTasks(newTasks);
   };
 
-  const handleRelationChange: OnRelationChange = ([taskFrom, targetFrom], [taskTo]) => {
-    setTasks(tasks.map(t => {
-      if (targetFrom === 'startOfTask') {
-        if (t.id === taskFrom.id) {
-          if (!t.dependencies) {
-            return {
-              ...t,
-              dependencies: [taskTo.id],
-            };
-          }
+  const handleRelationChange = useCallback<OnRelationChange>(([taskFrom, targetFrom], [taskTo, targetTo]) => {
+    if (taskFrom.id === taskTo.id) {
+      return;
+    }
 
-          const hasDependency = t.dependencies.some((dependencyId) => dependencyId === taskTo.id);
+    setTasks((prevTasks) => prevTasks.map(t => {
+      const newDependency: Dependency = {
+        sourceId: taskTo.id,
+        sourceTarget: targetTo,
+        ownTarget: targetFrom,
+      };
 
-          if (hasDependency) {
-            return {
-              ...t,
-              dependencies: t.dependencies.filter((dependencyId) => dependencyId !== taskTo.id),
-            };
-          }
-
+      if (t.id === taskFrom.id) {
+        if (!t.dependencies) {
           return {
             ...t,
-            dependencies: [...t.dependencies, taskTo.id],
+            dependencies: [newDependency],
           };
         }
+
+        return {
+          ...t,
+          dependencies: [
+            ...t.dependencies.filter(({ sourceId }) => sourceId !== taskTo.id),
+            newDependency,
+          ],
+        };
       }
 
-      if (targetFrom === 'endOfTask') {
-        if (t.id === taskTo.id) {
-          if (!t.dependencies) {
-            return {
-              ...t,
-              dependencies: [taskFrom.id],
-            };
-          }
-
-          const hasDependency = t.dependencies.some((dependencyId) => dependencyId === taskFrom.id);
-
-          if (hasDependency) {
-            return {
-              ...t,
-              dependencies: t.dependencies.filter((dependencyId) => dependencyId !== taskFrom.id),
-            };
-          }
-
+      if (t.id === taskTo.id) {
+        if (t.dependencies) {
           return {
             ...t,
-            dependencies: [...t.dependencies, taskFrom.id],
+            dependencies: t.dependencies.filter(({ sourceId }) => sourceId !== taskFrom.id),
           };
         }
       }
 
       return t;
     }));
-  };
+  }, []);
+
+  const onArrowDoubleClick = useCallback<OnArrowDoubleClick>((
+    taskFrom,
+    taskTo,
+  ) => {
+    if (window.confirm(`Do yo want to remove relation between ${taskFrom.name} and ${taskTo.name}?`)) {
+      setTasks((prevTasks) => prevTasks.map(t => {
+        if (t.id === taskFrom.id) {
+          if (t.dependencies) {
+            return {
+              ...t,
+              dependencies: t.dependencies.filter(({ sourceId }) => sourceId !== taskTo.id),
+            };
+          }
+        }
+
+        if (t.id === taskTo.id) {
+          if (t.dependencies) {
+            return {
+              ...t,
+              dependencies: t.dependencies.filter(({ sourceId }) => sourceId !== taskFrom.id),
+            };
+          }
+        }
+
+        return t;
+      }));
+    }
+  }, []);
 
   const handleTaskDelete = (task: Task) => {
     const conf = window.confirm("Are you sure about " + task.name + " ?");
@@ -144,6 +168,7 @@ const App = () => {
         onExpanderClick={handleExpanderClick}
         listCellWidth={isChecked ? "155px" : ""}
         columnWidth={columnWidth}
+        onArrowDoubleClick={onArrowDoubleClick}
       />
       <h3>Gantt With Limited Height</h3>
       <Gantt
@@ -162,6 +187,7 @@ const App = () => {
         listCellWidth={isChecked ? "155px" : ""}
         ganttHeight={300}
         columnWidth={columnWidth}
+        onArrowDoubleClick={onArrowDoubleClick}
       />
     </div>
   );

@@ -51,7 +51,7 @@ export const convertToBarTasks = (
     const dependencies = task.dependencies || [];
     for (let j = 0; j < dependencies.length; j++) {
       const dependence = barTasks.findIndex(
-        value => value.id === dependencies[j]
+        value => value.id === dependencies[j].sourceId,
       );
       if (dependence !== -1) barTasks[dependence].barChildren.push(task);
     }

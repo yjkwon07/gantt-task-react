@@ -35,7 +35,13 @@ export function initTasks() {
       name: "Research",
       id: "Task 1",
       progress: 25,
-      dependencies: ["Task 0"],
+      dependencies: [
+        {
+          sourceId: "Task 0",
+          sourceTarget: "startOfTask",
+          ownTarget: "endOfTask",
+        },
+      ],
       type: "task",
       project: "ProjectSample",
       displayOrder: 3,
@@ -46,7 +52,13 @@ export function initTasks() {
       name: "Discussion with team",
       id: "Task 2",
       progress: 10,
-      dependencies: ["Task 1"],
+      dependencies: [
+        {
+          sourceId: "Task 1",
+          sourceTarget: "startOfTask",
+          ownTarget: "endOfTask",
+        },
+      ],
       type: "task",
       project: "ProjectSample",
       displayOrder: 4,
@@ -57,7 +69,13 @@ export function initTasks() {
       name: "Developing",
       id: "Task 3",
       progress: 2,
-      dependencies: ["Task 2"],
+      dependencies: [
+        {
+          sourceId: "Task 2",
+          sourceTarget: "startOfTask",
+          ownTarget: "endOfTask",
+        },
+      ],
       type: "task",
       project: "ProjectSample",
       displayOrder: 5,
@@ -69,7 +87,13 @@ export function initTasks() {
       id: "Task 4",
       type: "task",
       progress: 70,
-      dependencies: ["Task 2"],
+      dependencies: [
+        {
+          sourceId: "Task 2",
+          sourceTarget: "startOfTask",
+          ownTarget: "endOfTask",
+        },
+      ],
       project: "ProjectSample",
       displayOrder: 6,
     },
@@ -80,7 +104,13 @@ export function initTasks() {
       id: "Task 6",
       progress: currentDate.getMonth(),
       type: "milestone",
-      dependencies: ["Task 4"],
+      dependencies: [
+        {
+          sourceId: "Task 4",
+          sourceTarget: "startOfTask",
+          ownTarget: "endOfTask",
+        },
+      ],
       project: "ProjectSample",
       displayOrder: 7,
     },

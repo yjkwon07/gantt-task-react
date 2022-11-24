@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { EventOption } from "../../types/public-types";
+import { EventOption, OnArrowDoubleClick } from "../../types/public-types";
 import { BarTask } from "../../types/bar-task";
 import { Arrow } from "../other/arrow";
 import { RelationLine } from "../other/relation-line";
@@ -40,6 +40,7 @@ export type TaskGanttContentProps = {
   setGanttRelationEvent: React.Dispatch<React.SetStateAction<GanttRelationEvent | null>>;
   setFailedTask: (value: BarTask | null) => void;
   setSelectedTask: (taskId: string) => void;
+  onArrowDoubleClick?: OnArrowDoubleClick;
 } & EventOption;
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
@@ -71,6 +72,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   onDoubleClick,
   onClick,
   onDelete,
+  onArrowDoubleClick = undefined,
 }) => {
   const point = svg?.current?.createSVGPoint();
   const [xStep, setXStep] = useState(0);
@@ -420,6 +422,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                 taskHeight={taskHeight}
                 arrowIndent={arrowIndent}
                 rtl={rtl}
+                onArrowDoubleClick={onArrowDoubleClick}
               />
             );
           });

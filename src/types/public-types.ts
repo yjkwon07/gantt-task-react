@@ -10,6 +10,13 @@ export enum ViewMode {
   Month = "Month",
   Year = "Year",
 }
+
+export interface Dependency {
+  sourceId: string;
+  sourceTarget: RelationMoveTarget;
+  ownTarget: RelationMoveTarget;
+}
+
 export type MonthFormats = "numeric" | "2-digit" | "long" | "short" | "narrow";
 export type TaskType = "task" | "milestone" | "project";
 export interface Task {
@@ -30,10 +37,15 @@ export interface Task {
   };
   isDisabled?: boolean;
   project?: string;
-  dependencies?: string[];
+  dependencies?: Dependency[];
   hideChildren?: boolean;
   displayOrder?: number;
 }
+
+export type OnArrowDoubleClick = (
+  taskFrom: Task,
+  taskTo: Task,
+) => void;
 
 export type OnRelationChange = (
   from: [Task, RelationMoveTarget],
@@ -153,6 +165,8 @@ export interface StylingOption {
     setSelectedTask: (taskId: string) => void;
     onExpanderClick: (task: Task) => void;
   }>;
+
+  onArrowDoubleClick?: OnArrowDoubleClick;
 }
 
 export interface GanttProps extends EventOption, DisplayOption, StylingOption {
