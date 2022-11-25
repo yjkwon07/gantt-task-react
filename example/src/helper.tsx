@@ -38,8 +38,8 @@ export function initTasks() {
       dependencies: [
         {
           sourceId: "Task 0",
-          sourceTarget: "startOfTask",
-          ownTarget: "endOfTask",
+          sourceTarget: "endOfTask",
+          ownTarget: "startOfTask",
         },
       ],
       type: "task",
@@ -55,8 +55,8 @@ export function initTasks() {
       dependencies: [
         {
           sourceId: "Task 1",
-          sourceTarget: "startOfTask",
-          ownTarget: "endOfTask",
+          sourceTarget: "endOfTask",
+          ownTarget: "startOfTask",
         },
       ],
       type: "task",
@@ -72,8 +72,8 @@ export function initTasks() {
       dependencies: [
         {
           sourceId: "Task 2",
-          sourceTarget: "startOfTask",
-          ownTarget: "endOfTask",
+          sourceTarget: "endOfTask",
+          ownTarget: "startOfTask",
         },
       ],
       type: "task",
@@ -90,8 +90,8 @@ export function initTasks() {
       dependencies: [
         {
           sourceId: "Task 2",
-          sourceTarget: "startOfTask",
-          ownTarget: "endOfTask",
+          sourceTarget: "endOfTask",
+          ownTarget: "startOfTask",
         },
       ],
       project: "ProjectSample",
@@ -107,8 +107,8 @@ export function initTasks() {
       dependencies: [
         {
           sourceId: "Task 4",
-          sourceTarget: "startOfTask",
-          ownTarget: "endOfTask",
+          sourceTarget: "endOfTask",
+          ownTarget: "startOfTask",
         },
       ],
       project: "ProjectSample",

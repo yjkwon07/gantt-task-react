@@ -23,14 +23,14 @@ export const getRelationCircleByCoordinates = (
     ) {
       if (
         x >= task.x1 - relationCircleOffset - relationCircleRadius
-        && y <= task.x1 - relationCircleOffset + relationCircleRadius
+        && x <= task.x1 - relationCircleOffset + relationCircleRadius
       ) {
         return [task, rtl ? "endOfTask" : "startOfTask"];
       }
 
       if (
         x >= task.x2 + relationCircleOffset - relationCircleRadius
-        && y <= task.x2 + relationCircleOffset + relationCircleRadius
+        && x <= task.x2 + relationCircleOffset + relationCircleRadius
       ) {
         return [task, rtl ? "startOfTask" : "endOfTask"];
       }

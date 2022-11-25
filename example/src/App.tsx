@@ -53,12 +53,12 @@ const App = () => {
 
     setTasks((prevTasks) => prevTasks.map(t => {
       const newDependency: Dependency = {
-        sourceId: taskTo.id,
-        sourceTarget: targetTo,
-        ownTarget: targetFrom,
+        sourceId: taskFrom.id,
+        sourceTarget: targetFrom,
+        ownTarget: targetTo,
       };
 
-      if (t.id === taskFrom.id) {
+      if (t.id === taskTo.id) {
         if (!t.dependencies) {
           return {
             ...t,
@@ -69,17 +69,17 @@ const App = () => {
         return {
           ...t,
           dependencies: [
-            ...t.dependencies.filter(({ sourceId }) => sourceId !== taskTo.id),
+            ...t.dependencies.filter(({ sourceId }) => sourceId !== taskFrom.id),
             newDependency,
           ],
         };
       }
 
-      if (t.id === taskTo.id) {
+      if (t.id === taskFrom.id) {
         if (t.dependencies) {
           return {
             ...t,
-            dependencies: t.dependencies.filter(({ sourceId }) => sourceId !== taskFrom.id),
+            dependencies: t.dependencies.filter(({ sourceId }) => sourceId !== taskTo.id),
           };
         }
       }

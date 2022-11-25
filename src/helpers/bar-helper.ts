@@ -50,10 +50,20 @@ export const convertToBarTasks = (
   barTasks = barTasks.map(task => {
     const dependencies = task.dependencies || [];
     for (let j = 0; j < dependencies.length; j++) {
+      const {
+        sourceId,
+        sourceTarget,
+        ownTarget,
+      } = dependencies[j];
+
       const dependence = barTasks.findIndex(
-        value => value.id === dependencies[j].sourceId,
+        value => value.id === sourceId,
       );
-      if (dependence !== -1) barTasks[dependence].barChildren.push(task);
+      if (dependence !== -1) barTasks[dependence].barChildren.push({
+        dependentTask: task,
+        dependentTarget: ownTarget,
+        sourceTarget,
+      });
     }
     return task;
   });
