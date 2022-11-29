@@ -71,6 +71,12 @@ export type OnRelationChange = (
   isOneDescendant: boolean,
 ) => void;
 
+export type OnDateChange = (
+  task: Task,
+  dependentTasks: Task[],
+  parents: Task[],
+) => void | boolean | Promise<void> | Promise<boolean>;
+
 export interface EventOption {
   /**
    * Time step value for date changes.
@@ -91,10 +97,7 @@ export interface EventOption {
   /**
    * Invokes on end and start time change. Chart undoes operation if method return false or error.
    */
-  onDateChange?: (
-    task: Task,
-    children: Task[]
-  ) => void | boolean | Promise<void> | Promise<boolean>;
+  onDateChange?: OnDateChange;
   /**
    * Invokes new relation between tasks
    */

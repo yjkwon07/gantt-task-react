@@ -130,8 +130,11 @@ export function initTasks() {
   return tasks;
 }
 
-export function getStartEndDateForProject(tasks: Task[], projectId: string) {
-  const projectTasks = tasks.filter(t => t.parent === projectId);
+/**
+ * TO DO: optimize
+ */
+export function getStartEndDateForParent(tasks: Task[], parentId: string) {
+  const projectTasks = tasks.filter(t => t.parent === parentId);
   let start = projectTasks[0].start;
   let end = projectTasks[0].end;
 

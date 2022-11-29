@@ -8,6 +8,7 @@ import { handleTaskBySVGMouseEvent } from "../../helpers/bar-helper";
 import { getRelationCircleByCoordinates } from "../../helpers/get-relation-circle-by-coordinates";
 import { isKeyboardEvent } from "../../helpers/other-helper";
 import { checkIsDescendant } from "../../helpers/check-is-descendant";
+import { collectParents } from "../../helpers/collect-parents";
 import { TaskItem } from "../task-item/task-item";
 import {
   BarMoveAction,
@@ -161,6 +162,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
           const result = await onDateChange(
             newChangedTask,
             newChangedTask.barChildren.map(({ dependentTask }) => dependentTask),
+            collectParents(newChangedTask, tasksMap),
           );
           if (result !== undefined) {
             operationSuccess = result;
@@ -211,6 +213,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     isMoving,
     point,
     rtl,
+    tasksMap,
     setFailedTask,
     setGanttEvent,
   ]);

@@ -8,6 +8,7 @@ export type {
   DisplayOption,
   EventOption,
   OnArrowDoubleClick,
+  OnDateChange,
   OnRelationChange,
 } from "./types/public-types";
 export type {

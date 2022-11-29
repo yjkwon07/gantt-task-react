@@ -4,13 +4,14 @@ import React, {
 import {
   Dependency,
   Gantt,
-  OnRelationChange,
   OnArrowDoubleClick,
+  OnDateChange,
+  OnRelationChange,
   Task,
   ViewMode,
 } from "gantt-task-react";
 import { ViewSwitcher } from "./components/view-switcher";
-import { getStartEndDateForProject, initTasks } from "./helper";
+import { getStartEndDateForParent, initTasks } from "./helper";
 import "gantt-task-react/dist/index.css";
 
 // Init
@@ -27,24 +28,38 @@ const App = () => {
     columnWidth = 250;
   }
 
-  const handleTaskChange = (task: Task) => {
+  const handleTaskChange = useCallback<OnDateChange>((
+    task,
+    dependentTasks,
+    parents,
+  ) => {
     console.log("On date change Id:" + task.id);
-    let newTasks = tasks.map(t => (t.id === task.id ? task : t));
-    if (task.parent) {
-      const [start, end] = getStartEndDateForProject(newTasks, task.parent);
-      const project = newTasks[newTasks.findIndex(t => t.id === task.parent)];
-      if (
-        project.start.getTime() !== start.getTime() ||
-        project.end.getTime() !== end.getTime()
-      ) {
-        const changedProject = { ...project, start, end };
-        newTasks = newTasks.map(t =>
-          t.id === task.parent ? changedProject : t
-        );
-      }
-    }
-    setTasks(newTasks);
-  };
+    console.log("Dependent tasks", dependentTasks);
+    console.log("Parents", parents);
+
+    /**
+     * TO DO: optimize with map of tasks
+     */
+    setTasks((prevTasks) => {
+      let newTasks = prevTasks.map(t => (t.id === task.id ? task : t));
+
+      parents.forEach((parent) => {
+        const [start, end] = getStartEndDateForParent(newTasks, parent.id);
+
+        if (
+          parent.start.getTime() !== start.getTime() ||
+          parent.end.getTime() !== end.getTime()
+        ) {
+          const changedParent = { ...parent, start, end };
+          newTasks = newTasks.map(t =>
+            t.id === parent.id ? changedParent : t
+          );
+        }
+      });
+
+      return newTasks;
+    });
+  }, []);
 
   const handleRelationChange = useCallback<OnRelationChange>((
     [taskFrom, targetFrom],
