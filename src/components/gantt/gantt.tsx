@@ -6,7 +6,13 @@ import React, {
   useMemo,
 } from "react";
 
-import { ViewMode, GanttProps, Task, TaskBarColorStyles } from "../../types/public-types";
+import {
+  DateSetup,
+  ViewMode,
+  GanttProps,
+  Task,
+  TaskBarColorStyles,
+} from "../../types/public-types";
 import { GridProps } from "../grid/grid";
 import { ganttDateRange, seedDates } from "../../helpers/date-helper";
 import { CalendarProps } from "../calendar/calendar";
@@ -20,7 +26,6 @@ import { TaskGantt } from "./task-gantt";
 import { BarTask } from "../../types/bar-task";
 import { convertToBarTasks } from "../../helpers/bar-helper";
 import { GanttEvent, GanttRelationEvent } from "../../types/gantt-task-actions";
-import { DateSetup } from "../../types/date-setup";
 import { HorizontalScroll } from "../other/horizontal-scroll";
 import { removeHiddenTasks, sortTasks } from "../../helpers/other-helper";
 import { getChildIds } from "../../helpers/get-child-ids";
@@ -79,6 +84,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   onSelect,
   onExpanderClick,
   onArrowDoubleClick = undefined,
+  renderBottomHeader = undefined,
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
@@ -453,6 +459,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     fontFamily,
     fontSize,
     rtl,
+    renderBottomHeader,
   };
   const barProps: TaskGanttContentProps = {
     tasks: barTasks,

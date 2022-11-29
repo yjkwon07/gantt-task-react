@@ -1,4 +1,5 @@
-import { RelationMoveTarget } from "./gantt-task-actions";
+import type { ReactNode } from "react";
+import type { RelationMoveTarget } from "./gantt-task-actions";
 
 export enum ViewMode {
   Hour = "Hour",
@@ -10,6 +11,21 @@ export enum ViewMode {
   Month = "Month",
   Year = "Year",
 }
+
+export type MonthFormats = "numeric" | "2-digit" | "long" | "short" | "narrow";
+
+export interface DateSetup {
+  dates: Date[];
+  viewMode: ViewMode;
+  monthCalendarFormat: MonthFormats;
+}
+
+export type RenderBottomHeader = (
+  date: Date,
+  viewMode: ViewMode,
+  locale: string,
+  dateSetup: DateSetup,
+) => ReactNode;
 
 export interface Dependency {
   sourceId: string;
@@ -34,7 +50,6 @@ export interface TaskBarColorStyles {
   milestoneBackgroundSelectedColor: string
 }
 
-export type MonthFormats = "numeric" | "2-digit" | "long" | "short" | "narrow";
 export type TaskType = "task" | "milestone" | "project";
 export interface Task {
   id: string;
@@ -183,4 +198,5 @@ export interface StylingOption extends Partial<TaskBarColorStyles> {
 
 export interface GanttProps extends EventOption, DisplayOption, StylingOption {
   tasks: Task[];
+  renderBottomHeader?: RenderBottomHeader;
 }

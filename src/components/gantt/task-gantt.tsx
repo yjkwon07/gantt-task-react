@@ -12,6 +12,7 @@ export type TaskGanttProps = {
   scrollY: number;
   scrollX: number;
 };
+
 export const TaskGantt: React.FC<TaskGanttProps> = ({
   gridProps,
   calendarProps,
