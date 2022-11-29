@@ -1,4 +1,6 @@
-import React from "react";
+import React, {
+  useMemo,
+} from "react";
 
 import cx from "classnames";
 
@@ -22,11 +24,14 @@ export const Milestone: React.FC<TaskItemProps> = ({
 }) => {
   const transform = `rotate(45 ${task.x1 + task.height * 0.356} 
     ${task.y + task.height * 0.85})`;
-  const getBarColor = () => {
-    return isSelected
-      ? task.styles.backgroundSelectedColor
-      : task.styles.backgroundColor;
-  };
+
+  const barColor = useMemo(() => {
+    if (isSelected) {
+      return task.styles.milestoneBackgroundSelectedColor;
+    }
+
+    return task.styles.milestoneBackgroundColor;
+  }, [isSelected, task.styles]);
 
   return (
     <g
@@ -34,7 +39,7 @@ export const Milestone: React.FC<TaskItemProps> = ({
       className={cx(styles.milestoneWrapper, stylesRelationHandle.barRelationHandleWrapper)}
     >
       <rect
-        fill={getBarColor()}
+        fill={barColor}
         x={task.x1}
         width={task.height}
         y={task.y}

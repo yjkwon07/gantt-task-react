@@ -18,6 +18,7 @@ import {
 
 export type TaskGanttContentProps = {
   tasks: BarTask[];
+  childIdsMap: Map<string, string[]>;
   dates: Date[];
   ganttEvent: GanttEvent;
   ganttRelationEvent: GanttRelationEvent | null;
@@ -45,6 +46,7 @@ export type TaskGanttContentProps = {
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   tasks,
+  childIdsMap,
   dates,
   ganttEvent,
   ganttRelationEvent,
@@ -444,6 +446,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
           return (
             <TaskItem
               task={task}
+              childIdsMap={childIdsMap}
               arrowIndent={arrowIndent}
               taskHeight={taskHeight}
               taskHalfHeight={taskHalfHeight}

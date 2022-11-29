@@ -1,4 +1,9 @@
-import React from "react";
+import React, {
+  useMemo,
+} from "react";
+
+import { TaskBarColorStyles } from "../../../types/public-types";
+
 import style from "./bar.module.css";
 
 type BarDisplayProps = {
@@ -7,37 +12,59 @@ type BarDisplayProps = {
   width: number;
   height: number;
   isSelected: boolean;
+  hasChildren: boolean;
   /* progress start point */
   progressX: number;
   progressWidth: number;
   barCornerRadius: number;
-  styles: {
-    backgroundColor: string;
-    backgroundSelectedColor: string;
-    progressColor: string;
-    progressSelectedColor: string;
-  };
+  styles: TaskBarColorStyles;
   onMouseDown: (event: React.MouseEvent<SVGPolygonElement, MouseEvent>) => void;
 };
+
 export const BarDisplay: React.FC<BarDisplayProps> = ({
   x,
   y,
   width,
   height,
   isSelected,
+  hasChildren,
   progressX,
   progressWidth,
   barCornerRadius,
   styles,
   onMouseDown,
 }) => {
-  const getProcessColor = () => {
-    return isSelected ? styles.progressSelectedColor : styles.progressColor;
-  };
+  const processColor = useMemo(() => {
+    if (hasChildren) {
+      if (isSelected) {
+        return styles.groupProgressSelectedColor;
+      }
 
-  const getBarColor = () => {
-    return isSelected ? styles.backgroundSelectedColor : styles.backgroundColor;
-  };
+      return styles.groupProgressColor;
+    }
+
+    if (isSelected) {
+      return styles.barProgressSelectedColor;
+    }
+
+    return styles.barProgressColor;
+  }, [isSelected, hasChildren, styles]);
+
+  const barColor = useMemo(() => {
+    if (hasChildren) {
+      if (isSelected) {
+        return styles.groupBackgroundSelectedColor;
+      }
+
+      return styles.groupBackgroundColor;
+    }
+
+    if (isSelected) {
+      return styles.barBackgroundSelectedColor;
+    }
+
+    return styles.barBackgroundColor;
+  }, [isSelected, hasChildren, styles]);
 
   return (
     <g onMouseDown={onMouseDown}>
@@ -48,7 +75,7 @@ export const BarDisplay: React.FC<BarDisplayProps> = ({
         height={height}
         ry={barCornerRadius}
         rx={barCornerRadius}
-        fill={getBarColor()}
+        fill={barColor}
         className={style.barBackground}
       />
       <rect
@@ -58,7 +85,7 @@ export const BarDisplay: React.FC<BarDisplayProps> = ({
         height={height}
         ry={barCornerRadius}
         rx={barCornerRadius}
-        fill={getProcessColor()}
+        fill={processColor}
       />
     </g>
   );

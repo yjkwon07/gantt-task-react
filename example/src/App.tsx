@@ -30,16 +30,16 @@ const App = () => {
   const handleTaskChange = (task: Task) => {
     console.log("On date change Id:" + task.id);
     let newTasks = tasks.map(t => (t.id === task.id ? task : t));
-    if (task.project) {
-      const [start, end] = getStartEndDateForProject(newTasks, task.project);
-      const project = newTasks[newTasks.findIndex(t => t.id === task.project)];
+    if (task.parent) {
+      const [start, end] = getStartEndDateForProject(newTasks, task.parent);
+      const project = newTasks[newTasks.findIndex(t => t.id === task.parent)];
       if (
         project.start.getTime() !== start.getTime() ||
         project.end.getTime() !== end.getTime()
       ) {
         const changedProject = { ...project, start, end };
         newTasks = newTasks.map(t =>
-          t.id === task.project ? changedProject : t
+          t.id === task.parent ? changedProject : t
         );
       }
     }

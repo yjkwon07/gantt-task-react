@@ -16,6 +16,7 @@ import stylesRelationHandle from "./bar-relation-handle.module.css";
 
 export const Bar: React.FC<TaskItemProps> = ({
   task,
+  childIdsMap,
   taskHalfHeight,
   relationCircleOffset,
   relationCircleRadius,
@@ -28,6 +29,10 @@ export const Bar: React.FC<TaskItemProps> = ({
   onRelationStart,
   isSelected,
 }) => {
+  const hasChildren = childIdsMap.has(task.id);
+
+  const canChangeDates = isDateChangeable && !hasChildren;
+
   const onLeftRelationTriggerMouseDown = useCallback(() => {
     onRelationStart(
       rtl ? "endOfTask" : "startOfTask",
@@ -50,6 +55,29 @@ export const Bar: React.FC<TaskItemProps> = ({
     task,
   ]);
 
+  const startMoveFullTask = useCallback(
+    (event: React.MouseEvent<SVGPolygonElement, MouseEvent>) => {
+      if (canChangeDates) {
+        onEventStart("move", task, event);
+      }
+    },
+    [canChangeDates, onEventStart, task],
+  );
+
+  const startMoveStartOfTask = useCallback(
+    (event: React.MouseEvent<SVGRectElement, MouseEvent>) => {
+      onEventStart("start", task, event);
+    },
+    [onEventStart, task],
+  );
+
+  const startMoveEndOfTask = useCallback(
+    (event: React.MouseEvent<SVGRectElement, MouseEvent>) => {
+      onEventStart("end", task, event);
+    },
+    [onEventStart, task],
+  );
+
   const progressPoint = getProgressPoint(
     +!rtl * task.progressWidth + task.progressX,
     task.y,
@@ -71,12 +99,11 @@ export const Bar: React.FC<TaskItemProps> = ({
         barCornerRadius={task.barCornerRadius}
         styles={task.styles}
         isSelected={isSelected}
-        onMouseDown={e => {
-          isDateChangeable && onEventStart("move", task, e);
-        }}
+        hasChildren={hasChildren}
+        onMouseDown={startMoveFullTask}
       />
       <g className="handleGroup">
-        {isDateChangeable && (
+        {canChangeDates && (
           <g>
             {/* left */}
             <BarDateHandle
@@ -85,9 +112,7 @@ export const Bar: React.FC<TaskItemProps> = ({
               width={task.handleWidth}
               height={handleHeight}
               barCornerRadius={task.barCornerRadius}
-              onMouseDown={e => {
-                onEventStart("start", task, e);
-              }}
+              onMouseDown={startMoveStartOfTask}
             />
             {/* right */}
             <BarDateHandle
@@ -96,9 +121,7 @@ export const Bar: React.FC<TaskItemProps> = ({
               width={task.handleWidth}
               height={handleHeight}
               barCornerRadius={task.barCornerRadius}
-              onMouseDown={e => {
-                onEventStart("end", task, e);
-              }}
+              onMouseDown={startMoveEndOfTask}
             />
           </g>
         )}

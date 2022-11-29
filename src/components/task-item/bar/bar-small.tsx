@@ -1,4 +1,7 @@
-import React from "react";
+import React, {
+  useMemo,
+} from "react";
+
 import { getProgressPoint } from "../../../helpers/bar-helper";
 import { BarDisplay } from "./bar-display";
 import { BarProgressHandle } from "./bar-progress-handle";
@@ -7,16 +10,20 @@ import styles from "./bar.module.css";
 
 export const BarSmall: React.FC<TaskItemProps> = ({
   task,
+  childIdsMap,
   isProgressChangeable,
   isDateChangeable,
   onEventStart,
   isSelected,
 }) => {
-  const progressPoint = getProgressPoint(
+  const hasChildren = childIdsMap.has(task.id);
+
+  const progressPoint = useMemo(() => getProgressPoint(
     task.progressWidth + task.x1,
     task.y,
     task.height
-  );
+  ), [task]);
+
   return (
     <g className={styles.barWrapper} tabIndex={0}>
       <BarDisplay
@@ -29,6 +36,7 @@ export const BarSmall: React.FC<TaskItemProps> = ({
         barCornerRadius={task.barCornerRadius}
         styles={task.styles}
         isSelected={isSelected}
+        hasChildren={hasChildren}
         onMouseDown={e => {
           isDateChangeable && onEventStart("move", task, e);
         }}

@@ -5,7 +5,8 @@ import React, {
   useEffect,
   useMemo,
 } from "react";
-import { ViewMode, GanttProps, Task } from "../../types/public-types";
+
+import { ViewMode, GanttProps, Task, TaskBarColorStyles } from "../../types/public-types";
 import { GridProps } from "../grid/grid";
 import { ganttDateRange, seedDates } from "../../helpers/date-helper";
 import { CalendarProps } from "../calendar/calendar";
@@ -22,6 +23,8 @@ import { GanttEvent, GanttRelationEvent } from "../../types/gantt-task-actions";
 import { DateSetup } from "../../types/date-setup";
 import { HorizontalScroll } from "../other/horizontal-scroll";
 import { removeHiddenTasks, sortTasks } from "../../helpers/other-helper";
+import { getChildIds } from "../../helpers/get-child-ids";
+
 import styles from "./gantt.module.css";
 
 export const Gantt: React.FunctionComponent<GanttProps> = ({
@@ -44,6 +47,10 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   barProgressSelectedColor = "#8282f5",
   barBackgroundColor = "#b8c2cc",
   barBackgroundSelectedColor = "#aeb8c2",
+  groupProgressColor = "#2dbb2e",
+  groupProgressSelectedColor = "#28a329",
+  groupBackgroundColor = "#006bc1",
+  groupBackgroundSelectedColor = "#407fbf",
   projectProgressColor = "#7db59a",
   projectProgressSelectedColor = "#59a985",
   projectBackgroundColor = "#fac465",
@@ -94,6 +101,43 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     action: "",
   });
   const [ganttRelationEvent, setGanttRelationEvent] = useState<GanttRelationEvent | null>(null);
+
+  const childIdsMap = useMemo(
+    () => getChildIds(tasks),
+    [tasks],
+  );
+
+  const colorStyles = useMemo<TaskBarColorStyles>(() => ({
+    barProgressColor,
+    barProgressSelectedColor,
+    barBackgroundColor,
+    barBackgroundSelectedColor,
+    groupProgressColor,
+    groupProgressSelectedColor,
+    groupBackgroundColor,
+    groupBackgroundSelectedColor,
+    projectProgressColor,
+    projectProgressSelectedColor,
+    projectBackgroundColor,
+    projectBackgroundSelectedColor,
+    milestoneBackgroundColor,
+    milestoneBackgroundSelectedColor,
+  }), [
+    barProgressColor,
+    barProgressSelectedColor,
+    barBackgroundColor,
+    barBackgroundSelectedColor,
+    groupProgressColor,
+    groupProgressSelectedColor,
+    groupBackgroundColor,
+    groupBackgroundSelectedColor,
+    projectProgressColor,
+    projectProgressSelectedColor,
+    projectBackgroundColor,
+    projectBackgroundSelectedColor,
+    milestoneBackgroundColor,
+    milestoneBackgroundSelectedColor,
+  ]);
 
   const taskHeight = useMemo(
     () => (rowHeight * barFill) / 100,
@@ -147,16 +191,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
         barCornerRadius,
         handleWidth,
         rtl,
-        barProgressColor,
-        barProgressSelectedColor,
-        barBackgroundColor,
-        barBackgroundSelectedColor,
-        projectProgressColor,
-        projectProgressSelectedColor,
-        projectBackgroundColor,
-        projectBackgroundSelectedColor,
-        milestoneBackgroundColor,
-        milestoneBackgroundSelectedColor
+        colorStyles,
       )
     );
   }, [
@@ -168,16 +203,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     columnWidth,
     taskHeight,
     handleWidth,
-    barProgressColor,
-    barProgressSelectedColor,
-    barBackgroundColor,
-    barBackgroundSelectedColor,
-    projectProgressColor,
-    projectProgressSelectedColor,
-    projectBackgroundColor,
-    projectBackgroundSelectedColor,
-    milestoneBackgroundColor,
-    milestoneBackgroundSelectedColor,
+    colorStyles,
     rtl,
     scrollX,
     onExpanderClick,
@@ -424,6 +450,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   };
   const barProps: TaskGanttContentProps = {
     tasks: barTasks,
+    childIdsMap,
     dates: dateSetup.dates,
     ganttEvent,
     ganttRelationEvent,

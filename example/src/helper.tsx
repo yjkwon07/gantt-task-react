@@ -26,7 +26,7 @@ export function initTasks() {
       id: "Task 0",
       progress: 45,
       type: "task",
-      project: "ProjectSample",
+      parent: "ProjectSample",
       displayOrder: 2,
     },
     {
@@ -43,7 +43,7 @@ export function initTasks() {
         },
       ],
       type: "task",
-      project: "ProjectSample",
+      parent: "ProjectSample",
       displayOrder: 3,
     },
     {
@@ -60,15 +60,15 @@ export function initTasks() {
         },
       ],
       type: "task",
-      project: "ProjectSample",
+      parent: "ProjectSample",
       displayOrder: 4,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8),
-      end: new Date(currentDate.getFullYear(), currentDate.getMonth(), 9, 0, 0),
+      end: new Date(currentDate.getFullYear(), currentDate.getMonth(), 10, 0, 0),
       name: "Developing",
-      id: "Task 3",
-      progress: 2,
+      id: "Task developing",
+      progress: 50,
       dependencies: [
         {
           sourceId: "Task 2",
@@ -77,8 +77,18 @@ export function initTasks() {
         },
       ],
       type: "task",
-      project: "ProjectSample",
+      parent: "ProjectSample",
       displayOrder: 5,
+    },
+    {
+      start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8),
+      end: new Date(currentDate.getFullYear(), currentDate.getMonth(), 9),
+      name: "Code",
+      id: "Task code",
+      type: "task",
+      progress: 40,
+      parent: "Task developing",
+      displayOrder: 6,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8),
@@ -87,15 +97,8 @@ export function initTasks() {
       id: "Task 4",
       type: "task",
       progress: 70,
-      dependencies: [
-        {
-          sourceId: "Task 2",
-          sourceTarget: "endOfTask",
-          ownTarget: "startOfTask",
-        },
-      ],
-      project: "ProjectSample",
-      displayOrder: 6,
+      parent: "Task developing",
+      displayOrder: 7,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 15),
@@ -111,8 +114,8 @@ export function initTasks() {
           ownTarget: "startOfTask",
         },
       ],
-      project: "ProjectSample",
-      displayOrder: 7,
+      parent: "ProjectSample",
+      displayOrder: 8,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 18),
@@ -128,7 +131,7 @@ export function initTasks() {
 }
 
 export function getStartEndDateForProject(tasks: Task[], projectId: string) {
-  const projectTasks = tasks.filter(t => t.project === projectId);
+  const projectTasks = tasks.filter(t => t.parent === projectId);
   let start = projectTasks[0].start;
   let end = projectTasks[0].end;
 

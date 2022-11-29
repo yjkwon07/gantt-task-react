@@ -1,14 +1,27 @@
-import React from "react";
+import React, {
+  useMemo,
+} from "react";
+
 import { TaskItemProps } from "../task-item";
 import styles from "./project.module.css";
 
 export const Project: React.FC<TaskItemProps> = ({ task, isSelected }) => {
-  const barColor = isSelected
-    ? task.styles.backgroundSelectedColor
-    : task.styles.backgroundColor;
-  const processColor = isSelected
-    ? task.styles.progressSelectedColor
-    : task.styles.progressColor;
+  const barColor = useMemo(() => {
+    if (isSelected) {
+      return task.styles.projectBackgroundSelectedColor;
+    }
+
+    return task.styles.projectBackgroundColor;
+  }, [isSelected, task.styles]);
+
+  const processColor = useMemo(() => {
+    if (isSelected) {
+      return task.styles.projectProgressSelectedColor;
+    }
+
+    return task.styles.projectProgressColor;
+  }, [isSelected, task.styles]);
+
   const projectWith = task.x2 - task.x1;
 
   const projectLeftTriangle = [

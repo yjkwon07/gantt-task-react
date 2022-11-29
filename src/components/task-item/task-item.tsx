@@ -1,4 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from "react";
 import { BarTask } from "../../types/bar-task";
 import { GanttContentMoveAction, RelationMoveTarget } from "../../types/gantt-task-actions";
 import { Bar } from "./bar/bar";
@@ -9,6 +14,7 @@ import style from "./task-list.module.css";
 
 export type TaskItemProps = {
   task: BarTask;
+  childIdsMap: Map<string, string[]>;
   arrowIndent: number;
   taskHeight: number;
   taskHalfHeight: number;
@@ -35,6 +41,7 @@ export type TaskItemProps = {
 export const TaskItem: React.FC<TaskItemProps> = props => {
   const {
     task,
+    childIdsMap,
     arrowIndent,
     isDelete,
     taskHeight,
@@ -45,25 +52,28 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
   } = props;
 
   const textRef = useRef<SVGTextElement>(null);
-  const [taskItem, setTaskItem] = useState<JSX.Element>(<div />);
   const [isTextInside, setIsTextInside] = useState(true);
 
-  useEffect(() => {
+  const taskItem = useMemo(() => {
     switch (task.typeInternal) {
       case "milestone":
-        setTaskItem(<Milestone {...props} />);
-        break;
+        return <Milestone {...props} />;
+
       case "project":
-        setTaskItem(<Project {...props} />);
-        break;
+        return <Project {...props} />;
+
       case "smalltask":
-        setTaskItem(<BarSmall {...props} />);
-        break;
+        return <BarSmall {...props} />;
+
       default:
-        setTaskItem(<Bar {...props} />);
-        break;
+        return <Bar {...props} />;
     }
-  }, [task, isSelected, isRelationDrawMode]);
+  }, [
+    task,
+    isSelected,
+    isRelationDrawMode,
+    childIdsMap,
+  ]);
 
   useEffect(() => {
     if (textRef.current) {

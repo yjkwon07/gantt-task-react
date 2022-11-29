@@ -17,6 +17,23 @@ export interface Dependency {
   ownTarget: RelationMoveTarget;
 }
 
+export interface TaskBarColorStyles {
+  barProgressColor: string,
+  barProgressSelectedColor: string,
+  barBackgroundColor: string,
+  barBackgroundSelectedColor: string,
+  groupProgressColor: string;
+  groupProgressSelectedColor: string;
+  groupBackgroundColor: string;
+  groupBackgroundSelectedColor: string;
+  projectProgressColor: string,
+  projectProgressSelectedColor: string,
+  projectBackgroundColor: string,
+  projectBackgroundSelectedColor: string,
+  milestoneBackgroundColor: string,
+  milestoneBackgroundSelectedColor: string
+}
+
 export type MonthFormats = "numeric" | "2-digit" | "long" | "short" | "narrow";
 export type TaskType = "task" | "milestone" | "project";
 export interface Task {
@@ -29,14 +46,12 @@ export interface Task {
    * From 0 to 100
    */
   progress: number;
-  styles?: {
-    backgroundColor?: string;
-    backgroundSelectedColor?: string;
-    progressColor?: string;
-    progressSelectedColor?: string;
-  };
+  styles?: Partial<TaskBarColorStyles>;
   isDisabled?: boolean;
-  project?: string;
+  /**
+   * Project or task
+   */
+  parent?: string;
   dependencies?: Dependency[];
   hideChildren?: boolean;
   displayOrder?: number;
@@ -110,7 +125,7 @@ export interface DisplayOption {
   rtl?: boolean;
 }
 
-export interface StylingOption {
+export interface StylingOption extends Partial<TaskBarColorStyles> {
   headerHeight?: number;
   columnWidth?: number;
   listCellWidth?: string;
@@ -127,16 +142,6 @@ export interface StylingOption {
    * From 0 to 100
    */
   barFill?: number;
-  barProgressColor?: string;
-  barProgressSelectedColor?: string;
-  barBackgroundColor?: string;
-  barBackgroundSelectedColor?: string;
-  projectProgressColor?: string;
-  projectProgressSelectedColor?: string;
-  projectBackgroundColor?: string;
-  projectBackgroundSelectedColor?: string;
-  milestoneBackgroundColor?: string;
-  milestoneBackgroundSelectedColor?: string;
   arrowColor?: string;
   arrowIndent?: number;
   todayColor?: string;

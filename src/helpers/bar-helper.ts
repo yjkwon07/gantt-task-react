@@ -1,4 +1,4 @@
-import { Task } from "../types/public-types";
+import { Task, TaskBarColorStyles } from "../types/public-types";
 import { BarTask, TaskTypeInternal } from "../types/bar-task";
 import { BarMoveAction } from "../types/gantt-task-actions";
 
@@ -11,16 +11,7 @@ export const convertToBarTasks = (
   barCornerRadius: number,
   handleWidth: number,
   rtl: boolean,
-  barProgressColor: string,
-  barProgressSelectedColor: string,
-  barBackgroundColor: string,
-  barBackgroundSelectedColor: string,
-  projectProgressColor: string,
-  projectProgressSelectedColor: string,
-  projectBackgroundColor: string,
-  projectBackgroundSelectedColor: string,
-  milestoneBackgroundColor: string,
-  milestoneBackgroundSelectedColor: string
+  styles: TaskBarColorStyles,
 ) => {
   let barTasks = tasks.map((t, i) => {
     return convertToBarTask(
@@ -33,16 +24,7 @@ export const convertToBarTasks = (
       barCornerRadius,
       handleWidth,
       rtl,
-      barProgressColor,
-      barProgressSelectedColor,
-      barBackgroundColor,
-      barBackgroundSelectedColor,
-      projectProgressColor,
-      projectProgressSelectedColor,
-      projectBackgroundColor,
-      projectBackgroundSelectedColor,
-      milestoneBackgroundColor,
-      milestoneBackgroundSelectedColor
+      styles,
     );
   });
 
@@ -81,16 +63,7 @@ const convertToBarTask = (
   barCornerRadius: number,
   handleWidth: number,
   rtl: boolean,
-  barProgressColor: string,
-  barProgressSelectedColor: string,
-  barBackgroundColor: string,
-  barBackgroundSelectedColor: string,
-  projectProgressColor: string,
-  projectProgressSelectedColor: string,
-  projectBackgroundColor: string,
-  projectBackgroundSelectedColor: string,
-  milestoneBackgroundColor: string,
-  milestoneBackgroundSelectedColor: string
+  styles: TaskBarColorStyles,
 ): BarTask => {
   let barTask: BarTask;
   switch (task.type) {
@@ -105,8 +78,7 @@ const convertToBarTask = (
         barCornerRadius,
         handleWidth,
         rtl,
-        milestoneBackgroundColor,
-        milestoneBackgroundSelectedColor
+        styles,
       );
       break;
     case "project":
@@ -120,10 +92,7 @@ const convertToBarTask = (
         barCornerRadius,
         handleWidth,
         rtl,
-        projectProgressColor,
-        projectProgressSelectedColor,
-        projectBackgroundColor,
-        projectBackgroundSelectedColor
+        styles,
       );
       break;
     default:
@@ -137,10 +106,7 @@ const convertToBarTask = (
         barCornerRadius,
         handleWidth,
         rtl,
-        barProgressColor,
-        barProgressSelectedColor,
-        barBackgroundColor,
-        barBackgroundSelectedColor
+        styles,
       );
       break;
   }
@@ -157,10 +123,7 @@ const convertToBar = (
   barCornerRadius: number,
   handleWidth: number,
   rtl: boolean,
-  barProgressColor: string,
-  barProgressSelectedColor: string,
-  barBackgroundColor: string,
-  barBackgroundSelectedColor: string
+  styles: TaskBarColorStyles,
 ): BarTask => {
   let x1: number;
   let x2: number;
@@ -186,13 +149,6 @@ const convertToBar = (
   const y = taskYCoordinate(index, rowHeight, taskHeight);
   const hideChildren = task.type === "project" ? task.hideChildren : undefined;
 
-  const styles = {
-    backgroundColor: barBackgroundColor,
-    backgroundSelectedColor: barBackgroundSelectedColor,
-    progressColor: barProgressColor,
-    progressSelectedColor: barProgressSelectedColor,
-    ...task.styles,
-  };
   return {
     ...task,
     typeInternal,
@@ -207,7 +163,10 @@ const convertToBar = (
     hideChildren,
     height: taskHeight,
     barChildren: [],
-    styles,
+    styles: task.styles ? {
+      ...styles,
+      ...task.styles,
+    } : styles,
   };
 };
 
@@ -221,8 +180,7 @@ const convertToMilestone = (
   barCornerRadius: number,
   handleWidth: number,
   rtl: boolean,
-  milestoneBackgroundColor: string,
-  milestoneBackgroundSelectedColor: string
+  styles: TaskBarColorStyles,
 ): BarTask => {
   let x: number;
   if (rtl) {
@@ -237,13 +195,7 @@ const convertToMilestone = (
   const x2 = x + taskHeight * 0.5;
 
   const rotatedHeight = taskHeight / 1.414;
-  const styles = {
-    backgroundColor: milestoneBackgroundColor,
-    backgroundSelectedColor: milestoneBackgroundSelectedColor,
-    progressColor: "",
-    progressSelectedColor: "",
-    ...task.styles,
-  };
+
   return {
     ...task,
     end: task.start,
@@ -260,7 +212,10 @@ const convertToMilestone = (
     height: rotatedHeight,
     hideChildren: undefined,
     barChildren: [],
-    styles,
+    styles: task.styles ? {
+      ...styles,
+      ...task.styles,
+    } : styles,
   };
 };
 
