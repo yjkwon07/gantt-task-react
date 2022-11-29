@@ -46,7 +46,15 @@ const App = () => {
     setTasks(newTasks);
   };
 
-  const handleRelationChange = useCallback<OnRelationChange>(([taskFrom, targetFrom], [taskTo, targetTo]) => {
+  const handleRelationChange = useCallback<OnRelationChange>((
+    [taskFrom, targetFrom],
+    [taskTo, targetTo],
+    isOneDescendant,
+  ) => {
+    if (isOneDescendant) {
+      return;
+    }
+
     if (taskFrom.id === taskTo.id) {
       return;
     }

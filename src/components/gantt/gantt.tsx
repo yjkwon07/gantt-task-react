@@ -24,6 +24,7 @@ import { DateSetup } from "../../types/date-setup";
 import { HorizontalScroll } from "../other/horizontal-scroll";
 import { removeHiddenTasks, sortTasks } from "../../helpers/other-helper";
 import { getChildIds } from "../../helpers/get-child-ids";
+import { getTasksMap } from "../../helpers/get-tasks-map";
 
 import styles from "./gantt.module.css";
 
@@ -104,6 +105,11 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
 
   const childIdsMap = useMemo(
     () => getChildIds(tasks),
+    [tasks],
+  );
+
+  const tasksMap = useMemo(
+    () => getTasksMap(tasks),
     [tasks],
   );
 
@@ -451,6 +457,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   const barProps: TaskGanttContentProps = {
     tasks: barTasks,
     childIdsMap,
+    tasksMap,
     dates: dateSetup.dates,
     ganttEvent,
     ganttRelationEvent,

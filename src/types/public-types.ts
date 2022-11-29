@@ -65,6 +65,10 @@ export type OnArrowDoubleClick = (
 export type OnRelationChange = (
   from: [Task, RelationMoveTarget],
   to: [Task, RelationMoveTarget],
+  /**
+   * One of tasks is descendant of other task
+   */
+  isOneDescendant: boolean,
 ) => void;
 
 export interface EventOption {

@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { EventOption, OnArrowDoubleClick } from "../../types/public-types";
+import { EventOption, OnArrowDoubleClick, Task } from "../../types/public-types";
 import { BarTask } from "../../types/bar-task";
 import { Arrow } from "../other/arrow";
 import { RelationLine } from "../other/relation-line";
 import { handleTaskBySVGMouseEvent } from "../../helpers/bar-helper";
 import { getRelationCircleByCoordinates } from "../../helpers/get-relation-circle-by-coordinates";
 import { isKeyboardEvent } from "../../helpers/other-helper";
+import { checkIsDescendant } from "../../helpers/check-is-descendant";
 import { TaskItem } from "../task-item/task-item";
 import {
   BarMoveAction,
@@ -19,6 +20,7 @@ import {
 export type TaskGanttContentProps = {
   tasks: BarTask[];
   childIdsMap: Map<string, string[]>;
+  tasksMap: Map<string, Task>;
   dates: Date[];
   ganttEvent: GanttEvent;
   ganttRelationEvent: GanttRelationEvent | null;
@@ -47,6 +49,7 @@ export type TaskGanttContentProps = {
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   tasks,
   childIdsMap,
+  tasksMap,
   dates,
   ganttEvent,
   ganttRelationEvent,
@@ -294,9 +297,20 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       );
 
       if (endTargetRelationCircle) {
+        const isOneDescendant = checkIsDescendant(
+          startRelationTask,
+          endTargetRelationCircle[0],
+          tasksMap,
+        ) || checkIsDescendant(
+          endTargetRelationCircle[0],
+          startRelationTask,
+          tasksMap,
+        );
+
         onRelationChange(
           [startRelationTask, startRelationTarget],
           endTargetRelationCircle,
+          isOneDescendant,
         );
       }
 
@@ -318,6 +332,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     startRelationTask,
     setGanttRelationEvent,
     tasks,
+    tasksMap,
     taskHalfHeight,
     relationCircleOffset,
     relationCircleRadius,
