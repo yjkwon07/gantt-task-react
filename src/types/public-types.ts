@@ -70,6 +70,7 @@ export interface Task {
   dependencies?: Dependency[];
   hideChildren?: boolean;
   displayOrder?: number;
+  comparisonLevel?: number;
 }
 
 export type OnArrowDoubleClick = (
@@ -132,6 +133,10 @@ export interface EventOption {
    * Invokes on expander on task list
    */
   onExpanderClick?: (task: Task) => void;
+  /**
+   * Invokes on double click on the relation arrow between tasks
+   */
+  onArrowDoubleClick?: OnArrowDoubleClick;
 }
 
 export interface DisplayOption {
@@ -193,11 +198,34 @@ export interface StylingOption extends Partial<TaskBarColorStyles> {
     onExpanderClick: (task: Task) => void;
   }>;
 
-  onArrowDoubleClick?: OnArrowDoubleClick;
+  /**
+   * Render function of bottom part of header above chart
+   */
+  renderBottomHeader?: RenderHeader;
+  /**
+   * Render function of top part of header above chart
+   */
+  renderTopHeader?: RenderHeader;
 }
 
 export interface GanttProps extends EventOption, DisplayOption, StylingOption {
   tasks: Task[];
-  renderBottomHeader?: RenderHeader;
-  renderTopHeader?: RenderHeader;
+  /**
+   * Can be used to compare multiple graphs. This prop is the number of graps being compared
+   */
+  comparisonLevels?: number;
+}
+
+export interface TaskListTableProps {
+  rowHeight: number;
+  fullRowHeight: number;
+  rowWidth: string;
+  fontFamily: string;
+  fontSize: string;
+  locale: string;
+  monthFormat: MonthFormats;
+  tasks: Task[];
+  selectedTaskId: string;
+  setSelectedTask: (taskId: string) => void;
+  onExpanderClick: (task: Task) => void;
 }

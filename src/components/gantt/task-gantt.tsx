@@ -9,6 +9,7 @@ export type TaskGanttProps = {
   calendarProps: CalendarProps;
   barProps: TaskGanttContentProps;
   ganttHeight: number;
+  ganttFullHeight: number;
   scrollY: number;
   scrollX: number;
 };
@@ -18,6 +19,7 @@ export const TaskGantt: React.FC<TaskGanttProps> = ({
   calendarProps,
   barProps,
   ganttHeight,
+  ganttFullHeight,
   scrollY,
   scrollX,
 }) => {
@@ -64,7 +66,7 @@ export const TaskGantt: React.FC<TaskGanttProps> = ({
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width={gridProps.svgWidth}
-          height={barProps.rowHeight * barProps.tasks.length}
+          height={ganttFullHeight}
           fontFamily={barProps.fontFamily}
           ref={ganttSVGRef}
         >

@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
+
 import styles from "./task-list-table.module.css";
-import { MonthFormats, Task } from "../../types/public-types";
+import { TaskListTableProps } from "../../types/public-types";
 
 const localeDateStringCache = {};
 const toLocaleDateStringFactory =
@@ -15,19 +16,8 @@ const toLocaleDateStringFactory =
     return lds;
   };
 
-export const TaskListTableDefault: React.FC<{
-  rowHeight: number;
-  rowWidth: string;
-  fontFamily: string;
-  fontSize: string;
-  locale: string;
-  monthFormat: MonthFormats;
-  tasks: Task[];
-  selectedTaskId: string;
-  setSelectedTask: (taskId: string) => void;
-  onExpanderClick: (task: Task) => void;
-}> = ({
-  rowHeight,
+export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
+  fullRowHeight,
   rowWidth,
   tasks,
   fontFamily,
@@ -55,63 +45,70 @@ export const TaskListTableDefault: React.FC<{
         fontSize: fontSize,
       }}
     >
-      {tasks.map(t => {
-        let expanderSymbol = "";
-        if (t.hideChildren === false) {
-          expanderSymbol = "▼";
-        } else if (t.hideChildren === true) {
-          expanderSymbol = "▶";
-        }
+      {tasks
+        /**
+         * TO DO: maybe consider tasks on other levels?
+         */
+        .filter((task) => !task.comparisonLevel || task.comparisonLevel === 1)
+        .map(t => {
+          let expanderSymbol = "";
+          if (t.hideChildren === false) {
+            expanderSymbol = "▼";
+          } else if (t.hideChildren === true) {
+            expanderSymbol = "▶";
+          }
 
-        return (
-          <div
-            className={styles.taskListTableRow}
-            style={{ height: rowHeight }}
-            key={`${t.id}row`}
-          >
+          return (
             <div
-              className={styles.taskListCell}
+              className={styles.taskListTableRow}
               style={{
-                minWidth: rowWidth,
-                maxWidth: rowWidth,
+                height: fullRowHeight,
               }}
-              title={t.name}
+              key={`${t.id}row`}
             >
-              <div className={styles.taskListNameWrapper}>
-                <div
-                  className={
-                    expanderSymbol
-                      ? styles.taskListExpander
-                      : styles.taskListEmptyExpander
-                  }
-                  onClick={() => onExpanderClick(t)}
-                >
-                  {expanderSymbol}
+              <div
+                className={styles.taskListCell}
+                style={{
+                  minWidth: rowWidth,
+                  maxWidth: rowWidth,
+                }}
+                title={t.name}
+              >
+                <div className={styles.taskListNameWrapper}>
+                  <div
+                    className={
+                      expanderSymbol
+                        ? styles.taskListExpander
+                        : styles.taskListEmptyExpander
+                    }
+                    onClick={() => onExpanderClick(t)}
+                  >
+                    {expanderSymbol}
+                  </div>
+                  <div>{t.name}</div>
                 </div>
-                <div>{t.name}</div>
+              </div>
+              <div
+                className={styles.taskListCell}
+                style={{
+                  minWidth: rowWidth,
+                  maxWidth: rowWidth,
+                }}
+              >
+                &nbsp;{toLocaleDateString(t.start, dateTimeOptions)}
+              </div>
+              <div
+                className={styles.taskListCell}
+                style={{
+                  minWidth: rowWidth,
+                  maxWidth: rowWidth,
+                }}
+              >
+                &nbsp;{toLocaleDateString(t.end, dateTimeOptions)}
               </div>
             </div>
-            <div
-              className={styles.taskListCell}
-              style={{
-                minWidth: rowWidth,
-                maxWidth: rowWidth,
-              }}
-            >
-              &nbsp;{toLocaleDateString(t.start, dateTimeOptions)}
-            </div>
-            <div
-              className={styles.taskListCell}
-              style={{
-                minWidth: rowWidth,
-                maxWidth: rowWidth,
-              }}
-            >
-              &nbsp;{toLocaleDateString(t.end, dateTimeOptions)}
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
     </div>
   );
 };

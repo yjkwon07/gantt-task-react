@@ -16,18 +16,19 @@ type ArrowProps = {
   targetFrom: RelationMoveTarget;
   taskTo: BarTask;
   targetTo: RelationMoveTarget;
-  rowHeight: number;
+  fullRowHeight: number;
   taskHeight: number;
   arrowIndent: number;
   rtl: boolean;
   onArrowDoubleClick?: OnArrowDoubleClick;
 };
+
 const ArrowInner: React.FC<ArrowProps> = ({
   taskFrom,
   targetFrom,
   taskTo,
   targetTo,
-  rowHeight,
+  fullRowHeight,
   taskHeight,
   arrowIndent,
   rtl,
@@ -48,7 +49,7 @@ const ArrowInner: React.FC<ArrowProps> = ({
     (targetFrom === 'startOfTask') !== rtl,
     taskTo,
     (targetTo === 'startOfTask') !== rtl,
-    rowHeight,
+    fullRowHeight,
     taskHeight,
     arrowIndent,
   );
@@ -84,11 +85,15 @@ const drownPathAndTriangle = (
   isTaskFromLeftSide: boolean,
   taskTo: BarTask,
   isTaskToLeftSide: boolean,
-  rowHeight: number,
+  fullRowHeight: number,
   taskHeight: number,
   arrowIndent: number
 ) => {
-  const indexCompare = taskFrom.index > taskTo.index ? -1 : 1;
+  const isDownDirected = taskTo.index > taskFrom.index;
+  const horizontalDockingY = isDownDirected
+    ? ((taskFrom.index + 1) * fullRowHeight)
+    : (taskFrom.index * fullRowHeight);
+
   const taskFromEndPositionX = isTaskFromLeftSide
     ? taskFrom.x1 - arrowIndent
     : taskFrom.x2 + arrowIndent;
@@ -98,11 +103,11 @@ const drownPathAndTriangle = (
     : taskTo.x2 + arrowIndent;
   const taskToEndPositionY = taskTo.y + taskHeight / 2;
 
-  const path = `M ${isTaskFromLeftSide ? taskFrom.x1 : taskFrom.x2} ${taskFrom.y + taskHeight / 2} 
-  H ${taskFromEndPositionX} 
-  v ${(indexCompare * rowHeight) / 2} 
+  const path = `M ${isTaskFromLeftSide ? taskFrom.x1 : taskFrom.x2} ${taskFrom.y + taskHeight / 2}
+  H ${taskFromEndPositionX}
+  V ${horizontalDockingY}
   H ${taskToEndPositionX}
-  V ${taskToEndPositionY} 
+  V ${taskToEndPositionY}
   H ${isTaskToLeftSide ? taskTo.x1 : taskTo.x2}`;
 
   const trianglePoints = isTaskToLeftSide

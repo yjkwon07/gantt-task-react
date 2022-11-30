@@ -26,7 +26,7 @@ export type TaskGanttContentProps = {
   ganttEvent: GanttEvent;
   ganttRelationEvent: GanttRelationEvent | null;
   selectedTask: BarTask | undefined;
-  rowHeight: number;
+  fullRowHeight: number;
   columnWidth: number;
   timeStep: number;
   svg?: React.RefObject<SVGSVGElement>;
@@ -55,7 +55,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   ganttEvent,
   ganttRelationEvent,
   selectedTask,
-  rowHeight,
+  fullRowHeight,
   columnWidth,
   timeStep,
   svg,
@@ -449,7 +449,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                 targetFrom={sourceTarget}
                 taskTo={tasks[dependentTask.index]}
                 targetTo={dependentTarget}
-                rowHeight={rowHeight}
+                fullRowHeight={fullRowHeight}
                 taskHeight={taskHeight}
                 arrowIndent={arrowIndent}
                 rtl={rtl}

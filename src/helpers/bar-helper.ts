@@ -7,19 +7,34 @@ export const convertToBarTasks = (
   dates: Date[],
   columnWidth: number,
   rowHeight: number,
+  fullRowHeight: number,
   taskHeight: number,
   barCornerRadius: number,
   handleWidth: number,
   rtl: boolean,
   styles: TaskBarColorStyles,
 ) => {
-  let barTasks = tasks.map((t, i) => {
+  const indexesByLevels: Record<string, number> = {};
+
+  let barTasks = tasks.map((task) => {
+    const {
+      comparisonLevel = 1,
+    } = task;
+
+    if (!indexesByLevels[comparisonLevel]) {
+      indexesByLevels[comparisonLevel] = 0;
+    }
+
+    const index = indexesByLevels[comparisonLevel];
+    ++indexesByLevels[comparisonLevel];
+
     return convertToBarTask(
-      t,
-      i,
+      task,
+      index,
       dates,
       columnWidth,
       rowHeight,
+      fullRowHeight,
       taskHeight,
       barCornerRadius,
       handleWidth,
@@ -55,10 +70,11 @@ export const convertToBarTasks = (
 
 const convertToBarTask = (
   task: Task,
-  index: number,
+  rowIndex: number,
   dates: Date[],
   columnWidth: number,
   rowHeight: number,
+  fullRowHeight: number,
   taskHeight: number,
   barCornerRadius: number,
   handleWidth: number,
@@ -70,10 +86,11 @@ const convertToBarTask = (
     case "milestone":
       barTask = convertToMilestone(
         task,
-        index,
+        rowIndex,
         dates,
         columnWidth,
         rowHeight,
+        fullRowHeight,
         taskHeight,
         barCornerRadius,
         handleWidth,
@@ -84,10 +101,11 @@ const convertToBarTask = (
     case "project":
       barTask = convertToBar(
         task,
-        index,
+        rowIndex,
         dates,
         columnWidth,
         rowHeight,
+        fullRowHeight,
         taskHeight,
         barCornerRadius,
         handleWidth,
@@ -98,10 +116,11 @@ const convertToBarTask = (
     default:
       barTask = convertToBar(
         task,
-        index,
+        rowIndex,
         dates,
         columnWidth,
         rowHeight,
+        fullRowHeight,
         taskHeight,
         barCornerRadius,
         handleWidth,
@@ -115,10 +134,11 @@ const convertToBarTask = (
 
 const convertToBar = (
   task: Task,
-  index: number,
+  rowIndex: number,
   dates: Date[],
   columnWidth: number,
   rowHeight: number,
+  fullRowHeight: number,
   taskHeight: number,
   barCornerRadius: number,
   handleWidth: number,
@@ -146,7 +166,13 @@ const convertToBar = (
     task.progress,
     rtl
   );
-  const y = taskYCoordinate(index, rowHeight, taskHeight);
+  const y = taskYCoordinate(
+    rowIndex,
+    rowHeight,
+    fullRowHeight,
+    taskHeight,
+    task.comparisonLevel || 1,
+  );
   const hideChildren = task.type === "project" ? task.hideChildren : undefined;
 
   return {
@@ -155,7 +181,7 @@ const convertToBar = (
     x1,
     x2,
     y,
-    index,
+    index: rowIndex,
     progressX,
     progressWidth,
     barCornerRadius,
@@ -172,10 +198,11 @@ const convertToBar = (
 
 const convertToMilestone = (
   task: Task,
-  index: number,
+  rowIndex: number,
   dates: Date[],
   columnWidth: number,
   rowHeight: number,
+  fullRowHeight: number,
   taskHeight: number,
   barCornerRadius: number,
   handleWidth: number,
@@ -189,7 +216,13 @@ const convertToMilestone = (
     x = taskXCoordinate(task.start, dates, columnWidth);
   }
 
-  const y = taskYCoordinate(index, rowHeight, taskHeight);
+  const y = taskYCoordinate(
+    rowIndex,
+    rowHeight,
+    fullRowHeight,
+    taskHeight,
+    task.comparisonLevel || 1,
+  );
 
   const x1 = x - taskHeight * 0.5;
   const x2 = x + taskHeight * 0.5;
@@ -202,7 +235,7 @@ const convertToMilestone = (
     x1,
     x2,
     y,
-    index,
+    index: rowIndex,
     progressX: 0,
     progressWidth: 0,
     barCornerRadius,
@@ -243,11 +276,16 @@ const taskXCoordinateRTL = (
 };
 
 const taskYCoordinate = (
-  index: number,
+  rowIndex: number,
   rowHeight: number,
-  taskHeight: number
+  fullRowHeight: number,
+  taskHeight: number,
+  comparisonLevel: number,
 ) => {
-  const y = index * rowHeight + (rowHeight - taskHeight) / 2;
+  const y = rowIndex * fullRowHeight
+    + (rowHeight * (comparisonLevel - 1))
+    + (rowHeight - taskHeight) / 2;
+
   return y;
 };
 

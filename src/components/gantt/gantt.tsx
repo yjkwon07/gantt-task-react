@@ -86,6 +86,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   onArrowDoubleClick = undefined,
   renderBottomHeader = undefined,
   renderTopHeader = undefined,
+  comparisonLevels = 1,
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
@@ -103,7 +104,6 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
 
   const [taskListWidth, setTaskListWidth] = useState(0);
   const [svgContainerWidth, setSvgContainerWidth] = useState(0);
-  const [svgContainerHeight, setSvgContainerHeight] = useState(ganttHeight);
   const [barTasks, setBarTasks] = useState<BarTask[]>([]);
   const [ganttEvent, setGanttEvent] = useState<GanttEvent>({
     action: "",
@@ -118,6 +118,11 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   const tasksMap = useMemo(
     () => getTasksMap(tasks),
     [tasks],
+  );
+
+  const fullRowHeight = useMemo(
+    () => rowHeight * comparisonLevels,
+    [rowHeight, comparisonLevels],
   );
 
   const colorStyles = useMemo<TaskBarColorStyles>(() => ({
@@ -162,11 +167,36 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     [taskHeight],
   );
 
+  const maxLevelLength = useMemo(() => {
+    let maxLength = 0;
+    const countByLevel: Record<string, number> = {};
+
+    tasks.forEach(({
+      comparisonLevel = 1,
+    }) => {
+      if (!countByLevel[comparisonLevel]) {
+        countByLevel[comparisonLevel] = 0;
+      }
+  
+      ++countByLevel[comparisonLevel];
+
+      if (maxLength < countByLevel[comparisonLevel]) {
+        maxLength = countByLevel[comparisonLevel];
+      }
+    });
+
+    return maxLength;
+  }, [tasks]);
+
   const [selectedTask, setSelectedTask] = useState<BarTask>();
   const [failedTask, setFailedTask] = useState<BarTask | null>(null);
 
   const svgWidth = dateSetup.dates.length * columnWidth;
-  const ganttFullHeight = barTasks.length * rowHeight;
+
+  const ganttFullHeight = useMemo(
+    () => maxLevelLength * fullRowHeight,
+    [maxLevelLength, fullRowHeight],
+  );
 
   const [scrollY, setScrollY] = useState(0);
   const [scrollX, setScrollX] = useState(-1);
@@ -200,6 +230,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
         newDates,
         columnWidth,
         rowHeight,
+        fullRowHeight,
         taskHeight,
         barCornerRadius,
         handleWidth,
@@ -302,13 +333,13 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     }
   }, [wrapperRef, taskListWidth]);
 
-  useEffect(() => {
+  const svgContainerHeight = useMemo(() => {
     if (ganttHeight) {
-      setSvgContainerHeight(ganttHeight + headerHeight);
-    } else {
-      setSvgContainerHeight(tasks.length * rowHeight + headerHeight);
+      return ganttHeight + headerHeight;
     }
-  }, [ganttHeight, tasks, headerHeight, rowHeight]);
+
+    return ganttFullHeight * fullRowHeight + headerHeight;
+  }, [ganttHeight, ganttFullHeight, headerHeight, fullRowHeight]);
 
   // scroll events
   useEffect(() => {
@@ -446,8 +477,8 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   const gridProps: GridProps = {
     columnWidth,
     svgWidth,
-    tasks: tasks,
-    rowHeight,
+    fullRowHeight,
+    maxLevelLength,
     dates: dateSetup.dates,
     todayColor,
     rtl,
@@ -471,7 +502,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     ganttEvent,
     ganttRelationEvent,
     selectedTask,
-    rowHeight,
+    fullRowHeight,
     taskHeight,
     taskHalfHeight,
     relationCircleOffset,
@@ -499,6 +530,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
 
   const tableProps: TaskListProps = {
     rowHeight,
+    fullRowHeight,
     rowWidth: listCellWidth,
     fontFamily,
     fontSize,
@@ -530,6 +562,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
           calendarProps={calendarProps}
           barProps={barProps}
           ganttHeight={ganttHeight}
+          ganttFullHeight={ganttFullHeight}
           scrollY={scrollY}
           scrollX={scrollX}
         />
@@ -537,6 +570,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
           <Tooltip
             arrowIndent={arrowIndent}
             rowHeight={rowHeight}
+            fullRowHeight={fullRowHeight}
             svgContainerHeight={svgContainerHeight}
             svgContainerWidth={svgContainerWidth}
             fontFamily={fontFamily}

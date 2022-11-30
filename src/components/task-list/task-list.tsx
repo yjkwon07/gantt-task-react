@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
+
 import { BarTask } from "../../types/bar-task";
-import { MonthFormats, Task } from "../../types/public-types";
+import { MonthFormats, Task, TaskListTableProps } from "../../types/public-types";
 
 export type TaskListProps = {
   headerHeight: number;
@@ -8,6 +9,7 @@ export type TaskListProps = {
   fontFamily: string;
   fontSize: string;
   rowHeight: number;
+  fullRowHeight: number;
   ganttHeight: number;
   scrollY: number;
   locale: string;
@@ -24,18 +26,7 @@ export type TaskListProps = {
     fontFamily: string;
     fontSize: string;
   }>;
-  TaskListTable: React.FC<{
-    rowHeight: number;
-    rowWidth: string;
-    fontFamily: string;
-    fontSize: string;
-    locale: string;
-    monthFormat: MonthFormats;
-    tasks: Task[];
-    selectedTaskId: string;
-    setSelectedTask: (taskId: string) => void;
-    onExpanderClick: (task: Task) => void;
-  }>;
+  TaskListTable: React.FC<TaskListTableProps>;
 };
 
 export const TaskList: React.FC<TaskListProps> = ({
@@ -44,6 +35,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   fontSize,
   rowWidth,
   rowHeight,
+  fullRowHeight,
   scrollY,
   tasks,
   selectedTask,
@@ -71,18 +63,6 @@ export const TaskList: React.FC<TaskListProps> = ({
     rowWidth,
   };
   const selectedTaskId = selectedTask ? selectedTask.id : "";
-  const tableProps = {
-    rowHeight,
-    rowWidth,
-    fontFamily,
-    fontSize,
-    tasks,
-    locale,
-    monthFormat,
-    selectedTaskId: selectedTaskId,
-    setSelectedTask,
-    onExpanderClick,
-  };
 
   return (
     <div ref={taskListRef}>
@@ -92,7 +72,19 @@ export const TaskList: React.FC<TaskListProps> = ({
         className={horizontalContainerClass}
         style={ganttHeight ? { height: ganttHeight } : {}}
       >
-        <TaskListTable {...tableProps} />
+        <TaskListTable
+          rowHeight={rowHeight}
+          fullRowHeight={fullRowHeight}
+          rowWidth={rowWidth}
+          fontFamily={fontFamily}
+          fontSize={fontSize}
+          tasks={tasks}
+          locale={locale}
+          monthFormat={monthFormat}
+          selectedTaskId={selectedTaskId}
+          setSelectedTask={setSelectedTask}
+          onExpanderClick={onExpanderClick}
+        />
       </div>
     </div>
   );

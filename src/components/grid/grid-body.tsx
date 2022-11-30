@@ -1,29 +1,35 @@
-import React, { ReactChild } from "react";
-import { Task } from "../../types/public-types";
+import React, {
+  memo,
+} from "react";
+import type {
+  ReactNode,
+} from "react";
+
 import { addToDate } from "../../helpers/date-helper";
 import styles from "./grid.module.css";
 
 export type GridBodyProps = {
-  tasks: Task[];
   dates: Date[];
   svgWidth: number;
-  rowHeight: number;
+  fullRowHeight: number;
+  maxLevelLength: number;
   columnWidth: number;
   todayColor: string;
   rtl: boolean;
 };
-export const GridBody: React.FC<GridBodyProps> = ({
-  tasks,
+
+const GridBodyInner: React.FC<GridBodyProps> = ({
   dates,
-  rowHeight,
+  fullRowHeight,
+  maxLevelLength,
   svgWidth,
   columnWidth,
   todayColor,
   rtl,
 }) => {
   let y = 0;
-  const gridRows: ReactChild[] = [];
-  const rowLines: ReactChild[] = [
+  const gridRows: ReactNode[] = [];
+  const rowLines: ReactNode[] = [
     <line
       key="RowLineFirst"
       x="0"
@@ -33,34 +39,36 @@ export const GridBody: React.FC<GridBodyProps> = ({
       className={styles.gridRowLine}
     />,
   ];
-  for (const task of tasks) {
+
+  for (let i = 0; i < maxLevelLength; ++i) {
     gridRows.push(
       <rect
-        key={"Row" + task.id}
+        key={i}
         x="0"
         y={y}
         width={svgWidth}
-        height={rowHeight}
+        height={fullRowHeight}
         className={styles.gridRow}
       />
     );
     rowLines.push(
       <line
-        key={"RowLine" + task.id}
+        key={i}
         x="0"
-        y1={y + rowHeight}
+        y1={y + fullRowHeight}
         x2={svgWidth}
-        y2={y + rowHeight}
+        y2={y + fullRowHeight}
         className={styles.gridRowLine}
       />
     );
-    y += rowHeight;
+
+    y += fullRowHeight;
   }
 
   const now = new Date();
   let tickX = 0;
-  const ticks: ReactChild[] = [];
-  let today: ReactChild = <rect />;
+  const ticks: ReactNode[] = [];
+  let today: ReactNode = <rect />;
   for (let i = 0; i < dates.length; i++) {
     const date = dates[i];
     ticks.push(
@@ -125,3 +133,5 @@ export const GridBody: React.FC<GridBodyProps> = ({
     </g>
   );
 };
+
+export const GridBody = memo(GridBodyInner);

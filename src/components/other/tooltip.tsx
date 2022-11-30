@@ -15,6 +15,7 @@ export type TooltipProps = {
   scrollX: number;
   scrollY: number;
   rowHeight: number;
+  fullRowHeight: number;
   fontSize: string;
   fontFamily: string;
   TooltipContent: React.FC<{
@@ -26,6 +27,7 @@ export type TooltipProps = {
 export const Tooltip: React.FC<TooltipProps> = ({
   task,
   rowHeight,
+  fullRowHeight,
   rtl,
   svgContainerHeight,
   svgContainerWidth,
@@ -46,7 +48,11 @@ export const Tooltip: React.FC<TooltipProps> = ({
       const tooltipHeight = tooltipRef.current.offsetHeight * 1.1;
       const tooltipWidth = tooltipRef.current.offsetWidth * 1.1;
 
-      let newRelatedY = task.index * rowHeight - scrollY + headerHeight;
+      let newRelatedY = task.index * fullRowHeight
+        + (((task.comparisonLevel || 1) - 1) * rowHeight)
+        - scrollY
+        + headerHeight;
+
       let newRelatedX: number;
       if (rtl) {
         newRelatedX = task.x1 - arrowIndent * 1.5 - tooltipWidth - scrollX;
@@ -92,6 +98,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
     headerHeight,
     taskListWidth,
     rowHeight,
+    fullRowHeight,
     svgContainerHeight,
     svgContainerWidth,
     rtl,
