@@ -20,7 +20,7 @@ export interface DateSetup {
   monthCalendarFormat: MonthFormats;
 }
 
-export type RenderBottomHeader = (
+export type RenderHeader = (
   date: Date,
   viewMode: ViewMode,
   locale: string,
@@ -198,5 +198,6 @@ export interface StylingOption extends Partial<TaskBarColorStyles> {
 
 export interface GanttProps extends EventOption, DisplayOption, StylingOption {
   tasks: Task[];
-  renderBottomHeader?: RenderBottomHeader;
+  renderBottomHeader?: RenderHeader;
+  renderTopHeader?: RenderHeader;
 }

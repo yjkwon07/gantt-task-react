@@ -85,6 +85,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   onExpanderClick,
   onArrowDoubleClick = undefined,
   renderBottomHeader = undefined,
+  renderTopHeader = undefined,
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
@@ -460,6 +461,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     fontSize,
     rtl,
     renderBottomHeader,
+    renderTopHeader,
   };
   const barProps: TaskGanttContentProps = {
     tasks: barTasks,
