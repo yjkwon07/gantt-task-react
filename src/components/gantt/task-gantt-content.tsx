@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { EventOption, OnArrowDoubleClick, Task } from "../../types/public-types";
+import { EventOption, OnArrowDoubleClick, TaskMapByLevel } from "../../types/public-types";
 import { BarTask } from "../../types/bar-task";
 import { Arrow } from "../other/arrow";
 import { RelationLine } from "../other/relation-line";
@@ -21,7 +21,7 @@ import {
 export type TaskGanttContentProps = {
   tasks: BarTask[];
   childIdsMap: Map<string, string[]>;
-  tasksMap: Map<string, Task>;
+  tasksMap: TaskMapByLevel;
   dates: Date[];
   ganttEvent: GanttEvent;
   ganttRelationEvent: GanttRelationEvent | null;
@@ -300,21 +300,33 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       );
 
       if (endTargetRelationCircle) {
-        const isOneDescendant = checkIsDescendant(
-          startRelationTask,
-          endTargetRelationCircle[0],
-          tasksMap,
-        ) || checkIsDescendant(
-          endTargetRelationCircle[0],
-          startRelationTask,
-          tasksMap,
-        );
+        const [endRelationTask] = endTargetRelationCircle;
 
-        onRelationChange(
-          [startRelationTask, startRelationTarget],
-          endTargetRelationCircle,
-          isOneDescendant,
-        );
+        const {
+          comparisonLevel: startComparisonLevel = 1,
+        } = startRelationTask;
+
+        const {
+          comparisonLevel: endComparisonLevel = 1,
+        } = endRelationTask;
+
+        if (startComparisonLevel === endComparisonLevel) {
+          const isOneDescendant = checkIsDescendant(
+            startRelationTask,
+            endRelationTask,
+            tasksMap,
+          ) || checkIsDescendant(
+            endRelationTask,
+            startRelationTask,
+            tasksMap,
+          );
+
+          onRelationChange(
+            [startRelationTask, startRelationTarget],
+            endTargetRelationCircle,
+            isOneDescendant,
+          );
+        }
       }
 
       setGanttRelationEvent(null);
@@ -437,17 +449,22 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     <g className="content">
       <g className="arrows" fill={arrowColor} stroke={arrowColor}>
         {tasks.map(task => {
+          const {
+            comparisonLevel = 1,
+          } = task;
+
           return task.barChildren.map(({
             dependentTask,
             dependentTarget,
             sourceTarget,
           }) => {
+            console.log()
             return (
               <Arrow
-                key={`Arrow from ${task.id} to ${tasks[dependentTask.index].id}`}
+                key={`Arrow from ${task.id} to ${dependentTask.id} on ${comparisonLevel}`}
                 taskFrom={task}
                 targetFrom={sourceTarget}
-                taskTo={tasks[dependentTask.index]}
+                taskTo={dependentTask}
                 targetTo={dependentTarget}
                 fullRowHeight={fullRowHeight}
                 taskHeight={taskHeight}
@@ -459,8 +476,13 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
           });
         })}
       </g>
+
       <g className="bar" fontFamily={fontFamily} fontSize={fontSize}>
         {tasks.map(task => {
+          const {
+            comparisonLevel = 1,
+          } = task;
+
           return (
             <TaskItem
               task={task}
@@ -477,7 +499,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               isDelete={!task.isDisabled}
               onEventStart={handleBarEventStart}
               onRelationStart={handleBarRelationStart}
-              key={task.id}
+              key={`${comparisonLevel}_${task.id}`}
               isSelected={!!selectedTask && task.id === selectedTask.id}
               rtl={rtl}
             />

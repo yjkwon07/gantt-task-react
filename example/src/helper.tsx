@@ -147,25 +147,39 @@ export function initTasks() {
       type: "task",
     },
   ];
-  return tasks;
+
+  const secondLevelTasks = tasks.map<Task>((task) => ({
+    ...task,
+    comparisonLevel: 2,
+  }));
+
+  return [...tasks, ...secondLevelTasks];
 }
 
 /**
  * TO DO: optimize
  */
-export function getStartEndDateForParent(tasks: Task[], parentId: string) {
-  const projectTasks = tasks.filter(t => t.parent === parentId);
+export function getStartEndDateForParent(
+  tasks: Task[],
+  parentId: string,
+  comparisonLevel: number,
+) {
+  const projectTasks = tasks.filter(({
+    parent: otherParentId,
+    comparisonLevel: otherComparisonLevel = 1,
+  }) => otherParentId === parentId && otherComparisonLevel === comparisonLevel);
+
   let start = projectTasks[0].start;
   let end = projectTasks[0].end;
 
-  for (let i = 0; i < projectTasks.length; i++) {
-    const task = projectTasks[i];
+  projectTasks.forEach((task) => {
     if (start.getTime() > task.start.getTime()) {
       start = task.start;
     }
     if (end.getTime() < task.end.getTime()) {
       end = task.end;
     }
-  }
+  });
+
   return [start, end];
 }

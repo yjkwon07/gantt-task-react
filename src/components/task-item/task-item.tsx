@@ -81,7 +81,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     }
   }, [textRef, task]);
 
-  const getX = () => {
+  const x = useMemo(() => {
     const width = task.x2 - task.x1;
     const hasChild = task.barChildren.length > 0;
     if (isTextInside) {
@@ -94,17 +94,19 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
         arrowIndent * +hasChild -
         arrowIndent * 0.2
       );
-    } else {
-      return task.x1 + width + arrowIndent * +hasChild + arrowIndent * 0.2;
     }
-  };
+
+    return task.x1 + width + arrowIndent * +hasChild + arrowIndent * 0.2;
+  }, [task, isTextInside, rtl, arrowIndent]);
 
   return (
     <g
       onKeyDown={e => {
         switch (e.key) {
           case "Delete": {
-            if (isDelete) onEventStart("delete", task, e);
+            if (isDelete) {
+              onEventStart("delete", task, e);
+            }
             break;
           }
         }
@@ -128,7 +130,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     >
       {taskItem}
       <text
-        x={getX()}
+        x={x}
         y={task.y + taskHeight * 0.5}
         className={
           isTextInside

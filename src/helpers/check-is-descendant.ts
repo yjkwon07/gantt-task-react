@@ -1,9 +1,9 @@
-import { Task } from "../types/public-types";
+import { Task, TaskMapByLevel } from "../types/public-types";
 
 export const checkIsDescendant = (
   maybeParent: Task,
   maybeDescendant: Task,
-  tasksMap: Map<string, Task>,
+  tasksMap: TaskMapByLevel,
 ) => {
   /**
    * Avoid the circle of dependencies
@@ -13,6 +13,7 @@ export const checkIsDescendant = (
   let cur = maybeDescendant;
   while (true) {
     const {
+      comparisonLevel = 1,
       id,
       parent,
     } = cur;
@@ -32,7 +33,14 @@ export const checkIsDescendant = (
 
     checkedTasks.add(id);
 
-    const parentTask = tasksMap.get(parent);
+    const tasksByLevel = tasksMap.get(comparisonLevel);
+
+    if (!tasksByLevel) {
+      console.error(`Warning: tasks by level ${comparisonLevel} are not found`);
+      return false;
+    }
+
+    const parentTask = tasksByLevel.get(parent);
 
     if (!parentTask) {
       return false;

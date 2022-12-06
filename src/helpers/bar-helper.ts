@@ -45,7 +45,11 @@ export const convertToBarTasks = (
 
   // set dependencies
   barTasks = barTasks.map(task => {
-    const dependencies = task.dependencies || [];
+    const {
+      dependencies = [],
+      comparisonLevel = 1,
+    } = task;
+
     for (let j = 0; j < dependencies.length; j++) {
       const {
         sourceId,
@@ -54,13 +58,19 @@ export const convertToBarTasks = (
       } = dependencies[j];
 
       const dependence = barTasks.findIndex(
-        value => value.id === sourceId,
+        ({
+          id: barTaskId,
+          comparisonLevel: barTaskComparisonLevel = 1,
+        }) => barTaskId === sourceId && comparisonLevel === barTaskComparisonLevel,
       );
-      if (dependence !== -1) barTasks[dependence].barChildren.push({
-        dependentTask: task,
-        dependentTarget: ownTarget,
-        sourceTarget,
-      });
+
+      if (dependence !== -1) {
+        barTasks[dependence].barChildren.push({
+          dependentTask: task,
+          dependentTarget: ownTarget,
+          sourceTarget,
+        });
+      }
     }
     return task;
   });

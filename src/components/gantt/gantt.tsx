@@ -285,16 +285,28 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   useEffect(() => {
     const { changedTask, action } = ganttEvent;
     if (changedTask) {
+      const {
+        id: changedId,
+        comparisonLevel = 1,
+      } = changedTask;
+
       if (action === "delete") {
         setGanttEvent({ action: "" });
-        setBarTasks(barTasks.filter(t => t.id !== changedTask.id));
+        setBarTasks(barTasks.filter(({
+          id: otherId,
+          comparisonLevel: otherComparisonLevel = 1,
+        }) => otherId !== changedId || comparisonLevel !== otherComparisonLevel));
       } else if (
         action === "move" ||
         action === "end" ||
         action === "start" ||
         action === "progress"
       ) {
-        const prevStateTask = barTasks.find(t => t.id === changedTask.id);
+        const prevStateTask = barTasks.find(({
+          id: otherId,
+          comparisonLevel: otherComparisonLevel = 1,
+        }) => otherId === changedId && comparisonLevel === otherComparisonLevel);
+
         if (
           prevStateTask &&
           (prevStateTask.start.getTime() !== changedTask.start.getTime() ||
@@ -302,9 +314,19 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
             prevStateTask.progress !== changedTask.progress)
         ) {
           // actions for change
-          const newTaskList = barTasks.map(t =>
-            t.id === changedTask.id ? changedTask : t
-          );
+          const newTaskList = barTasks.map((otherTask) => {
+            const {
+              id: otherId,
+              comparisonLevel: otherComparisonLevel = 1,
+            } = otherTask;
+
+            if (otherId === changedId && comparisonLevel === otherComparisonLevel) {
+              return changedTask;
+            }
+
+            return otherTask;
+          });
+
           setBarTasks(newTaskList);
         }
       }
@@ -313,7 +335,24 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
 
   useEffect(() => {
     if (failedTask) {
-      setBarTasks(barTasks.map(t => (t.id !== failedTask.id ? t : failedTask)));
+      const {
+        id: failedId,
+        comparisonLevel = 1,
+      } = failedTask;
+
+      setBarTasks(barTasks.map((otherTask) => {
+        const {
+          id: otherId,
+          comparisonLevel: otherComparisonLevel = 1,
+        } = otherTask;
+
+        if (otherId === failedId && comparisonLevel === otherComparisonLevel) {
+          return failedTask;
+        }
+
+        return otherTask;
+      }));
+
       setFailedTask(null);
     }
   }, [failedTask, barTasks]);

@@ -32,7 +32,7 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
     day: "numeric",
     month: monthFormat,
   };
-  debugger;
+  // debugger;
   const toLocaleDateString = useMemo(
     () => toLocaleDateStringFactory(locale),
     [locale]

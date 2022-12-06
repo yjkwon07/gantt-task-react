@@ -1,8 +1,8 @@
-import { Task } from "../types/public-types";
+import { Task, TaskMapByLevel } from "../types/public-types";
 
 export const collectParents = (
   task: Task,
-  tasksMap: Map<string, Task>,
+  tasksMap: TaskMapByLevel,
 ): Task[] => {
   /**
    * Avoid the circle of dependencies
@@ -14,6 +14,7 @@ export const collectParents = (
   let cur = task;
   while (true) {
     const {
+      comparisonLevel = 1,
       id,
       parent,
     } = cur;
@@ -29,7 +30,13 @@ export const collectParents = (
       return res;
     }
 
-    const parentTask = tasksMap.get(parent);
+    const tasksByLevel = tasksMap.get(comparisonLevel);
+
+    if (!tasksByLevel) {
+      return res;
+    }
+
+    const parentTask = tasksByLevel.get(parent);
 
     if (!parentTask) {
       return res;

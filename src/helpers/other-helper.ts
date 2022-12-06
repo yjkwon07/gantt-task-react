@@ -34,15 +34,26 @@ export function removeHiddenTasks(tasks: Task[]) {
 function getChildren(taskList: Task[], task: Task) {
   let tasks: Task[] = [];
 
+  const {
+    id,
+    comparisonLevel = 1,
+  } = task;
+
   switch (task.type) {
     case "project":
-      tasks = taskList.filter(t => t.parent && t.parent === task.id);
+      tasks = taskList.filter(({
+        parent,
+        comparisonLevel: otherComparisonLevel = 1,
+      }) => (parent && parent === id) && (comparisonLevel === otherComparisonLevel));
       break;
 
     default:
-      tasks = taskList.filter(
-        t => t.dependencies && t.dependencies.some(({ sourceId }) => sourceId === task.id),
-      );
+      tasks = taskList.filter(({
+        dependencies,
+        comparisonLevel: otherComparisonLevel = 1,
+      }) => dependencies
+        && dependencies.some(({ sourceId }) => sourceId === task.id)
+        && comparisonLevel === otherComparisonLevel);
       break;
   }
 

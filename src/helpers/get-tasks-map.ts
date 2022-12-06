@@ -1,4 +1,4 @@
-import { Task } from "../types/public-types";
+import { Task, TaskMapByLevel } from "../types/public-types";
 
 /**
  * @param tasks List of tasks
@@ -6,11 +6,19 @@ import { Task } from "../types/public-types";
  */
 export const getTasksMap = (
   tasks: Task[],
-): Map<string, Task> => {
-  const res = new Map<string, Task>();
+): TaskMapByLevel => {
+  const res = new Map<number, Map<string, Task>>();
 
   tasks.forEach((task) => {
-    res.set(task.id, task);
+    const {
+      comparisonLevel = 1,
+      id,
+    } = task;
+
+    const tasksByLevel = res.get(comparisonLevel) || new Map<string, Task>();
+    tasksByLevel.set(id, task);
+
+    res.set(comparisonLevel, tasksByLevel);
   });
 
   return res;
