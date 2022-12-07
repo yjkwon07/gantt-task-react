@@ -4,8 +4,10 @@ import React, {
   useState,
   useMemo,
 } from "react";
+
 import { BarTask } from "../../types/bar-task";
 import { GanttContentMoveAction, RelationMoveTarget } from "../../types/gantt-task-actions";
+import { ChildMapByLevel } from "../../types/public-types";
 import { Bar } from "./bar/bar";
 import { BarSmall } from "./bar/bar-small";
 import { Milestone } from "./milestone/milestone";
@@ -14,7 +16,7 @@ import style from "./task-list.module.css";
 
 export type TaskItemProps = {
   task: BarTask;
-  childIdsMap: Map<string, string[]>;
+  childTasksMap: ChildMapByLevel;
   arrowIndent: number;
   taskHeight: number;
   taskHalfHeight: number;
@@ -41,7 +43,7 @@ export type TaskItemProps = {
 export const TaskItem: React.FC<TaskItemProps> = props => {
   const {
     task,
-    childIdsMap,
+    childTasksMap,
     arrowIndent,
     isDelete,
     taskHeight,
@@ -72,7 +74,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     task,
     isSelected,
     isRelationDrawMode,
-    childIdsMap,
+    childTasksMap,
   ]);
 
   useEffect(() => {
