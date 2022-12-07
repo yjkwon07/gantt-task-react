@@ -10,13 +10,14 @@ import { BarDateHandle } from "./bar-date-handle";
 import { BarRelationHandle } from "./bar-relation-handle";
 import { BarProgressHandle } from "./bar-progress-handle";
 import { TaskItemProps } from "../task-item";
+import { useHasChildren } from "../use-has-children";
 
 import styles from "./bar.module.css";
 import stylesRelationHandle from "./bar-relation-handle.module.css";
 
 export const Bar: React.FC<TaskItemProps> = ({
   task,
-  childIdsMap,
+  childTasksMap,
   taskHalfHeight,
   relationCircleOffset,
   relationCircleRadius,
@@ -29,7 +30,7 @@ export const Bar: React.FC<TaskItemProps> = ({
   onRelationStart,
   isSelected,
 }) => {
-  const hasChildren = childIdsMap.has(task.id);
+  const hasChildren = useHasChildren(task, childTasksMap);
 
   const canChangeDates = isDateChangeable && !hasChildren;
 

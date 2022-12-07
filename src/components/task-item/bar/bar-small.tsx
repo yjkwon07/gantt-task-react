@@ -6,17 +6,19 @@ import { getProgressPoint } from "../../../helpers/bar-helper";
 import { BarDisplay } from "./bar-display";
 import { BarProgressHandle } from "./bar-progress-handle";
 import { TaskItemProps } from "../task-item";
+import { useHasChildren } from "../use-has-children";
+
 import styles from "./bar.module.css";
 
 export const BarSmall: React.FC<TaskItemProps> = ({
   task,
-  childIdsMap,
+  childTasksMap,
   isProgressChangeable,
   isDateChangeable,
   onEventStart,
   isSelected,
 }) => {
-  const hasChildren = childIdsMap.has(task.id);
+  const hasChildren = useHasChildren(task, childTasksMap);
 
   const progressPoint = useMemo(() => getProgressPoint(
     task.progressWidth + task.x1,

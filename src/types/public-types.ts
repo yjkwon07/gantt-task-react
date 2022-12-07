@@ -230,4 +230,6 @@ export interface TaskListTableProps {
   onExpanderClick: (task: Task) => void;
 }
 
+export type ChildMapByLevel = Map<number, Map<string, Task[]>>;
+
 export type TaskMapByLevel = Map<number, Map<string, Task>>;

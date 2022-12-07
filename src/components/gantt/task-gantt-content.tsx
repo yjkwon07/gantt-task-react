@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { EventOption, OnArrowDoubleClick, TaskMapByLevel } from "../../types/public-types";
+import {
+  ChildMapByLevel,
+  EventOption,
+  OnArrowDoubleClick,
+  TaskMapByLevel,
+} from "../../types/public-types";
 import { BarTask } from "../../types/bar-task";
 import { Arrow } from "../other/arrow";
 import { RelationLine } from "../other/relation-line";
@@ -20,7 +25,7 @@ import {
 
 export type TaskGanttContentProps = {
   tasks: BarTask[];
-  childIdsMap: Map<string, string[]>;
+  childTasksMap: ChildMapByLevel;
   tasksMap: TaskMapByLevel;
   dates: Date[];
   ganttEvent: GanttEvent;
@@ -49,7 +54,7 @@ export type TaskGanttContentProps = {
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   tasks,
-  childIdsMap,
+  childTasksMap,
   tasksMap,
   dates,
   ganttEvent,
@@ -486,7 +491,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
           return (
             <TaskItem
               task={task}
-              childIdsMap={childIdsMap}
+              childTasksMap={childTasksMap}
               arrowIndent={arrowIndent}
               taskHeight={taskHeight}
               taskHalfHeight={taskHalfHeight}
