@@ -155,31 +155,3 @@ export function initTasks() {
 
   return [...tasks, ...secondLevelTasks];
 }
-
-/**
- * TO DO: optimize
- */
-export function getStartEndDateForParent(
-  tasks: Task[],
-  parentId: string,
-  comparisonLevel: number,
-) {
-  const projectTasks = tasks.filter(({
-    parent: otherParentId,
-    comparisonLevel: otherComparisonLevel = 1,
-  }) => otherParentId === parentId && otherComparisonLevel === comparisonLevel);
-
-  let start = projectTasks[0].start;
-  let end = projectTasks[0].end;
-
-  projectTasks.forEach((task) => {
-    if (start.getTime() > task.start.getTime()) {
-      start = task.start;
-    }
-    if (end.getTime() < task.end.getTime()) {
-      end = task.end;
-    }
-  });
-
-  return [start, end];
-}

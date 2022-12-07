@@ -2,7 +2,6 @@ import { ChildMapByLevel, Task } from "../types/public-types";
 
 /**
  * @param tasks List of tasks
- * @returns Map with key is id of task and value is array of nested tasks
  */
 export const getChildTasks = (
   tasks: Task[],

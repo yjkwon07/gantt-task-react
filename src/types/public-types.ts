@@ -87,10 +87,30 @@ export type OnRelationChange = (
   isOneDescendant: boolean,
 ) => void;
 
+export type OnDateChangeSuggestionType = [
+  /**
+   * Start date
+   */
+  Date,
+  /**
+   * End date
+   */
+  Date,
+  /**
+   * Suggested task
+   */
+  Task,
+  /**
+   * Index in array of tasks
+   */
+  number,
+];
+
 export type OnDateChange = (
   task: Task,
   dependentTasks: Task[],
   parents: Task[],
+  suggestions: OnDateChangeSuggestionType[],
 ) => void | boolean | Promise<void> | Promise<boolean>;
 
 export interface EventOption {
@@ -230,6 +250,11 @@ export interface TaskListTableProps {
   onExpanderClick: (task: Task) => void;
 }
 
+// comparisson level -> task id -> index in array of tasks
+export type MapTaskToGlobalIndex = Map<number, Map<string, number>>;
+
+// comparisson level -> task id -> array of child tasks
 export type ChildMapByLevel = Map<number, Map<string, Task[]>>;
 
+// comparisson level -> task id -> the task
 export type TaskMapByLevel = Map<number, Map<string, Task>>;

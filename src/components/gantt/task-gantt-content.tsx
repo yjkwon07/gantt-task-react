@@ -3,6 +3,7 @@ import React, { Fragment, useCallback, useEffect, useState } from "react";
 import {
   ChildMapByLevel,
   EventOption,
+  MapTaskToGlobalIndex,
   OnArrowDoubleClick,
   TaskMapByLevel,
 } from "../../types/public-types";
@@ -22,11 +23,13 @@ import {
   GanttRelationEvent,
   RelationMoveTarget,
 } from "../../types/gantt-task-actions";
+import { getSuggestedStartEndChanges } from "../../helpers/get-suggested-start-end-changes";
 
 export type TaskGanttContentProps = {
   tasks: BarTask[];
   childTasksMap: ChildMapByLevel;
   tasksMap: TaskMapByLevel;
+  mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   dates: Date[];
   ganttEvent: GanttEvent;
   ganttRelationEvent: GanttRelationEvent | null;
@@ -57,6 +60,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   tasks,
   childTasksMap,
   tasksMap,
+  mapTaskToGlobalIndex,
   dates,
   ganttEvent,
   ganttRelationEvent,
@@ -165,11 +169,20 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
         onDateChange &&
         isNotLikeOriginal
       ) {
+        const parents = collectParents(newChangedTask, tasksMap);
+        const suggestions = parents.map((parentTask) => getSuggestedStartEndChanges(
+          parentTask,
+          newChangedTask,
+          childTasksMap,
+          mapTaskToGlobalIndex,
+        ));
+
         try {
           const result = await onDateChange(
             newChangedTask,
             newChangedTask.barChildren.map(({ dependentTask }) => dependentTask),
-            collectParents(newChangedTask, tasksMap),
+            parents,
+            suggestions,
           );
           if (result !== undefined) {
             operationSuccess = result;
@@ -210,6 +223,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       setIsMoving(true);
     }
   }, [
+    childTasksMap,
+    mapTaskToGlobalIndex,
     ganttEvent,
     xStep,
     initEventX1Delta,

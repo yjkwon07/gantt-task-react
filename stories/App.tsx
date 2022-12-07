@@ -11,7 +11,7 @@ import {
   Task,
 } from "../src";
 
-import { getStartEndDateForParent, initTasks } from "./helper";
+import { initTasks } from "./helper";
 
 import "../dist/index.css";
 
@@ -26,6 +26,7 @@ export const App: React.FC<AppProps> = (props) => {
     task,
     dependentTasks,
     parents,
+    suggestions,
   ) => {
     const {
       id: taskId,
@@ -36,6 +37,7 @@ export const App: React.FC<AppProps> = (props) => {
     console.log("On date change level:" + comparisonLevel);
     console.log("Dependent tasks", dependentTasks);
     console.log("Parents", parents);
+    console.log("Suggestions", suggestions);
 
     /**
      * TO DO: optimize with map of tasks
@@ -46,6 +48,7 @@ export const App: React.FC<AppProps> = (props) => {
           id: otherTaskId,
           comparisonLevel: otherComparisonLevel = 1,
         } = otherTask;
+
         return (
           (otherTaskId === taskId && otherComparisonLevel === comparisonLevel)
             ? task
@@ -53,28 +56,12 @@ export const App: React.FC<AppProps> = (props) => {
         );
       });
 
-      parents.forEach((parent) => {
-        const [start, end] = getStartEndDateForParent(newTasks, parent.id, comparisonLevel);
-
-        if (
-          parent.start.getTime() !== start.getTime() ||
-          parent.end.getTime() !== end.getTime()
-        ) {
-          const changedParent = { ...parent, start, end };
-
-          newTasks = newTasks.map((otherTask) => {
-            const {
-              id: otherId,
-              comparisonLevel: otherComparisonLevel = 1,
-            } = otherTask;
-
-            if (otherId === parent.id && comparisonLevel === otherComparisonLevel) {
-              return changedParent;
-            }
-
-            return otherTask;
-          });
-        }
+      suggestions.forEach(([start, end, task, index]) => {
+        newTasks[index] = {
+          ...task,
+          start,
+          end,
+        };
       });
 
       return newTasks;

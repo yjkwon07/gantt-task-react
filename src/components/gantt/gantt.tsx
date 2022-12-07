@@ -30,6 +30,7 @@ import { HorizontalScroll } from "../other/horizontal-scroll";
 import { removeHiddenTasks, sortTasks } from "../../helpers/other-helper";
 import { getChildTasks } from "../../helpers/get-child-tasks";
 import { getTasksMap } from "../../helpers/get-tasks-map";
+import { getMapTaskToGlobalIndex } from "../../helpers/get-map-task-to-global-index";
 
 import styles from "./gantt.module.css";
 
@@ -117,6 +118,11 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
 
   const tasksMap = useMemo(
     () => getTasksMap(tasks),
+    [tasks],
+  );
+
+  const mapTaskToGlobalIndex = useMemo(
+    () => getMapTaskToGlobalIndex(tasks),
     [tasks],
   );
 
@@ -538,6 +544,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     tasks: barTasks,
     childTasksMap,
     tasksMap,
+    mapTaskToGlobalIndex,
     dates: dateSetup.dates,
     ganttEvent,
     ganttRelationEvent,
