@@ -251,6 +251,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     rtl,
     scrollX,
     onExpanderClick,
+    comparisonLevels,
   ]);
 
   useEffect(() => {
@@ -565,6 +566,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     onClick,
     onDelete,
     onArrowDoubleClick,
+    comparisonLevels,
   };
 
   const tableProps: TaskListProps = {

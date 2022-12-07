@@ -18,10 +18,17 @@ export const getCachedDateTimeFormat = (
 ): DateTimeFormat => {
   const key = JSON.stringify([locString, opts]);
   let dtf = intlDTCache[key];
+
   if (!dtf) {
-    dtf = new Intl.DateTimeFormat(locString, opts);
+    try {
+      dtf = new Intl.DateTimeFormat(locString, opts);
+    } catch (e) {
+      dtf = new Intl.DateTimeFormat('en', opts);
+    }
+
     intlDTCache[key] = dtf;
   }
+
   return dtf;
 };
 

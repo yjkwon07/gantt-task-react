@@ -1,6 +1,7 @@
 import React, {
   useCallback,
 } from "react";
+
 import {
   Dependency,
   Gantt,
@@ -8,25 +9,18 @@ import {
   OnDateChange,
   OnRelationChange,
   Task,
-  ViewMode,
-} from "gantt-task-react";
-import { ViewSwitcher } from "./components/view-switcher";
-import { getStartEndDateForParent, initTasks } from "./helper";
-import "gantt-task-react/dist/index.css";
+} from "../src";
 
-// Init
-const App = () => {
-  const [view, setView] = React.useState<ViewMode>(ViewMode.Day);
+import { getStartEndDateForParent, initTasks } from "./helper";
+
+import "../dist/index.css";
+
+type AppProps = {
+  ganttHeight?: number;
+};
+
+export const App: React.FC<AppProps> = (props) => {
   const [tasks, setTasks] = React.useState<Task[]>(initTasks());
-  const [isChecked, setIsChecked] = React.useState(true);
-  let columnWidth = 65;
-  if (view === ViewMode.Year) {
-    columnWidth = 350;
-  } else if (view === ViewMode.Month) {
-    columnWidth = 300;
-  } else if (view === ViewMode.Week) {
-    columnWidth = 250;
-  }
 
   const handleTaskChange = useCallback<OnDateChange>((
     task,
@@ -265,51 +259,18 @@ const App = () => {
   }, []);
 
   return (
-    <div className="Wrapper">
-      <ViewSwitcher
-        onViewModeChange={viewMode => setView(viewMode)}
-        onViewListChange={setIsChecked}
-        isChecked={isChecked}
-      />
-      <h3>Gantt With Unlimited Height</h3>
-      <Gantt
-        tasks={tasks}
-        viewMode={view}
-        onDateChange={handleTaskChange}
-        onRelationChange={handleRelationChange}
-        onDelete={handleTaskDelete}
-        onProgressChange={handleProgressChange}
-        onDoubleClick={handleDblClick}
-        onClick={handleClick}
-        onSelect={handleSelect}
-        onExpanderClick={handleExpanderClick}
-        listCellWidth={isChecked ? "155px" : ""}
-        columnWidth={columnWidth}
-        onArrowDoubleClick={onArrowDoubleClick}
-        comparisonLevels={2}
-      />
-      <h3>Gantt With Limited Height</h3>
-      <Gantt
-        tasks={tasks}
-        viewMode={view}
-        monthCalendarFormat={"2-digit"}
-        monthTaskListFormat={"short"}
-        onDateChange={handleTaskChange}
-        onRelationChange={handleRelationChange}
-        onDelete={handleTaskDelete}
-        onProgressChange={handleProgressChange}
-        onDoubleClick={handleDblClick}
-        onClick={handleClick}
-        onSelect={handleSelect}
-        onExpanderClick={handleExpanderClick}
-        listCellWidth={isChecked ? "155px" : ""}
-        ganttHeight={300}
-        columnWidth={columnWidth}
-        onArrowDoubleClick={onArrowDoubleClick}
-        comparisonLevels={2}
-      />
-    </div>
+    <Gantt
+      {...props}
+      tasks={tasks}
+      onDateChange={handleTaskChange}
+      onRelationChange={handleRelationChange}
+      onDelete={handleTaskDelete}
+      onProgressChange={handleProgressChange}
+      onDoubleClick={handleDblClick}
+      onClick={handleClick}
+      onSelect={handleSelect}
+      onExpanderClick={handleExpanderClick}
+      onArrowDoubleClick={onArrowDoubleClick}
+    />
   );
 };
-
-export default App;

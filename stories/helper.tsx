@@ -1,4 +1,4 @@
-import { Task } from "../../dist/types/public-types";
+import { Task } from "../src";
 
 export function initTasks() {
   const currentDate = new Date();

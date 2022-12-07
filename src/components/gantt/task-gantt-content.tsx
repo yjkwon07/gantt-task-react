@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { Fragment, useCallback, useEffect, useState } from "react";
 
 import { EventOption, OnArrowDoubleClick, TaskMapByLevel } from "../../types/public-types";
 import { BarTask } from "../../types/bar-task";
@@ -45,6 +45,7 @@ export type TaskGanttContentProps = {
   setFailedTask: (value: BarTask | null) => void;
   setSelectedTask: (taskId: string) => void;
   onArrowDoubleClick?: OnArrowDoubleClick;
+  comparisonLevels: number;
 } & EventOption;
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
@@ -79,6 +80,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   onClick,
   onDelete,
   onArrowDoubleClick = undefined,
+  comparisonLevels,
 }) => {
   const point = svg?.current?.createSVGPoint();
   const [xStep, setXStep] = useState(0);
@@ -453,12 +455,19 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             comparisonLevel = 1,
           } = task;
 
+          if (comparisonLevel > comparisonLevels) {
+            return (
+              <Fragment
+                key={`${task.id}_${comparisonLevel}`}
+              />
+            );
+          }
+
           return task.barChildren.map(({
             dependentTask,
             dependentTarget,
             sourceTarget,
           }) => {
-            console.log()
             return (
               <Arrow
                 key={`Arrow from ${task.id} to ${dependentTask.id} on ${comparisonLevel}`}
@@ -483,6 +492,16 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             comparisonLevel = 1,
           } = task;
 
+          const key = `${comparisonLevel}_${task.id}`;
+
+          if (comparisonLevel > comparisonLevels) {
+            return (
+              <Fragment
+                key={key}
+              />
+            );
+          }
+
           return (
             <TaskItem
               task={task}
@@ -499,7 +518,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               isDelete={!task.isDisabled}
               onEventStart={handleBarEventStart}
               onRelationStart={handleBarRelationStart}
-              key={`${comparisonLevel}_${task.id}`}
+              key={key}
               isSelected={!!selectedTask && task.id === selectedTask.id}
               rtl={rtl}
             />
