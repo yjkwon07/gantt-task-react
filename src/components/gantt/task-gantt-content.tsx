@@ -2,6 +2,7 @@ import React, { Fragment, useCallback, useEffect, useState } from "react";
 
 import {
   ChildMapByLevel,
+  ChildOutOfParentWarnings,
   EventOption,
   MapTaskToGlobalIndex,
   OnArrowDoubleClick,
@@ -30,6 +31,7 @@ export type TaskGanttContentProps = {
   childTasksMap: ChildMapByLevel;
   tasksMap: TaskMapByLevel;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
+  childOutOfParentWarnings: ChildOutOfParentWarnings;
   dates: Date[];
   ganttEvent: GanttEvent;
   ganttRelationEvent: GanttRelationEvent | null;
@@ -43,6 +45,7 @@ export type TaskGanttContentProps = {
   taskHalfHeight: number;
   relationCircleOffset: number;
   relationCircleRadius: number;
+  outOfParentWarningOffset: number;
   arrowColor: string;
   arrowIndent: number;
   fontSize: string;
@@ -61,6 +64,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   childTasksMap,
   tasksMap,
   mapTaskToGlobalIndex,
+  childOutOfParentWarnings,
   dates,
   ganttEvent,
   ganttRelationEvent,
@@ -73,6 +77,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   taskHalfHeight,
   relationCircleOffset,
   relationCircleRadius,
+  outOfParentWarningOffset,
   arrowColor,
   arrowIndent,
   fontFamily,
@@ -526,11 +531,13 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             <TaskItem
               task={task}
               childTasksMap={childTasksMap}
+              childOutOfParentWarnings={childOutOfParentWarnings}
               arrowIndent={arrowIndent}
               taskHeight={taskHeight}
               taskHalfHeight={taskHalfHeight}
               relationCircleOffset={relationCircleOffset}
               relationCircleRadius={relationCircleRadius}
+              outOfParentWarningOffset={outOfParentWarningOffset}
               isRelationDrawMode={Boolean(ganttRelationEvent)}
               isProgressChangeable={!!onProgressChange && !task.isDisabled}
               isDateChangeable={!!onDateChange && !task.isDisabled}

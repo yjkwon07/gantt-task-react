@@ -170,6 +170,11 @@ export interface DisplayOption {
   monthCalendarFormat?: MonthFormats;
   monthTaskListFormat?: MonthFormats;
   rtl?: boolean;
+
+  /**
+   * Show an warning icon next to task if some childs aren't within the time interval of the task
+   */
+  isShowChildOutOfParentWarning?: boolean;
 }
 
 export interface StylingOption extends Partial<TaskBarColorStyles> {
@@ -179,6 +184,7 @@ export interface StylingOption extends Partial<TaskBarColorStyles> {
   rowHeight?: number;
   relationCircleOffset?: number;
   relationCircleRadius?: number;
+  outOfParentWarningOffset?: number;
   ganttHeight?: number;
   barCornerRadius?: number;
   handleWidth?: number;
@@ -258,3 +264,6 @@ export type ChildMapByLevel = Map<number, Map<string, Task[]>>;
 
 // comparisson level -> task id -> the task
 export type TaskMapByLevel = Map<number, Map<string, Task>>;
+
+// comparisson level -> task id -> [min start date, max end date]
+export type ChildOutOfParentWarnings = Map<number, Map<string, [Date, Date]>>;

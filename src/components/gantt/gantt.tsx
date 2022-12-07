@@ -7,11 +7,12 @@ import React, {
 } from "react";
 
 import {
+  ChildOutOfParentWarnings,
   DateSetup,
-  ViewMode,
   GanttProps,
   Task,
   TaskBarColorStyles,
+  ViewMode,
 } from "../../types/public-types";
 import { GridProps } from "../grid/grid";
 import { ganttDateRange, seedDates } from "../../helpers/date-helper";
@@ -31,6 +32,7 @@ import { removeHiddenTasks, sortTasks } from "../../helpers/other-helper";
 import { getChildTasks } from "../../helpers/get-child-tasks";
 import { getTasksMap } from "../../helpers/get-tasks-map";
 import { getMapTaskToGlobalIndex } from "../../helpers/get-map-task-to-global-index";
+import { getChildOutOfParentWarnings } from "../../helpers/get-child-out-of-parent-warnings";
 
 import styles from "./gantt.module.css";
 
@@ -42,6 +44,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   rowHeight = 50,
   relationCircleOffset = 10,
   relationCircleRadius = 5,
+  outOfParentWarningOffset = 35,
   ganttHeight = 0,
   viewMode = ViewMode.Day,
   preStepsCount = 1,
@@ -88,6 +91,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   renderBottomHeader = undefined,
   renderTopHeader = undefined,
   comparisonLevels = 1,
+  isShowChildOutOfParentWarning = false,
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
@@ -124,6 +128,20 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   const mapTaskToGlobalIndex = useMemo(
     () => getMapTaskToGlobalIndex(tasks),
     [tasks],
+  );
+
+  const childOutOfParentWarnings = useMemo<ChildOutOfParentWarnings>(
+    () => {
+      if (!isShowChildOutOfParentWarning) {
+        return new Map<number, Map<string, [Date, Date]>>();
+      }
+
+      return getChildOutOfParentWarnings(
+        tasks,
+        childTasksMap,
+      );
+    },
+    [tasks, childTasksMap, isShowChildOutOfParentWarning],
   );
 
   const fullRowHeight = useMemo(
@@ -545,6 +563,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     childTasksMap,
     tasksMap,
     mapTaskToGlobalIndex,
+    childOutOfParentWarnings,
     dates: dateSetup.dates,
     ganttEvent,
     ganttRelationEvent,
@@ -554,6 +573,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     taskHalfHeight,
     relationCircleOffset,
     relationCircleRadius,
+    outOfParentWarningOffset,
     columnWidth,
     arrowColor,
     timeStep,

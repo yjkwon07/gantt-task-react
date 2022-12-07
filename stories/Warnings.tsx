@@ -19,7 +19,7 @@ type AppProps = {
   ganttHeight?: number;
 };
 
-export const App: React.FC<AppProps> = (props) => {
+export const Warnings: React.FC<AppProps> = (props) => {
   const [tasks, setTasks] = React.useState<Task[]>(initTasks());
 
   const handleTaskChange = useCallback<OnDateChange>((
@@ -39,9 +39,6 @@ export const App: React.FC<AppProps> = (props) => {
     console.log("Parents", parents);
     console.log("Suggestions", suggestions);
 
-    /**
-     * TO DO: optimize with map of tasks
-     */
     setTasks((prevTasks) => {
       let newTasks = prevTasks.map((otherTask) => {
         const {
@@ -54,14 +51,6 @@ export const App: React.FC<AppProps> = (props) => {
             ? task
             : otherTask
         );
-      });
-
-      suggestions.forEach(([start, end, task, index]) => {
-        newTasks[index] = {
-          ...task,
-          start,
-          end,
-        };
       });
 
       return newTasks;
@@ -247,6 +236,7 @@ export const App: React.FC<AppProps> = (props) => {
 
   return (
     <Gantt
+      isShowChildOutOfParentWarning
       {...props}
       tasks={tasks}
       onDateChange={handleTaskChange}

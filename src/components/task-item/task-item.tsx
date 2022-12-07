@@ -7,21 +7,27 @@ import React, {
 
 import { BarTask } from "../../types/bar-task";
 import { GanttContentMoveAction, RelationMoveTarget } from "../../types/gantt-task-actions";
-import { ChildMapByLevel } from "../../types/public-types";
+import {
+  ChildMapByLevel,
+  ChildOutOfParentWarnings,
+} from "../../types/public-types";
 import { Bar } from "./bar/bar";
 import { BarSmall } from "./bar/bar-small";
 import { Milestone } from "./milestone/milestone";
+import { OutOfParentWarning } from "./out-of-parent-warning";
 import { Project } from "./project/project";
 import style from "./task-list.module.css";
 
 export type TaskItemProps = {
   task: BarTask;
   childTasksMap: ChildMapByLevel;
+  childOutOfParentWarnings: ChildOutOfParentWarnings;
   arrowIndent: number;
   taskHeight: number;
   taskHalfHeight: number;
   relationCircleOffset: number;
   relationCircleRadius: number;
+  outOfParentWarningOffset: number;
   isProgressChangeable: boolean;
   isDateChangeable: boolean;
   isRelationChangeable: boolean;
@@ -44,14 +50,32 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
   const {
     task,
     childTasksMap,
+    childOutOfParentWarnings,
+    outOfParentWarningOffset,
     arrowIndent,
     isDelete,
     taskHeight,
+    taskHalfHeight,
     isSelected,
     isRelationDrawMode,
     rtl,
     onEventStart,
   } = props;
+
+  const outOfParentWarning = useMemo(() => {
+    const {
+      id,
+      comparisonLevel = 1,
+    } = task;
+
+    const warningsByLevel = childOutOfParentWarnings.get(comparisonLevel);
+
+    if (!warningsByLevel) {
+      return;
+    }
+
+    return warningsByLevel.get(id);
+  }, [task, childOutOfParentWarnings]);
 
   const textRef = useRef<SVGTextElement>(null);
   const [isTextInside, setIsTextInside] = useState(true);
@@ -143,6 +167,16 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
       >
         {task.name}
       </text>
+
+      {outOfParentWarning && (
+        <OutOfParentWarning
+          barTask={task}
+          taskHalfHeight={taskHalfHeight}
+          outOfParentWarningOffset={outOfParentWarningOffset}
+          rtl={rtl}
+          suggestedRange={outOfParentWarning}
+        />
+      )}
     </g>
   );
 };
