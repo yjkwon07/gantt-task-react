@@ -154,26 +154,40 @@ const App = () => {
     taskTo,
   ) => {
     if (window.confirm(`Do yo want to remove relation between ${taskFrom.name} and ${taskTo.name}?`)) {
-      setTasks((prevTasks) => prevTasks.map(t => {
-        if (t.id === taskFrom.id) {
-          if (t.dependencies) {
+      const {
+        comparisonLevel = 1,
+      } = taskFrom;
+
+      setTasks((prevTasks) => prevTasks.map((otherTask) => {
+        const {
+          dependencies,
+          id: otherId,
+          comparisonLevel: otherComparisonLevel = 1,
+        } = otherTask;
+
+        if (comparisonLevel !== otherComparisonLevel) {
+          return otherTask;
+        }
+
+        if (otherId === taskFrom.id) {
+          if (dependencies) {
             return {
-              ...t,
-              dependencies: t.dependencies.filter(({ sourceId }) => sourceId !== taskTo.id),
+              ...otherTask,
+              dependencies: dependencies.filter(({ sourceId }) => sourceId !== taskTo.id),
             };
           }
         }
 
-        if (t.id === taskTo.id) {
-          if (t.dependencies) {
+        if (otherId === taskTo.id) {
+          if (dependencies) {
             return {
-              ...t,
-              dependencies: t.dependencies.filter(({ sourceId }) => sourceId !== taskFrom.id),
+              ...otherTask,
+              dependencies: dependencies.filter(({ sourceId }) => sourceId !== taskFrom.id),
             };
           }
         }
 
-        return t;
+        return otherTask;
       }));
     }
   }, []);
