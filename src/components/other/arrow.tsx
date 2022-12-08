@@ -8,6 +8,7 @@ import cx from 'classnames';
 import { BarTask } from "../../types/bar-task";
 import { OnArrowDoubleClick } from "../../types/public-types";
 import { RelationMoveTarget } from "../../types/gantt-task-actions";
+import { generateTrianglePoints } from "../../helpers/generate-triangle-points";
 
 import styles from "./arrow.module.css";
 
@@ -111,12 +112,18 @@ const drownPathAndTriangle = (
   H ${isTaskToLeftSide ? taskTo.x1 : taskTo.x2}`;
 
   const trianglePoints = isTaskToLeftSide
-    ? `${taskTo.x1},${taskToEndPositionY} 
-    ${taskTo.x1 - 5},${taskToEndPositionY - 5} 
-    ${taskTo.x1 - 5},${taskToEndPositionY + 5}`
-    : `${taskTo.x2},${taskToEndPositionY} 
-    ${taskTo.x2 + 5},${taskToEndPositionY + 5} 
-    ${taskTo.x2 + 5},${taskToEndPositionY - 5}`;
+    ? generateTrianglePoints(
+      taskTo.x1,
+      taskToEndPositionY,
+      5,
+      false,
+    )
+    : generateTrianglePoints(
+      taskTo.x2,
+      taskToEndPositionY,
+      5,
+      true,
+    );
 
   return [path, trianglePoints];
 };

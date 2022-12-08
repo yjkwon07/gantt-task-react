@@ -5,6 +5,7 @@ import React, {
 import {
   Dependency,
   Gantt,
+  FixPosition,
   OnArrowDoubleClick,
   OnDateChange,
   OnRelationChange,
@@ -52,6 +53,38 @@ export const Warnings: React.FC<AppProps> = (props) => {
             : otherTask
         );
       });
+
+      return newTasks;
+    });
+  }, []);
+
+  const handleFixStartPosition = useCallback<FixPosition>((
+    task,
+    date,
+    index,
+  ) => {
+    setTasks((prevTasks) => {
+      const newTasks = [...prevTasks];
+      newTasks[index] = {
+        ...task,
+        start: date,
+      };
+
+      return newTasks;
+    });
+  }, []);
+
+  const handleFixEndPosition = useCallback<FixPosition>((
+    task,
+    date,
+    index,
+  ) => {
+    setTasks((prevTasks) => {
+      const newTasks = [...prevTasks];
+      newTasks[index] = {
+        ...task,
+        end: date,
+      };
 
       return newTasks;
     });
@@ -248,6 +281,8 @@ export const Warnings: React.FC<AppProps> = (props) => {
       onSelect={handleSelect}
       onExpanderClick={handleExpanderClick}
       onArrowDoubleClick={onArrowDoubleClick}
+      fixStartPosition={handleFixStartPosition}
+      fixEndPosition={handleFixEndPosition}
     />
   );
 };

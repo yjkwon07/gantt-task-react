@@ -113,6 +113,15 @@ export type OnDateChange = (
   suggestions: OnDateChangeSuggestionType[],
 ) => void | boolean | Promise<void> | Promise<boolean>;
 
+export type FixPosition = (
+  task: Task,
+  date: Date,
+  /**
+   * index in the array of tasks
+   */
+  index: number,
+) => void;
+
 export interface EventOption {
   /**
    * Time step value for date changes.
@@ -157,6 +166,14 @@ export interface EventOption {
    * Invokes on double click on the relation arrow between tasks
    */
   onArrowDoubleClick?: OnArrowDoubleClick;
+  /**
+   * Invokes on click on fix element on the start of task
+   */
+  fixStartPosition?: FixPosition;
+  /**
+   * Invokes on click on fix element on the end of task
+   */
+  fixEndPosition?: FixPosition;
 }
 
 export interface DisplayOption {

@@ -4,6 +4,7 @@ import {
   ChildMapByLevel,
   ChildOutOfParentWarnings,
   EventOption,
+  FixPosition,
   MapTaskToGlobalIndex,
   OnArrowDoubleClick,
   TaskMapByLevel,
@@ -57,6 +58,8 @@ export type TaskGanttContentProps = {
   setSelectedTask: (taskId: string) => void;
   onArrowDoubleClick?: OnArrowDoubleClick;
   comparisonLevels: number;
+  fixStartPosition?: FixPosition;
+  fixEndPosition?: FixPosition;
 } & EventOption;
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
@@ -95,6 +98,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   onDelete,
   onArrowDoubleClick = undefined,
   comparisonLevels,
+  fixStartPosition = undefined,
+  fixEndPosition = undefined,
 }) => {
   const point = svg?.current?.createSVGPoint();
   const [xStep, setXStep] = useState(0);
@@ -548,6 +553,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               key={key}
               isSelected={!!selectedTask && task.id === selectedTask.id}
               rtl={rtl}
+              fixStartPosition={fixStartPosition}
+              fixEndPosition={fixEndPosition}
             />
           );
         })}

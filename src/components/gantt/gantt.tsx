@@ -89,6 +89,8 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   onSelect,
   onExpanderClick,
   onArrowDoubleClick = undefined,
+  fixStartPosition = undefined,
+  fixEndPosition = undefined,
   renderBottomHeader = undefined,
   renderTopHeader = undefined,
   comparisonLevels = 1,
@@ -594,6 +596,8 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     onClick,
     onDelete,
     onArrowDoubleClick,
+    fixStartPosition,
+    fixEndPosition,
     comparisonLevels,
   };
 

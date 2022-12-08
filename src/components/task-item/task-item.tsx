@@ -3,6 +3,7 @@ import React, {
   useRef,
   useState,
   useMemo,
+  useCallback,
 } from "react";
 
 import { BarTask } from "../../types/bar-task";
@@ -10,8 +11,10 @@ import { GanttContentMoveAction, RelationMoveTarget } from "../../types/gantt-ta
 import {
   ChildMapByLevel,
   ChildOutOfParentWarnings,
+  FixPosition,
 } from "../../types/public-types";
 import { Bar } from "./bar/bar";
+import { BarFixWidth } from "./bar/bar-fix-width";
 import { BarSmall } from "./bar/bar-small";
 import { Milestone } from "./milestone/milestone";
 import { OutOfParentWarning } from "./out-of-parent-warning";
@@ -44,6 +47,8 @@ export type TaskItemProps = {
     target: RelationMoveTarget,
     selectedTask: BarTask,
   ) => void;
+  fixStartPosition?: FixPosition;
+  fixEndPosition?: FixPosition;
 };
 
 export const TaskItem: React.FC<TaskItemProps> = props => {
@@ -60,6 +65,8 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     isRelationDrawMode,
     rtl,
     onEventStart,
+    fixStartPosition = undefined,
+    fixEndPosition = undefined,
   } = props;
 
   const outOfParentWarnings = useMemo(() => {
@@ -76,6 +83,46 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
 
     return warningsByLevel.get(id);
   }, [task, childOutOfParentWarnings]);
+
+  const handleFixStartPosition = useCallback(() => {
+    if (!outOfParentWarnings || !fixStartPosition) {
+      return;
+    }
+
+    const {
+      start,
+    } = outOfParentWarnings;
+
+    if (!start) {
+      return;
+    }
+
+    fixStartPosition(
+      task,
+      start.date,
+      task.globalIndex,
+    );
+  }, [task, fixStartPosition, outOfParentWarnings]);
+
+  const handleFixEndPosition = useCallback(() => {
+    if (!outOfParentWarnings || !fixEndPosition) {
+      return;
+    }
+
+    const {
+      end,
+    } = outOfParentWarnings;
+
+    if (!end) {
+      return;
+    }
+
+    fixEndPosition(
+      task,
+      end.date,
+      task.globalIndex,
+    );
+  }, [task, fixEndPosition, outOfParentWarnings]);
 
   const textRef = useRef<SVGTextElement>(null);
   const [isTextInside, setIsTextInside] = useState(true);
@@ -99,6 +146,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     isSelected,
     isRelationDrawMode,
     childTasksMap,
+    outOfParentWarnings,
   ]);
 
   useEffect(() => {
@@ -169,13 +217,39 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
       </text>
 
       {outOfParentWarnings && (
-        <OutOfParentWarning
-          barTask={task}
-          taskHalfHeight={taskHalfHeight}
-          outOfParentWarningOffset={outOfParentWarningOffset}
-          rtl={rtl}
-          outOfParentWarnings={outOfParentWarnings}
-        />
+        <>
+          <OutOfParentWarning
+            barTask={task}
+            taskHalfHeight={taskHalfHeight}
+            outOfParentWarningOffset={outOfParentWarningOffset}
+            rtl={rtl}
+            outOfParentWarnings={outOfParentWarnings}
+          />
+
+          {outOfParentWarnings.start && (
+            <BarFixWidth
+              x={rtl ? task.x2 : task.x1}
+              y={task.y + taskHeight}
+              height={16}
+              width={10}
+              isLeft={outOfParentWarnings.start.isOutside !== rtl}
+              color="grey"
+              onMouseDown={handleFixStartPosition}
+            />
+          )}
+
+          {outOfParentWarnings.end && (
+            <BarFixWidth
+              x={rtl ? task.x1 : task.x2}
+              y={task.y + taskHeight}
+              height={16}
+              width={10}
+              isLeft={outOfParentWarnings.end.isOutside === rtl}
+              color="grey"
+              onMouseDown={handleFixEndPosition}
+            />
+          )}
+        </>
       )}
     </g>
   );

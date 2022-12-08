@@ -103,6 +103,8 @@ export const Bar: React.FC<TaskItemProps> = ({
         hasChildren={hasChildren}
         onMouseDown={startMoveFullTask}
       />
+
+      {/* Maybe move to to `task-item.tsx`? */}
       <g className="handleGroup">
         {canChangeDates && (
           <g>
