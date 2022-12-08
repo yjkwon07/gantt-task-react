@@ -1,10 +1,16 @@
-import { Task, ChildOutOfParentWarnings, ChildMapByLevel } from "../types/public-types";
+import {
+  Task,
+  TaskOutOfParentWarnings,
+  ChildOutOfParentWarnings,
+  ChildMapByLevel,
+} from "../types/public-types";
+import { compareDates } from "./compare-dates";
 
 export const getChildOutOfParentWarnings = (
   tasks: Task[],
   childTasksMap: ChildMapByLevel,
 ): ChildOutOfParentWarnings => {
-  const res = new Map<number, Map<string, [Date, Date]>>();
+  const res = new Map<number, Map<string, TaskOutOfParentWarnings>>();
 
   tasks.forEach((task) => {
     const {
@@ -46,12 +52,28 @@ export const getChildOutOfParentWarnings = (
       }
     }
 
-    if (
-      start.getTime() !== taskStart.getTime()
-      || end.getTime() !== taskEnd.getTime()
-    ) {
-      const resByLevel = res.get(comparisonLevel) || new Map<string, [Date, Date]>();
-      resByLevel.set(id, [start, end]);
+    const startComparisonResult = compareDates(taskStart, start);
+    const endComparisonResult = compareDates(taskEnd, end);
+
+    if (startComparisonResult !== 0 || endComparisonResult !== 0) {
+      const warnings: TaskOutOfParentWarnings = {};
+
+      if (startComparisonResult !== 0) {
+        warnings.start = {
+          isOutside: startComparisonResult > 0,
+          date: start,
+        };
+      }
+
+      if (endComparisonResult !== 0) {
+        warnings.end = {
+          isOutside: endComparisonResult < 0,
+          date: end,
+        };
+      }
+
+      const resByLevel = res.get(comparisonLevel) || new Map<string, TaskOutOfParentWarnings>();
+      resByLevel.set(id, warnings);
       res.set(comparisonLevel, resByLevel);
     }
   });

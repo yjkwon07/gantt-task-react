@@ -12,6 +12,7 @@ import {
   GanttProps,
   Task,
   TaskBarColorStyles,
+  TaskOutOfParentWarnings,
   ViewMode,
 } from "../../types/public-types";
 import { GridProps } from "../grid/grid";
@@ -133,7 +134,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   const childOutOfParentWarnings = useMemo<ChildOutOfParentWarnings>(
     () => {
       if (!isShowChildOutOfParentWarning) {
-        return new Map<number, Map<string, [Date, Date]>>();
+        return new Map<number, Map<string, TaskOutOfParentWarnings>>();
       }
 
       return getChildOutOfParentWarnings(

@@ -4,11 +4,12 @@ import React, {
 } from 'react';
 
 import { BarTask } from '../../types/bar-task';
+import { TaskOutOfParentWarnings } from '../../types/public-types';
 
 type OutOfParentWarningProps = {
   barTask: BarTask;
   rtl: boolean;
-  suggestedRange: [Date, Date];
+  outOfParentWarnings: TaskOutOfParentWarnings;
   outOfParentWarningOffset: number;
   taskHalfHeight: number;
 };
@@ -16,11 +17,21 @@ type OutOfParentWarningProps = {
 const OutOfParentWarningInner: React.FC<OutOfParentWarningProps> = ({
   barTask,
   rtl,
-  suggestedRange,
+  outOfParentWarnings,
   outOfParentWarningOffset,
   taskHalfHeight,
 }) => {
-  console.log(suggestedRange);
+  const isError = useMemo(
+    () => {
+      const {
+        start,
+        end,
+      } = outOfParentWarnings;
+
+      return Boolean(start?.isOutside || end?.isOutside);
+    },
+    [outOfParentWarnings],
+  );
 
   const centerX = useMemo(() => {
     if (rtl) {
@@ -36,7 +47,7 @@ const OutOfParentWarningInner: React.FC<OutOfParentWarningProps> = ({
         cx={centerX}
         cy={barTask.y + taskHalfHeight}
         r={12}
-        fill="#ff0000"
+        fill={isError ? "#ff0000" : "#e1ca24"}
         strokeWidth={5}
       />
 

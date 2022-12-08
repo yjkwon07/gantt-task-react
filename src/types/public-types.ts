@@ -265,5 +265,27 @@ export type ChildMapByLevel = Map<number, Map<string, Task[]>>;
 // comparisson level -> task id -> the task
 export type TaskMapByLevel = Map<number, Map<string, Task>>;
 
-// comparisson level -> task id -> [min start date, max end date]
-export type ChildOutOfParentWarnings = Map<number, Map<string, [Date, Date]>>;
+export interface TaskOutOfParentWarning {
+  isOutside: boolean;
+  date: Date;
+};
+
+export interface TaskOutOfParentWarnings {
+  start?: TaskOutOfParentWarning;
+  end?: TaskOutOfParentWarning;
+};
+
+/**
+ * comparisson level -> task id -> {
+ *   start: {
+ *     isOutsie: false,
+ *     date: Date,
+ *   },
+ * 
+ *   end: {
+ *     isOutsie: false,
+ *     date: Date,
+ *   },
+ * }
+ */
+export type ChildOutOfParentWarnings = Map<number, Map<string, TaskOutOfParentWarnings>>;

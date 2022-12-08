@@ -62,7 +62,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     onEventStart,
   } = props;
 
-  const outOfParentWarning = useMemo(() => {
+  const outOfParentWarnings = useMemo(() => {
     const {
       id,
       comparisonLevel = 1,
@@ -168,13 +168,13 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
         {task.name}
       </text>
 
-      {outOfParentWarning && (
+      {outOfParentWarnings && (
         <OutOfParentWarning
           barTask={task}
           taskHalfHeight={taskHalfHeight}
           outOfParentWarningOffset={outOfParentWarningOffset}
           rtl={rtl}
-          suggestedRange={outOfParentWarning}
+          outOfParentWarnings={outOfParentWarnings}
         />
       )}
     </g>
