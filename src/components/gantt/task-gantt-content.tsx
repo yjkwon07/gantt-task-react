@@ -3,6 +3,8 @@ import React, { Fragment, useCallback, useEffect, useState } from "react";
 import {
   ChildMapByLevel,
   ChildOutOfParentWarnings,
+  DependencyMap,
+  DependencyWarnings,
   EventOption,
   FixPosition,
   MapTaskToGlobalIndex,
@@ -33,6 +35,8 @@ export type TaskGanttContentProps = {
   tasksMap: TaskMapByLevel;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
+  dependencyMap: DependencyMap;
+  dependencyWarnings: DependencyWarnings;
   dates: Date[];
   ganttEvent: GanttEvent;
   ganttRelationEvent: GanttRelationEvent | null;
@@ -46,7 +50,7 @@ export type TaskGanttContentProps = {
   taskHalfHeight: number;
   relationCircleOffset: number;
   relationCircleRadius: number;
-  outOfParentWarningOffset: number;
+  taskWarningOffset: number;
   arrowColor: string;
   arrowIndent: number;
   fontSize: string;
@@ -68,6 +72,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   tasksMap,
   mapTaskToGlobalIndex,
   childOutOfParentWarnings,
+  dependencyMap,
+  dependencyWarnings,
   dates,
   ganttEvent,
   ganttRelationEvent,
@@ -80,7 +86,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   taskHalfHeight,
   relationCircleOffset,
   relationCircleRadius,
-  outOfParentWarningOffset,
+  taskWarningOffset,
   arrowColor,
   arrowIndent,
   fontFamily,
@@ -482,16 +488,37 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       <g className="arrows" fill={arrowColor} stroke={arrowColor}>
         {tasks.map(task => {
           const {
+            id: taskId,
             comparisonLevel = 1,
           } = task;
 
           if (comparisonLevel > comparisonLevels) {
             return (
               <Fragment
-                key={`${task.id}_${comparisonLevel}`}
+                key={`${taskId}_${comparisonLevel}`}
               />
             );
           }
+
+          const dependenciesByLevel = dependencyMap.get(comparisonLevel);
+
+          if (!dependenciesByLevel) {
+            return (
+              <Fragment
+                key={`${taskId}_${comparisonLevel}`}
+              />
+            );
+          }
+
+          /* const dependenciesByTask = dependenciesByLevel.get(taskId);
+
+          if (!dependenciesByTask) {
+            return (
+              <Fragment
+                key={`${taskId}_${comparisonLevel}`}
+              />
+            );
+          } */
 
           return task.barChildren.map(({
             dependentTask,
@@ -537,12 +564,13 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               task={task}
               childTasksMap={childTasksMap}
               childOutOfParentWarnings={childOutOfParentWarnings}
+              dependencyWarnings={dependencyWarnings}
               arrowIndent={arrowIndent}
               taskHeight={taskHeight}
               taskHalfHeight={taskHalfHeight}
               relationCircleOffset={relationCircleOffset}
               relationCircleRadius={relationCircleRadius}
-              outOfParentWarningOffset={outOfParentWarningOffset}
+              taskWarningOffset={taskWarningOffset}
               isRelationDrawMode={Boolean(ganttRelationEvent)}
               isProgressChangeable={!!onProgressChange && !task.isDisabled}
               isDateChangeable={!!onDateChange && !task.isDisabled}

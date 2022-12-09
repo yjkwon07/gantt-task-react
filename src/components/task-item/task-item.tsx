@@ -11,13 +11,14 @@ import { GanttContentMoveAction, RelationMoveTarget } from "../../types/gantt-ta
 import {
   ChildMapByLevel,
   ChildOutOfParentWarnings,
+  DependencyWarnings,
   FixPosition,
 } from "../../types/public-types";
 import { Bar } from "./bar/bar";
 import { BarFixWidth } from "./bar/bar-fix-width";
 import { BarSmall } from "./bar/bar-small";
 import { Milestone } from "./milestone/milestone";
-import { OutOfParentWarning } from "./out-of-parent-warning";
+import { TaskWarning } from "./task-warning";
 import { Project } from "./project/project";
 import style from "./task-list.module.css";
 
@@ -25,12 +26,13 @@ export type TaskItemProps = {
   task: BarTask;
   childTasksMap: ChildMapByLevel;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
+  dependencyWarnings: DependencyWarnings;
   arrowIndent: number;
   taskHeight: number;
   taskHalfHeight: number;
   relationCircleOffset: number;
   relationCircleRadius: number;
-  outOfParentWarningOffset: number;
+  taskWarningOffset: number;
   isProgressChangeable: boolean;
   isDateChangeable: boolean;
   isRelationChangeable: boolean;
@@ -56,7 +58,8 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     task,
     childTasksMap,
     childOutOfParentWarnings,
-    outOfParentWarningOffset,
+    dependencyWarnings,
+    taskWarningOffset,
     arrowIndent,
     isDelete,
     taskHeight,
@@ -83,6 +86,21 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
 
     return warningsByLevel.get(id);
   }, [task, childOutOfParentWarnings]);
+
+  const dependencyWarningsForTask = useMemo(() => {
+    const {
+      id,
+      comparisonLevel = 1,
+    } = task;
+
+    const warningsByLevel = dependencyWarnings.get(comparisonLevel);
+
+    if (!warningsByLevel) {
+      return;
+    }
+
+    return warningsByLevel.get(id);
+  }, [task, dependencyWarnings]);
 
   const handleFixStartPosition = useCallback(() => {
     if (!outOfParentWarnings || !fixStartPosition) {
@@ -216,16 +234,19 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
         {task.name}
       </text>
 
+      {(outOfParentWarnings || dependencyWarningsForTask) && (
+        <TaskWarning
+          barTask={task}
+          taskHalfHeight={taskHalfHeight}
+          taskWarningOffset={taskWarningOffset}
+          rtl={rtl}
+          outOfParentWarnings={outOfParentWarnings}
+          dependencyWarnings={dependencyWarningsForTask}
+        />
+      )}
+
       {outOfParentWarnings && (
         <>
-          <OutOfParentWarning
-            barTask={task}
-            taskHalfHeight={taskHalfHeight}
-            outOfParentWarningOffset={outOfParentWarningOffset}
-            rtl={rtl}
-            outOfParentWarnings={outOfParentWarnings}
-          />
-
           {outOfParentWarnings.start && (
             <BarFixWidth
               x={rtl ? task.x2 : task.x1}

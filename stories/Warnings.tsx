@@ -269,7 +269,8 @@ export const Warnings: React.FC<AppProps> = (props) => {
 
   return (
     <Gantt
-      isShowChildOutOfParentWarning
+      isShowChildOutOfParentWarnings
+      isShowDependencyWarnings
       {...props}
       tasks={tasks}
       onDateChange={handleTaskChange}

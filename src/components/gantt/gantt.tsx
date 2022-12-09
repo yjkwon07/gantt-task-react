@@ -34,6 +34,7 @@ import { getChildTasks } from "../../helpers/get-child-tasks";
 import { getTasksMap } from "../../helpers/get-tasks-map";
 import { getMapTaskToGlobalIndex } from "../../helpers/get-map-task-to-global-index";
 import { getChildOutOfParentWarnings } from "../../helpers/get-child-out-of-parent-warnings";
+import { getDependencyMapAndWarnings } from "../../helpers/get-dependency-map-and-warnings";
 
 import styles from "./gantt.module.css";
 
@@ -45,7 +46,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   rowHeight = 50,
   relationCircleOffset = 10,
   relationCircleRadius = 5,
-  outOfParentWarningOffset = 35,
+  taskWarningOffset = 35,
   ganttHeight = 0,
   viewMode = ViewMode.Day,
   preStepsCount = 1,
@@ -94,7 +95,8 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   renderBottomHeader = undefined,
   renderTopHeader = undefined,
   comparisonLevels = 1,
-  isShowChildOutOfParentWarning = false,
+  isShowChildOutOfParentWarnings = false,
+  isShowDependencyWarnings = false,
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
@@ -133,9 +135,22 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     [tasks],
   );
 
+  const [dependencyMap, dependencyWarnings] = useMemo(
+    () => getDependencyMapAndWarnings(
+      tasks,
+      tasksMap,
+      isShowDependencyWarnings,
+    ),
+    [
+      tasks,
+      tasksMap,
+      isShowDependencyWarnings,
+    ],
+  );
+
   const childOutOfParentWarnings = useMemo<ChildOutOfParentWarnings>(
     () => {
-      if (!isShowChildOutOfParentWarning) {
+      if (!isShowChildOutOfParentWarnings) {
         return new Map<number, Map<string, TaskOutOfParentWarnings>>();
       }
 
@@ -144,7 +159,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
         childTasksMap,
       );
     },
-    [tasks, childTasksMap, isShowChildOutOfParentWarning],
+    [tasks, childTasksMap, isShowChildOutOfParentWarnings],
   );
 
   const fullRowHeight = useMemo(
@@ -567,6 +582,8 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     tasksMap,
     mapTaskToGlobalIndex,
     childOutOfParentWarnings,
+    dependencyMap,
+    dependencyWarnings,
     dates: dateSetup.dates,
     ganttEvent,
     ganttRelationEvent,
@@ -576,7 +593,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     taskHalfHeight,
     relationCircleOffset,
     relationCircleRadius,
-    outOfParentWarningOffset,
+    taskWarningOffset,
     columnWidth,
     arrowColor,
     timeStep,

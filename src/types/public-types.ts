@@ -33,6 +33,12 @@ export interface Dependency {
   ownTarget: RelationMoveTarget;
 }
 
+export interface ExpandedDependency {
+  source: Task;
+  sourceTarget: RelationMoveTarget;
+  ownTarget: RelationMoveTarget;
+}
+
 export interface TaskBarColorStyles {
   barProgressColor: string,
   barProgressSelectedColor: string,
@@ -189,9 +195,17 @@ export interface DisplayOption {
   rtl?: boolean;
 
   /**
-   * Show an warning icon next to task if some childs aren't within the time interval of the task
+   * Show an warning icon next to task
+   * if some childs aren't within the time interval of the task
+   * and show elements to fix these warnings
    */
-  isShowChildOutOfParentWarning?: boolean;
+  isShowChildOutOfParentWarnings?: boolean;
+  /**
+   * Show an warning icon next to task
+   * if some dependencies are conflicting
+   * and show elements to fix these warnings
+   */
+  isShowDependencyWarnings?: boolean;
 }
 
 export interface StylingOption extends Partial<TaskBarColorStyles> {
@@ -201,7 +215,7 @@ export interface StylingOption extends Partial<TaskBarColorStyles> {
   rowHeight?: number;
   relationCircleOffset?: number;
   relationCircleRadius?: number;
-  outOfParentWarningOffset?: number;
+  taskWarningOffset?: number;
   ganttHeight?: number;
   barCornerRadius?: number;
   handleWidth?: number;
@@ -306,3 +320,9 @@ export interface TaskOutOfParentWarnings {
  * }
  */
 export type ChildOutOfParentWarnings = Map<number, Map<string, TaskOutOfParentWarnings>>;
+
+// comparisson level -> task id -> expanded dependencies
+export type DependencyMap = Map<number, Map<string, ExpandedDependency[]>>;
+
+// comparisson level -> task id -> dependency id -> difference in milliseconds for move
+export type DependencyWarnings = Map<number, Map<string, Map<string, number>>>;

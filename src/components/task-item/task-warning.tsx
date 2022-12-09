@@ -6,40 +6,50 @@ import React, {
 import { BarTask } from '../../types/bar-task';
 import { TaskOutOfParentWarnings } from '../../types/public-types';
 
-type OutOfParentWarningProps = {
+type TaskWarningProps = {
   barTask: BarTask;
   rtl: boolean;
-  outOfParentWarnings: TaskOutOfParentWarnings;
-  outOfParentWarningOffset: number;
+  outOfParentWarnings?: TaskOutOfParentWarnings;
+  dependencyWarnings?: Map<string, number>;
+  taskWarningOffset: number;
   taskHalfHeight: number;
 };
 
-const OutOfParentWarningInner: React.FC<OutOfParentWarningProps> = ({
+const TaskWarningInner: React.FC<TaskWarningProps> = ({
   barTask,
   rtl,
-  outOfParentWarnings,
-  outOfParentWarningOffset,
+  outOfParentWarnings = undefined,
+  dependencyWarnings = undefined,
+  taskWarningOffset,
   taskHalfHeight,
 }) => {
   const isError = useMemo(
     () => {
-      const {
-        start,
-        end,
-      } = outOfParentWarnings;
+      if (dependencyWarnings) {
+        return true;
+      }
 
-      return Boolean(start?.isOutside || end?.isOutside);
+      if (outOfParentWarnings) {
+        const {
+          start,
+          end,
+        } = outOfParentWarnings;
+  
+        return Boolean(start?.isOutside || end?.isOutside);
+      }
+
+      return false;
     },
-    [outOfParentWarnings],
+    [outOfParentWarnings, dependencyWarnings],
   );
 
   const centerX = useMemo(() => {
     if (rtl) {
-      return barTask.x1 - outOfParentWarningOffset;
+      return barTask.x1 - taskWarningOffset;
     }
 
-    return barTask.x2 + outOfParentWarningOffset;
-  }, [barTask, rtl, outOfParentWarningOffset]);
+    return barTask.x2 + taskWarningOffset;
+  }, [barTask, rtl, taskWarningOffset]);
 
   return (
     <g>
@@ -70,4 +80,4 @@ const OutOfParentWarningInner: React.FC<OutOfParentWarningProps> = ({
   );
 };
 
-export const OutOfParentWarning = memo(OutOfParentWarningInner);
+export const TaskWarning = memo(TaskWarningInner);
