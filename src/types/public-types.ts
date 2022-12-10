@@ -115,6 +115,7 @@ export type OnDateChangeSuggestionType = [
 export type OnDateChange = (
   task: Task,
   dependentTasks: Task[],
+  index: number,
   parents: Task[],
   suggestions: OnDateChangeSuggestionType[],
 ) => void | boolean | Promise<void> | Promise<boolean>;
@@ -149,6 +150,10 @@ export interface EventOption {
    * Invokes on end and start time change. Chart undoes operation if method return false or error.
    */
   onDateChange?: OnDateChange;
+  /**
+   * Invokes on click on fix element next to relation arrow
+   */
+  onFixDependencyPosition?: OnDateChange;
   /**
    * Invokes new relation between tasks
    */
@@ -227,7 +232,11 @@ export interface StylingOption extends Partial<TaskBarColorStyles> {
    */
   barFill?: number;
   arrowColor?: string;
+  arrowWarningColor?: string;
   arrowIndent?: number;
+  dependencyFixWidth?: number;
+  dependencyFixHeight?: number;
+  dependencyFixIndent?: number;
   todayColor?: string;
   TooltipContent?: React.FC<{
     task: Task;

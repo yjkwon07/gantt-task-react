@@ -10,7 +10,7 @@ type TaskWarningProps = {
   barTask: BarTask;
   rtl: boolean;
   outOfParentWarnings?: TaskOutOfParentWarnings;
-  dependencyWarnings?: Map<string, number>;
+  dependencyWarningMap?: Map<string, number>;
   taskWarningOffset: number;
   taskHalfHeight: number;
 };
@@ -19,13 +19,13 @@ const TaskWarningInner: React.FC<TaskWarningProps> = ({
   barTask,
   rtl,
   outOfParentWarnings = undefined,
-  dependencyWarnings = undefined,
+  dependencyWarningMap = undefined,
   taskWarningOffset,
   taskHalfHeight,
 }) => {
   const isError = useMemo(
     () => {
-      if (dependencyWarnings) {
+      if (dependencyWarningMap) {
         return true;
       }
 
@@ -40,7 +40,7 @@ const TaskWarningInner: React.FC<TaskWarningProps> = ({
 
       return false;
     },
-    [outOfParentWarnings, dependencyWarnings],
+    [outOfParentWarnings, dependencyWarningMap],
   );
 
   const centerX = useMemo(() => {

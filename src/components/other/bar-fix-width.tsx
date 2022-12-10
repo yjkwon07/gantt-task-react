@@ -3,9 +3,11 @@ import React, {
   useMemo,
 } from 'react';
 
-import { generateTrianglePoints } from '../../../helpers/generate-triangle-points';
+import { generateTrianglePoints } from '../../helpers/generate-triangle-points';
 
 import styles from './bar-fix-width.module.css';
+
+export const fixWidthContainerClass = styles.hoverVisibleWrapper;
 
 type BarFixWidthProps = {   
   x: number;
@@ -74,8 +76,11 @@ const BarFixWidthInner: React.FC<BarFixWidthProps> = ({
         className={styles.mainPath}
       />
 
-      <path
-        d={d}
+      <rect
+        x={isLeft ? x - width - 2 : x - 2}
+        y={y - 5}
+        width={width + 5}
+        height={height + 5}
         className={styles.clickZone}
       />
 

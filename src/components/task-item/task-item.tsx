@@ -15,18 +15,18 @@ import {
   FixPosition,
 } from "../../types/public-types";
 import { Bar } from "./bar/bar";
-import { BarFixWidth } from "./bar/bar-fix-width";
 import { BarSmall } from "./bar/bar-small";
 import { Milestone } from "./milestone/milestone";
 import { TaskWarning } from "./task-warning";
 import { Project } from "./project/project";
 import style from "./task-list.module.css";
+import { BarFixWidth, fixWidthContainerClass } from "../other/bar-fix-width";
 
 export type TaskItemProps = {
   task: BarTask;
   childTasksMap: ChildMapByLevel;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
-  dependencyWarnings: DependencyWarnings;
+  dependencyWarningMap: DependencyWarnings;
   arrowIndent: number;
   taskHeight: number;
   taskHalfHeight: number;
@@ -58,7 +58,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     task,
     childTasksMap,
     childOutOfParentWarnings,
-    dependencyWarnings,
+    dependencyWarningMap,
     taskWarningOffset,
     arrowIndent,
     isDelete,
@@ -93,14 +93,14 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
       comparisonLevel = 1,
     } = task;
 
-    const warningsByLevel = dependencyWarnings.get(comparisonLevel);
+    const warningsByLevel = dependencyWarningMap.get(comparisonLevel);
 
     if (!warningsByLevel) {
       return;
     }
 
     return warningsByLevel.get(id);
-  }, [task, dependencyWarnings]);
+  }, [task, dependencyWarningMap]);
 
   const handleFixStartPosition = useCallback(() => {
     if (!outOfParentWarnings || !fixStartPosition) {
@@ -193,6 +193,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
 
   return (
     <g
+      className={fixWidthContainerClass}
       onKeyDown={e => {
         switch (e.key) {
           case "Delete": {
@@ -241,7 +242,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
           taskWarningOffset={taskWarningOffset}
           rtl={rtl}
           outOfParentWarnings={outOfParentWarnings}
-          dependencyWarnings={dependencyWarningsForTask}
+          dependencyWarningMap={dependencyWarningsForTask}
         />
       )}
 

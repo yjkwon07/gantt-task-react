@@ -1,3 +1,7 @@
+.hoverVisibleWrapper:hover .wrapper {
+  display: initial;
+}
+
 .wrapper {
   cursor: pointer;
 }
@@ -12,7 +16,6 @@
 }
 
 .clickZone {
-  fill: none;
+  fill: transparent;
   stroke: transparent;
-  stroke-width: 8px;
 }

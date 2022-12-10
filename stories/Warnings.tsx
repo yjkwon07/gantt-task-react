@@ -26,6 +26,7 @@ export const Warnings: React.FC<AppProps> = (props) => {
   const handleTaskChange = useCallback<OnDateChange>((
     task,
     dependentTasks,
+    taskIndex,
     parents,
     suggestions,
   ) => {
@@ -34,26 +35,16 @@ export const Warnings: React.FC<AppProps> = (props) => {
       comparisonLevel = 1,
     } = task;
 
-    console.log("On date change Id:" + taskId);
-    console.log("On date change level:" + comparisonLevel);
+    console.log(`On date change Id: ${taskId}`);
+    console.log(`On date change level: ${comparisonLevel}`);
+    console.log(`On date change index: ${taskIndex}`);
     console.log("Dependent tasks", dependentTasks);
     console.log("Parents", parents);
     console.log("Suggestions", suggestions);
 
     setTasks((prevTasks) => {
-      let newTasks = prevTasks.map((otherTask) => {
-        const {
-          id: otherTaskId,
-          comparisonLevel: otherComparisonLevel = 1,
-        } = otherTask;
-
-        return (
-          (otherTaskId === taskId && otherComparisonLevel === comparisonLevel)
-            ? task
-            : otherTask
-        );
-      });
-
+      const newTasks = [...prevTasks];
+      newTasks[taskIndex] = task;
       return newTasks;
     });
   }, []);
@@ -274,6 +265,7 @@ export const Warnings: React.FC<AppProps> = (props) => {
       {...props}
       tasks={tasks}
       onDateChange={handleTaskChange}
+      onFixDependencyPosition={handleTaskChange}
       onRelationChange={handleRelationChange}
       onDelete={handleTaskDelete}
       onProgressChange={handleProgressChange}

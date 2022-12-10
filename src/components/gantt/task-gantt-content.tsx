@@ -1,4 +1,9 @@
-import React, { Fragment, useCallback, useEffect, useState } from "react";
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 import {
   ChildMapByLevel,
@@ -36,7 +41,7 @@ export type TaskGanttContentProps = {
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
   dependencyMap: DependencyMap;
-  dependencyWarnings: DependencyWarnings;
+  dependencyWarningMap: DependencyWarnings;
   dates: Date[];
   ganttEvent: GanttEvent;
   ganttRelationEvent: GanttRelationEvent | null;
@@ -52,7 +57,11 @@ export type TaskGanttContentProps = {
   relationCircleRadius: number;
   taskWarningOffset: number;
   arrowColor: string;
+  arrowWarningColor: string;
   arrowIndent: number;
+  dependencyFixWidth: number;
+  dependencyFixHeight: number;
+  dependencyFixIndent: number;
   fontSize: string;
   fontFamily: string;
   rtl: boolean;
@@ -73,7 +82,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   mapTaskToGlobalIndex,
   childOutOfParentWarnings,
   dependencyMap,
-  dependencyWarnings,
+  dependencyWarningMap,
   dates,
   ganttEvent,
   ganttRelationEvent,
@@ -88,7 +97,11 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   relationCircleRadius,
   taskWarningOffset,
   arrowColor,
+  arrowWarningColor,
   arrowIndent,
+  dependencyFixWidth,
+  dependencyFixHeight,
+  dependencyFixIndent,
   fontFamily,
   fontSize,
   rtl,
@@ -96,7 +109,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   setGanttRelationEvent,
   setFailedTask,
   setSelectedTask,
-  onDateChange,
+  onDateChange = undefined,
+  onFixDependencyPosition = undefined,
   onRelationChange,
   onProgressChange,
   onDoubleClick,
@@ -193,10 +207,30 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
           mapTaskToGlobalIndex,
         ));
 
+        const {
+          id: taskId,
+          comparisonLevel = 1,
+        } = newChangedTask;
+
+        const taskIndexMapByLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+
+        if (!taskIndexMapByLevel) {
+          console.error(`Tasks by level ${comparisonLevel} are not found`);
+        }
+
+        const taskIndex = taskIndexMapByLevel
+          ? taskIndexMapByLevel.get(taskId)
+          : undefined;
+
+        if (!taskIndexMapByLevel) {
+          console.error(`Index for task ${taskId} is not found`);
+        }
+
         try {
           const result = await onDateChange(
             newChangedTask,
             newChangedTask.barChildren.map(({ dependentTask }) => dependentTask),
+            typeof taskIndex === 'number' ? taskIndex : -1,
             parents,
             suggestions,
           );
@@ -483,6 +517,66 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     rtl,
   ]);
 
+  /**
+   * TO DO: compute metadata for change handler in a separate function
+   */
+  const handleFixDependency = useCallback((task: BarTask, delta: number) => {
+    if (!onFixDependencyPosition) {
+      return;
+    }
+
+    const {
+      id: taskId,
+      start,
+      end,
+      comparisonLevel = 1,
+    } = task;
+
+    const newStart = new Date(start.getTime() + delta);
+    const newEnd = new Date(end.getTime() + delta);
+
+    const newChangedTask = {
+      ...task,
+      start: newStart,
+      end: newEnd,
+    };
+
+    const parents = collectParents(newChangedTask, tasksMap);
+    const suggestions = parents.map((parentTask) => getSuggestedStartEndChanges(
+      parentTask,
+      newChangedTask,
+      childTasksMap,
+      mapTaskToGlobalIndex,
+    ));
+
+    const taskIndexMapByLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+
+    if (!taskIndexMapByLevel) {
+      console.error(`Tasks by level ${comparisonLevel} are not found`);
+    }
+
+    const taskIndex = taskIndexMapByLevel
+      ? taskIndexMapByLevel.get(taskId)
+      : undefined;
+
+    if (!taskIndexMapByLevel) {
+      console.error(`Index for task ${taskId} is not found`);
+    }
+
+    onFixDependencyPosition(
+      newChangedTask,
+      newChangedTask.barChildren.map(({ dependentTask }) => dependentTask),
+      typeof taskIndex === 'number' ? taskIndex : -1,
+      parents,
+      suggestions,
+    );
+  }, [
+    onFixDependencyPosition,
+    tasksMap,
+    childTasksMap,
+    mapTaskToGlobalIndex,
+  ]);
+
   return (
     <g className="content">
       <g className="arrows" fill={arrowColor} stroke={arrowColor}>
@@ -501,6 +595,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
           }
 
           const dependenciesByLevel = dependencyMap.get(comparisonLevel);
+          const warnngsByLevel = dependencyWarningMap.get(comparisonLevel);
 
           if (!dependenciesByLevel) {
             return (
@@ -527,16 +622,23 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
           }) => {
             return (
               <Arrow
-                key={`Arrow from ${task.id} to ${dependentTask.id} on ${comparisonLevel}`}
+                key={`Arrow from ${taskId} to ${dependentTask.id} on ${comparisonLevel}`}
                 taskFrom={task}
                 targetFrom={sourceTarget}
                 taskTo={dependentTask}
                 targetTo={dependentTarget}
+                warningsByTask={warnngsByLevel ? warnngsByLevel.get(dependentTask.id) : undefined}
                 fullRowHeight={fullRowHeight}
                 taskHeight={taskHeight}
                 arrowIndent={arrowIndent}
+                dependencyFixWidth={dependencyFixWidth}
+                dependencyFixHeight={dependencyFixHeight}
+                dependencyFixIndent={dependencyFixIndent}
+                arrowColor={arrowColor}
+                arrowWarningColor={arrowWarningColor}
                 rtl={rtl}
                 onArrowDoubleClick={onArrowDoubleClick}
+                handleFixDependency={handleFixDependency}
               />
             );
           });
@@ -564,7 +666,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               task={task}
               childTasksMap={childTasksMap}
               childOutOfParentWarnings={childOutOfParentWarnings}
-              dependencyWarnings={dependencyWarnings}
+              dependencyWarningMap={dependencyWarningMap}
               arrowIndent={arrowIndent}
               taskHeight={taskHeight}
               taskHalfHeight={taskHalfHeight}
