@@ -16,7 +16,7 @@ export const convertToBarTasks = (
 ) => {
   const indexesByLevels: Record<string, number> = {};
 
-  let barTasks = tasks.map((task, globalIndex) => {
+  let barTasks = tasks.map((task) => {
     const {
       comparisonLevel = 1,
     } = task;
@@ -31,7 +31,6 @@ export const convertToBarTasks = (
     return convertToBarTask(
       task,
       index,
-      globalIndex,
       dates,
       columnWidth,
       rowHeight,
@@ -82,7 +81,6 @@ export const convertToBarTasks = (
 const convertToBarTask = (
   task: Task,
   rowIndex: number,
-  globalIndex: number,
   dates: Date[],
   columnWidth: number,
   rowHeight: number,
@@ -99,7 +97,6 @@ const convertToBarTask = (
       barTask = convertToMilestone(
         task,
         rowIndex,
-        globalIndex,
         dates,
         columnWidth,
         rowHeight,
@@ -115,7 +112,6 @@ const convertToBarTask = (
       barTask = convertToBar(
         task,
         rowIndex,
-        globalIndex,
         dates,
         columnWidth,
         rowHeight,
@@ -131,7 +127,6 @@ const convertToBarTask = (
       barTask = convertToBar(
         task,
         rowIndex,
-        globalIndex,
         dates,
         columnWidth,
         rowHeight,
@@ -150,7 +145,6 @@ const convertToBarTask = (
 const convertToBar = (
   task: Task,
   rowIndex: number,
-  globalIndex: number,
   dates: Date[],
   columnWidth: number,
   rowHeight: number,
@@ -198,7 +192,6 @@ const convertToBar = (
     x2,
     y,
     index: rowIndex,
-    globalIndex,
     progressX,
     progressWidth,
     barCornerRadius,
@@ -216,7 +209,6 @@ const convertToBar = (
 const convertToMilestone = (
   task: Task,
   rowIndex: number,
-  globalIndex: number,
   dates: Date[],
   columnWidth: number,
   rowHeight: number,
@@ -254,7 +246,6 @@ const convertToMilestone = (
     x2,
     y,
     index: rowIndex,
-    globalIndex,
     progressX: 0,
     progressWidth: 0,
     barCornerRadius,

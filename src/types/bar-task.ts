@@ -12,10 +12,6 @@ export interface BarTask extends Task {
    * Index in list of tasks of current level
    */
   index: number;
-  /**
-   * Index in global list of tasks
-   */
-  globalIndex: number;
   typeInternal: TaskTypeInternal;
   x1: number;
   x2: number;
