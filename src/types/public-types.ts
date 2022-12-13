@@ -299,6 +299,9 @@ export interface TaskListTableProps {
 // comparisson level -> task id -> index in array of tasks
 export type MapTaskToGlobalIndex = Map<number, Map<string, number>>;
 
+// comparisson level -> task id -> index of the row containing the task
+export type MapTaskToRowIndex = Map<number, Map<string, number>>;
+
 // comparisson level -> task id -> array of child tasks
 export type ChildMapByLevel = Map<number, Map<string, Task[]>>;
 

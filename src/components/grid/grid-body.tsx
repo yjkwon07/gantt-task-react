@@ -5,7 +5,8 @@ import type {
   ReactNode,
 } from "react";
 
-import { addToDate } from "../../helpers/date-helper";
+import addMilliseconds from 'date-fns/addMilliseconds';
+
 import styles from "./grid.module.css";
 
 export type GridBodyProps = {
@@ -89,10 +90,9 @@ const GridBodyInner: React.FC<GridBodyProps> = ({
       (i !== 0 &&
         i + 1 === dates.length &&
         date.getTime() < now.getTime() &&
-        addToDate(
+        addMilliseconds(
           date,
           date.getTime() - dates[i - 1].getTime(),
-          "millisecond"
         ).getTime() >= now.getTime())
     ) {
       today = (

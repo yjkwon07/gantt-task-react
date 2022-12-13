@@ -1,15 +1,19 @@
+import addYears from "date-fns/addYears";
+import addMonths from "date-fns/addMonths";
+import addDays from "date-fns/addDays";
+import addHours from "date-fns/addHours";
+import subYears from "date-fns/subYears";
+import subMonths from "date-fns/subMonths";
+import subDays from "date-fns/subDays";
+import subHours from "date-fns/subHours";
+import startOfYear from "date-fns/startOfYear";
+import startOfMonth from "date-fns/startOfMonth";
+import startOfDay from "date-fns/startOfDay";
+import startOfHour from "date-fns/startOfHour";
+
 import { MonthFormats, Task, ViewMode } from "../types/public-types";
 import DateTimeFormatOptions = Intl.DateTimeFormatOptions;
 import DateTimeFormat = Intl.DateTimeFormat;
-
-type DateHelperScales =
-  | "year"
-  | "month"
-  | "day"
-  | "hour"
-  | "minute"
-  | "second"
-  | "millisecond";
 
 const intlDTCache = {};
 export const getCachedDateTimeFormat = (
@@ -32,50 +36,6 @@ export const getCachedDateTimeFormat = (
   return dtf;
 };
 
-export const addToDate = (
-  date: Date,
-  quantity: number,
-  scale: DateHelperScales
-) => {
-  const newDate = new Date(
-    date.getFullYear() + (scale === "year" ? quantity : 0),
-    date.getMonth() + (scale === "month" ? quantity : 0),
-    date.getDate() + (scale === "day" ? quantity : 0),
-    date.getHours() + (scale === "hour" ? quantity : 0),
-    date.getMinutes() + (scale === "minute" ? quantity : 0),
-    date.getSeconds() + (scale === "second" ? quantity : 0),
-    date.getMilliseconds() + (scale === "millisecond" ? quantity : 0)
-  );
-  return newDate;
-};
-
-export const startOfDate = (date: Date, scale: DateHelperScales) => {
-  const scores = [
-    "millisecond",
-    "second",
-    "minute",
-    "hour",
-    "day",
-    "month",
-    "year",
-  ];
-
-  const shouldReset = (_scale: DateHelperScales) => {
-    const maxScore = scores.indexOf(scale);
-    return scores.indexOf(_scale) <= maxScore;
-  };
-  const newDate = new Date(
-    date.getFullYear(),
-    shouldReset("year") ? 0 : date.getMonth(),
-    shouldReset("month") ? 1 : date.getDate(),
-    shouldReset("day") ? 0 : date.getHours(),
-    shouldReset("hour") ? 0 : date.getMinutes(),
-    shouldReset("minute") ? 0 : date.getSeconds(),
-    shouldReset("second") ? 0 : date.getMilliseconds()
-  );
-  return newDate;
-};
-
 export const ganttDateRange = (
   tasks: readonly Task[],
   viewMode: ViewMode,
@@ -93,50 +53,46 @@ export const ganttDateRange = (
   }
   switch (viewMode) {
     case ViewMode.Year:
-      newStartDate = addToDate(newStartDate, -1, "year");
-      newStartDate = startOfDate(newStartDate, "year");
-      newEndDate = addToDate(newEndDate, 1, "year");
-      newEndDate = startOfDate(newEndDate, "year");
+      newStartDate = subYears(newStartDate, 1);
+      newStartDate = startOfYear(newStartDate);
+      newEndDate = addYears(newEndDate, 1);
+      newEndDate = startOfYear(newEndDate);
       break;
     case ViewMode.Month:
-      newStartDate = addToDate(newStartDate, -1 * preStepsCount, "month");
-      newStartDate = startOfDate(newStartDate, "month");
-      newEndDate = addToDate(newEndDate, 1, "year");
-      newEndDate = startOfDate(newEndDate, "year");
+      newStartDate = subMonths(newStartDate, preStepsCount);
+      newStartDate = startOfMonth(newStartDate);
+      newEndDate = addYears(newEndDate, 1);
+      newEndDate = startOfYear(newEndDate);
       break;
     case ViewMode.Week:
-      newStartDate = startOfDate(newStartDate, "day");
-      newStartDate = addToDate(
-        getMonday(newStartDate),
-        -7 * preStepsCount,
-        "day"
-      );
-      newEndDate = startOfDate(newEndDate, "day");
-      newEndDate = addToDate(newEndDate, 1.5, "month");
+      newStartDate = startOfDay(newStartDate);
+      newStartDate = subDays(getMonday(newStartDate), 7 * preStepsCount);
+      newEndDate = startOfDay(newEndDate);
+      newEndDate = addMonths(newEndDate, 1.5);
       break;
     case ViewMode.Day:
-      newStartDate = startOfDate(newStartDate, "day");
-      newStartDate = addToDate(newStartDate, -1 * preStepsCount, "day");
-      newEndDate = startOfDate(newEndDate, "day");
-      newEndDate = addToDate(newEndDate, 19, "day");
+      newStartDate = startOfDay(newStartDate);
+      newStartDate = subDays(newStartDate, preStepsCount);
+      newEndDate = startOfDay(newEndDate);
+      newEndDate = addDays(newEndDate, 19);
       break;
     case ViewMode.QuarterDay:
-      newStartDate = startOfDate(newStartDate, "day");
-      newStartDate = addToDate(newStartDate, -1 * preStepsCount, "day");
-      newEndDate = startOfDate(newEndDate, "day");
-      newEndDate = addToDate(newEndDate, 66, "hour"); // 24(1 day)*3 - 6
+      newStartDate = startOfDay(newStartDate);
+      newStartDate = subDays(newStartDate, preStepsCount);
+      newEndDate = startOfDay(newEndDate);
+      newEndDate = addHours(newEndDate, 66); // 24(1 day)*3 - 6
       break;
     case ViewMode.HalfDay:
-      newStartDate = startOfDate(newStartDate, "day");
-      newStartDate = addToDate(newStartDate, -1 * preStepsCount, "day");
-      newEndDate = startOfDate(newEndDate, "day");
-      newEndDate = addToDate(newEndDate, 108, "hour"); // 24(1 day)*5 - 12
+      newStartDate = startOfDay(newStartDate);
+      newStartDate = subDays(newStartDate, preStepsCount);
+      newEndDate = startOfDay(newEndDate);
+      newEndDate = addHours(newEndDate, 108); // 24(1 day)*5 - 12
       break;
     case ViewMode.Hour:
-      newStartDate = startOfDate(newStartDate, "hour");
-      newStartDate = addToDate(newStartDate, -1 * preStepsCount, "hour");
-      newEndDate = startOfDate(newEndDate, "day");
-      newEndDate = addToDate(newEndDate, 1, "day");
+      newStartDate = startOfHour(newStartDate);
+      newStartDate = subHours(newStartDate, preStepsCount);
+      newEndDate = startOfDay(newEndDate);
+      newEndDate = addDays(newEndDate, 1);
       break;
   }
   return [newStartDate, newEndDate];
@@ -152,25 +108,25 @@ export const seedDates = (
   while (currentDate < endDate) {
     switch (viewMode) {
       case ViewMode.Year:
-        currentDate = addToDate(currentDate, 1, "year");
+        currentDate = addYears(currentDate, 1);
         break;
       case ViewMode.Month:
-        currentDate = addToDate(currentDate, 1, "month");
+        currentDate = addMonths(currentDate, 1);
         break;
       case ViewMode.Week:
-        currentDate = addToDate(currentDate, 7, "day");
+        currentDate = addDays(currentDate, 7);
         break;
       case ViewMode.Day:
-        currentDate = addToDate(currentDate, 1, "day");
+        currentDate = addDays(currentDate, 1);
         break;
       case ViewMode.HalfDay:
-        currentDate = addToDate(currentDate, 12, "hour");
+        currentDate = addHours(currentDate, 12);
         break;
       case ViewMode.QuarterDay:
-        currentDate = addToDate(currentDate, 6, "hour");
+        currentDate = addHours(currentDate, 6);
         break;
       case ViewMode.Hour:
-        currentDate = addToDate(currentDate, 1, "hour");
+        currentDate = addHours(currentDate, 1);
         break;
     }
     dates.push(currentDate);
