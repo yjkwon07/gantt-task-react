@@ -275,7 +275,7 @@ export interface StylingOption extends Partial<TaskBarColorStyles> {
 }
 
 export interface GanttProps extends EventOption, DisplayOption, StylingOption {
-  tasks: Task[];
+  tasks: readonly Task[];
   /**
    * Can be used to compare multiple graphs. This prop is the number of graps being compared
    */

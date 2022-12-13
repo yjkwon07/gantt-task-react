@@ -7,7 +7,7 @@ import {
 import { compareDates } from "./compare-dates";
 
 export const getChildOutOfParentWarnings = (
-  tasks: Task[],
+  tasks: readonly Task[],
   childTasksMap: ChildMapByLevel,
 ): ChildOutOfParentWarnings => {
   const res = new Map<number, Map<string, TaskOutOfParentWarnings>>();

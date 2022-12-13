@@ -13,6 +13,7 @@ import {
   ChildOutOfParentWarnings,
   DependencyWarnings,
   FixPosition,
+  MapTaskToGlobalIndex,
 } from "../../types/public-types";
 import { Bar } from "./bar/bar";
 import { BarSmall } from "./bar/bar-small";
@@ -27,6 +28,7 @@ export type TaskItemProps = {
   childTasksMap: ChildMapByLevel;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
   dependencyWarningMap: DependencyWarnings;
+  mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   arrowIndent: number;
   taskHeight: number;
   taskHalfHeight: number;
@@ -59,6 +61,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     childTasksMap,
     childOutOfParentWarnings,
     dependencyWarningMap,
+    mapTaskToGlobalIndex,
     taskWarningOffset,
     arrowIndent,
     isDelete,
@@ -102,6 +105,27 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     return warningsByLevel.get(id);
   }, [task, dependencyWarningMap]);
 
+  const globalIndex = useMemo(() => {
+    const {
+      id,
+      comparisonLevel = 1,
+    } = task;
+
+    const indexesByLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+
+    if (!indexesByLevel) {
+      return -1;
+    }
+
+    const res = indexesByLevel.get(id);
+
+    if (typeof res === 'number') {
+      return res;
+    }
+
+    return -1;
+  }, [task, mapTaskToGlobalIndex]);
+
   const handleFixStartPosition = useCallback(() => {
     if (!outOfParentWarnings || !fixStartPosition) {
       return;
@@ -118,9 +142,9 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     fixStartPosition(
       task,
       start.date,
-      task.globalIndex,
+      globalIndex,
     );
-  }, [task, fixStartPosition, outOfParentWarnings]);
+  }, [task, fixStartPosition, outOfParentWarnings, globalIndex]);
 
   const handleFixEndPosition = useCallback(() => {
     if (!outOfParentWarnings || !fixEndPosition) {
@@ -138,9 +162,9 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     fixEndPosition(
       task,
       end.date,
-      task.globalIndex,
+      globalIndex,
     );
-  }, [task, fixEndPosition, outOfParentWarnings]);
+  }, [task, fixEndPosition, outOfParentWarnings, globalIndex]);
 
   const textRef = useRef<SVGTextElement>(null);
   const [isTextInside, setIsTextInside] = useState(true);

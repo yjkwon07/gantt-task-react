@@ -263,7 +263,7 @@ export const Warnings: React.FC<AppProps> = (props) => {
       isShowChildOutOfParentWarnings
       isShowDependencyWarnings
       {...props}
-      tasks={tasks}
+      tasks={[...tasks]}
       onDateChange={handleTaskChange}
       onFixDependencyPosition={handleTaskChange}
       onRelationChange={handleRelationChange}

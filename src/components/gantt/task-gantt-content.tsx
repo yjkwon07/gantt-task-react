@@ -667,6 +667,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               childTasksMap={childTasksMap}
               childOutOfParentWarnings={childOutOfParentWarnings}
               dependencyWarningMap={dependencyWarningMap}
+              mapTaskToGlobalIndex={mapTaskToGlobalIndex}
               arrowIndent={arrowIndent}
               taskHeight={taskHeight}
               taskHalfHeight={taskHalfHeight}

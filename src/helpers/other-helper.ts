@@ -17,21 +17,23 @@ export function isBarTask(task: Task | BarTask): task is BarTask {
   return (task as BarTask).x1 !== undefined;
 }
 
-export function removeHiddenTasks(tasks: Task[]) {
-  const groupedTasks = tasks.filter(
+export function removeHiddenTasks(tasks: readonly Task[]) {
+  let res = [...tasks];
+
+  const groupedTasks = res.filter(
     t => t.hideChildren && t.type === "project"
   );
   if (groupedTasks.length > 0) {
     for (let i = 0; groupedTasks.length > i; i++) {
       const groupedTask = groupedTasks[i];
-      const children = getChildren(tasks, groupedTask);
-      tasks = tasks.filter(t => children.indexOf(t) === -1);
+      const children = getChildren(res, groupedTask);
+      res = res.filter(t => children.indexOf(t) === -1);
     }
   }
-  return tasks;
+  return res;
 }
 
-function getChildren(taskList: Task[], task: Task) {
+function getChildren(taskList: readonly Task[], task: Task) {
   let tasks: Task[] = [];
 
   const {

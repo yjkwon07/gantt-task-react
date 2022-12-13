@@ -4,7 +4,7 @@ import { Task, TaskMapByLevel } from "../types/public-types";
  * @param tasks List of tasks
  */
 export const getTasksMap = (
-  tasks: Task[],
+  tasks: readonly Task[],
 ): TaskMapByLevel => {
   const res = new Map<number, Map<string, Task>>();
 

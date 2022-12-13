@@ -8,7 +8,7 @@ import {
 import { compareDates } from "./compare-dates";
 
 export const getDependencyMapAndWarnings = (
-  tasks: Task[],
+  tasks: readonly Task[],
   tasksMap: TaskMapByLevel,
   isShowDependencyWarnings: boolean,
 ): [DependencyMap, DependencyWarnings] => {

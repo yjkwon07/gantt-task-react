@@ -255,7 +255,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     if (onExpanderClick) {
       filteredTasks = removeHiddenTasks(tasks);
     } else {
-      filteredTasks = tasks;
+      filteredTasks = [...tasks];
     }
     filteredTasks = filteredTasks.sort(sortTasks);
     const [startDate, endDate] = ganttDateRange(
