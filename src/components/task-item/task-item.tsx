@@ -13,7 +13,9 @@ import {
   ChildOutOfParentWarnings,
   DependencyWarnings,
   FixPosition,
+  MapTaskToCoordinates,
   MapTaskToGlobalIndex,
+  TaskCoordinates,
 } from "../../types/public-types";
 import { Bar } from "./bar/bar";
 import { BarSmall } from "./bar/bar-small";
@@ -29,6 +31,7 @@ export type TaskItemProps = {
   childOutOfParentWarnings: ChildOutOfParentWarnings;
   dependencyWarningMap: DependencyWarnings;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
+  mapTaskToCoordinates: MapTaskToCoordinates;
   arrowIndent: number;
   taskHeight: number;
   taskHalfHeight: number;
@@ -55,6 +58,10 @@ export type TaskItemProps = {
   fixEndPosition?: FixPosition;
 };
 
+export type TaskItemExtendedProps = TaskItemProps & {
+  coordinates: TaskCoordinates;
+};
+
 export const TaskItem: React.FC<TaskItemProps> = props => {
   const {
     task,
@@ -62,6 +69,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     childOutOfParentWarnings,
     dependencyWarningMap,
     mapTaskToGlobalIndex,
+    mapTaskToCoordinates,
     taskWarningOffset,
     arrowIndent,
     isDelete,
@@ -74,6 +82,27 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     fixStartPosition = undefined,
     fixEndPosition = undefined,
   } = props;
+
+  const coordinates = useMemo(() => {
+    const {
+      id,
+      comparisonLevel = 1,
+    } = task;
+
+    const mapByLevel = mapTaskToCoordinates.get(comparisonLevel);
+
+    if (!mapByLevel) {
+      throw new Error(`Coordinates are not found for level ${mapByLevel}`);
+    }
+
+    const res = mapByLevel.get(id);
+
+    if (!res) {
+      throw new Error(`Coordinates are not found for task ${id}`);
+    }
+
+    return res;
+  }, [task, mapTaskToCoordinates]);
 
   const outOfParentWarnings = useMemo(() => {
     const {
@@ -172,18 +201,39 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
   const taskItem = useMemo(() => {
     switch (task.typeInternal) {
       case "milestone":
-        return <Milestone {...props} />;
+        return (
+          <Milestone
+            {...props}
+            coordinates={coordinates}
+          />
+        );
 
       case "project":
-        return <Project {...props} />;
+        return (
+          <Project
+            {...props}
+            coordinates={coordinates}
+          />
+        );
 
       case "smalltask":
-        return <BarSmall {...props} />;
+        return (
+          <BarSmall
+            {...props}
+            coordinates={coordinates}
+          />
+        );
 
       default:
-        return <Bar {...props} />;
+        return (
+          <Bar
+            {...props}
+            coordinates={coordinates}
+          />
+        );
     }
   }, [
+    coordinates,
     task,
     isSelected,
     isRelationDrawMode,

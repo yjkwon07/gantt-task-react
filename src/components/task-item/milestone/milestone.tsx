@@ -7,11 +7,13 @@ import cx from "classnames";
 import { BarRelationHandle } from "../bar/bar-relation-handle";
 import stylesRelationHandle from "../bar/bar-relation-handle.module.css";
 
-import { TaskItemProps } from "../task-item";
+import { TaskItemExtendedProps } from "../task-item";
 import styles from "./milestone.module.css";
 
-export const Milestone: React.FC<TaskItemProps> = ({
+export const Milestone: React.FC<TaskItemExtendedProps> = ({
   task,
+  coordinates,
+  taskHeight,
   taskHalfHeight,
   relationCircleOffset,
   relationCircleRadius,
@@ -22,8 +24,10 @@ export const Milestone: React.FC<TaskItemProps> = ({
   onRelationStart,
   isSelected,
 }) => {
-  const transform = `rotate(45 ${task.x1 + task.height * 0.356} 
-    ${task.y + task.height * 0.85})`;
+  const rotatedHeight = taskHeight / 1.414;
+
+  const transform = `rotate(45 ${coordinates.x1 + rotatedHeight * 0.356} 
+    ${coordinates.y + rotatedHeight * 0.85})`;
 
   const barColor = useMemo(() => {
     if (isSelected) {
@@ -40,10 +44,10 @@ export const Milestone: React.FC<TaskItemProps> = ({
     >
       <rect
         fill={barColor}
-        x={task.x1}
-        width={task.height}
-        y={task.y}
-        height={task.height}
+        x={coordinates.x1}
+        width={rotatedHeight}
+        y={coordinates.y}
+        height={rotatedHeight}
         rx={task.barCornerRadius}
         ry={task.barCornerRadius}
         transform={transform}
@@ -59,8 +63,8 @@ export const Milestone: React.FC<TaskItemProps> = ({
             {/* left */}
             <BarRelationHandle
               isRelationDrawMode={isRelationDrawMode}
-              x={task.x1 - relationCircleOffset}
-              y={task.y + taskHalfHeight}
+              x={coordinates.x1 - relationCircleOffset}
+              y={coordinates.y + taskHalfHeight}
               radius={relationCircleRadius}
               onMouseDown={() => {
                 onRelationStart("startOfTask", task);
@@ -69,8 +73,8 @@ export const Milestone: React.FC<TaskItemProps> = ({
             {/* right */}
             <BarRelationHandle
               isRelationDrawMode={isRelationDrawMode}
-              x={task.x2 + relationCircleOffset}
-              y={task.y + taskHalfHeight}
+              x={coordinates.x2 + relationCircleOffset}
+              y={coordinates.y + taskHalfHeight}
               radius={relationCircleRadius}
               onMouseDown={() => {
                 onRelationStart("endOfTask", task);

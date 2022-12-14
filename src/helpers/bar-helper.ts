@@ -3,7 +3,7 @@ import { BarTask, TaskTypeInternal } from "../types/bar-task";
 import { BarMoveAction } from "../types/gantt-task-actions";
 
 export const convertToBarTasks = (
-  tasks: Task[],
+  tasks: readonly Task[],
   dates: Date[],
   columnWidth: number,
   rowHeight: number,
@@ -262,7 +262,7 @@ const convertToMilestone = (
   };
 };
 
-const taskXCoordinate = (xDate: Date, dates: Date[], columnWidth: number) => {
+export const taskXCoordinate = (xDate: Date, dates: Date[], columnWidth: number) => {
   const index = dates.findIndex(d => d.getTime() >= xDate.getTime()) - 1;
 
   const remainderMillis = xDate.getTime() - dates[index].getTime();
@@ -271,7 +271,7 @@ const taskXCoordinate = (xDate: Date, dates: Date[], columnWidth: number) => {
   const x = index * columnWidth + percentOfInterval * columnWidth;
   return x;
 };
-const taskXCoordinateRTL = (
+export const taskXCoordinateRTL = (
   xDate: Date,
   dates: Date[],
   columnWidth: number
@@ -285,7 +285,7 @@ const taskXCoordinateRTL = (
   return x;
 };
 
-const taskYCoordinate = (
+export const taskYCoordinate = (
   rowIndex: number,
   rowHeight: number,
   fullRowHeight: number,

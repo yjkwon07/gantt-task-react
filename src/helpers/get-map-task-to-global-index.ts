@@ -8,11 +8,11 @@ export const getMapTaskToGlobalIndex = (
 ): MapTaskToGlobalIndex => {
   const res = new Map<number, Map<string, number>>();
 
-  tasks.forEach((otherTask, index) => {
+  tasks.forEach((task, index) => {
     const {
       id,
       comparisonLevel = 1,
-    } = otherTask;
+    } = task;
 
     const indexesByLevel = res.get(comparisonLevel) || new Map<string, number>();
 

@@ -1,0 +1,78 @@
+import {
+  MapTaskToCoordinates,
+  MapTaskToRowIndex,
+  Task,
+  TaskCoordinates,
+} from "../types/public-types";
+
+import { taskXCoordinate, taskXCoordinateRTL, taskYCoordinate } from "./bar-helper";
+
+/**
+ * @param tasks List of tasks
+ */
+export const getMapTaskToCoordinates = (
+  tasks: readonly Task[],
+  mapTaskToRowIndex: MapTaskToRowIndex,
+  dates: Date[],
+  rtl: boolean,
+  rowHeight: number,
+  fullRowHeight: number,
+  taskHeight: number,
+  columnWidth: number,
+): MapTaskToCoordinates => {
+  const res = new Map<number, Map<string, TaskCoordinates>>();
+
+  tasks.forEach((task) => {
+    const {
+      id,
+      comparisonLevel = 1,
+      type,
+    } = task;
+
+    const indexesByLevel = mapTaskToRowIndex.get(comparisonLevel);
+
+    if (!indexesByLevel) {
+      console.error(`Warning: indexes by level ${comparisonLevel} are not found`);
+      return;
+    }
+
+    const rowIndex = indexesByLevel.get(id);
+
+    if (typeof rowIndex !== 'number') {
+      console.error(`Warning: row index for task ${id} is not found`);
+      return;
+    }
+
+    const x1 = rtl
+      ? taskXCoordinateRTL(task.end, dates, columnWidth)
+      : taskXCoordinate(task.start, dates, columnWidth);
+
+    const x2 = rtl
+      ? taskXCoordinateRTL(task.start, dates, columnWidth)
+      : taskXCoordinate(task.end, dates, columnWidth);
+
+    const y = taskYCoordinate(
+      rowIndex,
+      rowHeight,
+      fullRowHeight,
+      taskHeight,
+      comparisonLevel,
+    );
+
+    const taskCoordinates: TaskCoordinates = {
+      x1: type === 'milestone'
+        ? x1 - taskHeight * 0.5
+        : x1,
+      x2: type === 'milestone'
+        ? x2 + taskHeight * 0.5
+        : x2,
+      y,
+    };
+
+    const resByLevel = res.get(comparisonLevel) || new Map<string, TaskCoordinates>();
+    resByLevel.set(id, taskCoordinates);
+    res.set(comparisonLevel, resByLevel);
+  });
+
+  return res;
+};

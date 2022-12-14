@@ -2,10 +2,16 @@ import React, {
   useMemo,
 } from "react";
 
-import { TaskItemProps } from "../task-item";
+import { TaskItemExtendedProps } from "../task-item";
 import styles from "./project.module.css";
 
-export const Project: React.FC<TaskItemProps> = ({ task, isSelected }) => {
+export const Project: React.FC<TaskItemExtendedProps> = ({
+  coordinates,
+  task,
+  taskHalfHeight,
+  taskHeight,
+  isSelected,
+}) => {
   const barColor = useMemo(() => {
     if (isSelected) {
       return task.styles.projectBackgroundSelectedColor;
@@ -22,33 +28,33 @@ export const Project: React.FC<TaskItemProps> = ({ task, isSelected }) => {
     return task.styles.projectProgressColor;
   }, [isSelected, task.styles]);
 
-  const projectWith = task.x2 - task.x1;
+  const projectWith = coordinates.x2 - coordinates.x1;
 
   const projectLeftTriangle = [
-    task.x1,
-    task.y + task.height / 2 - 1,
-    task.x1,
-    task.y + task.height,
-    task.x1 + 15,
-    task.y + task.height / 2 - 1,
+    coordinates.x1,
+    coordinates.y + taskHeight / 2 - 1,
+    coordinates.x1,
+    coordinates.y + taskHeight,
+    coordinates.x1 + 15,
+    coordinates.y + taskHeight / 2 - 1,
   ].join(",");
   const projectRightTriangle = [
-    task.x2,
-    task.y + task.height / 2 - 1,
-    task.x2,
-    task.y + task.height,
-    task.x2 - 15,
-    task.y + task.height / 2 - 1,
+    coordinates.x2,
+    coordinates.y + taskHeight / 2 - 1,
+    coordinates.x2,
+    coordinates.y + taskHeight,
+    coordinates.x2 - 15,
+    coordinates.y + taskHeight / 2 - 1,
   ].join(",");
 
   return (
     <g tabIndex={0} className={styles.projectWrapper}>
       <rect
         fill={barColor}
-        x={task.x1}
+        x={coordinates.x1}
         width={projectWith}
-        y={task.y}
-        height={task.height}
+        y={coordinates.y}
+        height={taskHeight}
         rx={task.barCornerRadius}
         ry={task.barCornerRadius}
         className={styles.projectBackground}
@@ -56,18 +62,18 @@ export const Project: React.FC<TaskItemProps> = ({ task, isSelected }) => {
       <rect
         x={task.progressX}
         width={task.progressWidth}
-        y={task.y}
-        height={task.height}
+        y={coordinates.y}
+        height={taskHeight}
         ry={task.barCornerRadius}
         rx={task.barCornerRadius}
         fill={processColor}
       />
       <rect
         fill={barColor}
-        x={task.x1}
+        x={coordinates.x1}
         width={projectWith}
-        y={task.y}
-        height={task.height / 2}
+        y={coordinates.y}
+        height={taskHalfHeight}
         rx={task.barCornerRadius}
         ry={task.barCornerRadius}
         className={styles.projectTop}

@@ -33,8 +33,10 @@ import { removeHiddenTasks, sortTasks } from "../../helpers/other-helper";
 import { getChildTasks } from "../../helpers/get-child-tasks";
 import { getTasksMap } from "../../helpers/get-tasks-map";
 import { getMapTaskToGlobalIndex } from "../../helpers/get-map-task-to-global-index";
+import { getMapTaskToRowIndex } from "../../helpers/get-map-task-to-row-index";
 import { getChildOutOfParentWarnings } from "../../helpers/get-child-out-of-parent-warnings";
 import { getDependencyMapAndWarnings } from "../../helpers/get-dependency-map-and-warnings";
+import { getMapTaskToCoordinates } from "../../helpers/get-map-task-to-coordinates";
 
 import styles from "./gantt.module.css";
 
@@ -105,14 +107,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
-  const [dateSetup, setDateSetup] = useState<DateSetup>(() => {
-    const [startDate, endDate] = ganttDateRange(tasks, viewMode, preStepsCount);
-    return {
-      viewMode,
-      monthCalendarFormat,
-      dates: seedDates(startDate, endDate, viewMode),
-    };
-  });
+
   const [currentViewDate, setCurrentViewDate] = useState<Date | undefined>(
     undefined
   );
@@ -238,8 +233,6 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   const [selectedTask, setSelectedTask] = useState<BarTask>();
   const [failedTask, setFailedTask] = useState<BarTask | null>(null);
 
-  const svgWidth = dateSetup.dates.length * columnWidth;
-
   const ganttFullHeight = useMemo(
     () => maxLevelLength * fullRowHeight,
     [maxLevelLength, fullRowHeight],
@@ -249,32 +242,79 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   const [scrollX, setScrollX] = useState(-1);
   const [ignoreScrollEvent, setIgnoreScrollEvent] = useState(false);
 
+  const sortedTasks = useMemo<readonly Task[]>(() => {
+    const filteredTasks = onExpanderClick
+      ? removeHiddenTasks(tasks)
+      : [...tasks];
+
+    return filteredTasks.sort(sortTasks);
+  }, [onExpanderClick, tasks]);
+
+  const mapTaskToRowIndex = useMemo(
+    () => getMapTaskToRowIndex(sortedTasks),
+    [sortedTasks],
+  );
+
+  const dates = useMemo(() => {
+    const [startDate, endDate] = ganttDateRange(
+      sortedTasks,
+      viewMode,
+      preStepsCount,
+    );
+
+    const res = seedDates(startDate, endDate, viewMode);
+
+    if (rtl) {
+      return res.reverse();
+    }
+
+    return res;
+  }, [sortedTasks, viewMode, preStepsCount, rtl]);
+
+  const mapTaskToCoordinates = useMemo(() => getMapTaskToCoordinates(
+    tasks,
+    mapTaskToRowIndex,
+    dates,
+    rtl,
+    rowHeight,
+    fullRowHeight,
+    taskHeight,
+    columnWidth,
+  ), [
+    tasks,
+    mapTaskToRowIndex,
+    dates,
+    rtl,
+    rowHeight,
+    fullRowHeight,
+    taskHeight,
+    columnWidth,
+  ]);
+
+  const dateSetup = useMemo<DateSetup>(() => ({
+    dates,
+    viewMode,
+    monthCalendarFormat,
+  }), [
+    dates,
+    viewMode,
+    monthCalendarFormat,
+  ]);
+
+  const svgWidth = dates.length * columnWidth;
+
+  useEffect(() => {
+    if (rtl && scrollX === -1) {
+      setScrollX(dates.length * columnWidth);
+    }
+  }, [dates, rtl, columnWidth, scrollX]);
+
   // task change events
   useEffect(() => {
-    let filteredTasks: Task[];
-    if (onExpanderClick) {
-      filteredTasks = removeHiddenTasks(tasks);
-    } else {
-      filteredTasks = [...tasks];
-    }
-    filteredTasks = filteredTasks.sort(sortTasks);
-    const [startDate, endDate] = ganttDateRange(
-      filteredTasks,
-      viewMode,
-      preStepsCount
-    );
-    let newDates = seedDates(startDate, endDate, viewMode);
-    if (rtl) {
-      newDates = newDates.reverse();
-      if (scrollX === -1) {
-        setScrollX(newDates.length * columnWidth);
-      }
-    }
-    setDateSetup({ dates: newDates, viewMode, monthCalendarFormat });
     setBarTasks(
       convertToBarTasks(
-        filteredTasks,
-        newDates,
+        sortedTasks,
+        dates,
         columnWidth,
         rowHeight,
         fullRowHeight,
@@ -286,19 +326,16 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
       )
     );
   }, [
-    tasks,
-    viewMode,
-    preStepsCount,
-    rowHeight,
-    barCornerRadius,
+    sortedTasks,
+    dates,
     columnWidth,
+    rowHeight,
+    fullRowHeight,
     taskHeight,
+    barCornerRadius,
     handleWidth,
-    colorStyles,
     rtl,
-    scrollX,
-    onExpanderClick,
-    comparisonLevels,
+    colorStyles,
   ]);
 
   useEffect(() => {
@@ -457,12 +494,19 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
       setIgnoreScrollEvent(true);
     };
 
+    const wrapperNode = wrapperRef.current;
+
     // subscribe if scroll is necessary
-    wrapperRef.current?.addEventListener("wheel", handleWheel, {
-      passive: false,
-    });
+    if (wrapperNode) {
+      wrapperNode.addEventListener("wheel", handleWheel, {
+        passive: false,
+      });
+    }
+
     return () => {
-      wrapperRef.current?.removeEventListener("wheel", handleWheel);
+      if (wrapperNode) {
+        wrapperNode.removeEventListener("wheel", handleWheel);
+      }
     };
   }, [
     wrapperRef,
@@ -586,6 +630,8 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     childTasksMap,
     tasksMap,
     mapTaskToGlobalIndex,
+    mapTaskToRowIndex,
+    mapTaskToCoordinates,
     childOutOfParentWarnings,
     dependencyMap,
     dependencyWarningMap,

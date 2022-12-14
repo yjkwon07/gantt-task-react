@@ -12,8 +12,11 @@ import {
   DependencyWarnings,
   EventOption,
   FixPosition,
+  MapTaskToCoordinates,
   MapTaskToGlobalIndex,
+  MapTaskToRowIndex,
   OnArrowDoubleClick,
+  Task,
   TaskMapByLevel,
 } from "../../types/public-types";
 import { BarTask } from "../../types/bar-task";
@@ -39,6 +42,8 @@ export type TaskGanttContentProps = {
   childTasksMap: ChildMapByLevel;
   tasksMap: TaskMapByLevel;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
+  mapTaskToRowIndex: MapTaskToRowIndex;
+  mapTaskToCoordinates: MapTaskToCoordinates;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
   dependencyMap: DependencyMap;
   dependencyWarningMap: DependencyWarnings;
@@ -80,6 +85,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   childTasksMap,
   tasksMap,
   mapTaskToGlobalIndex,
+  mapTaskToRowIndex,
+  mapTaskToCoordinates,
   childOutOfParentWarnings,
   dependencyMap,
   dependencyWarningMap,
@@ -520,7 +527,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   /**
    * TO DO: compute metadata for change handler in a separate function
    */
-  const handleFixDependency = useCallback((task: BarTask, delta: number) => {
+  const handleFixDependency = useCallback((task: Task, delta: number) => {
     if (!onFixDependencyPosition) {
       return;
     }
@@ -552,7 +559,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     const taskIndexMapByLevel = mapTaskToGlobalIndex.get(comparisonLevel);
 
     if (!taskIndexMapByLevel) {
-      console.error(`Tasks by level ${comparisonLevel} are not found`);
+      console.error(`Warning: tasks by level ${comparisonLevel} are not found`);
     }
 
     const taskIndex = taskIndexMapByLevel
@@ -560,12 +567,12 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       : undefined;
 
     if (!taskIndexMapByLevel) {
-      console.error(`Index for task ${taskId} is not found`);
+      console.error(`Warning: index for task ${taskId} is not found`);
     }
 
     onFixDependencyPosition(
       newChangedTask,
-      newChangedTask.barChildren.map(({ dependentTask }) => dependentTask),
+      (newChangedTask as BarTask).barChildren.map(({ dependentTask }) => dependentTask),
       typeof taskIndex === 'number' ? taskIndex : -1,
       parents,
       suggestions,
@@ -605,7 +612,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             );
           }
 
-          /* const dependenciesByTask = dependenciesByLevel.get(taskId);
+          const dependenciesByTask = dependenciesByLevel.get(taskId);
 
           if (!dependenciesByTask) {
             return (
@@ -613,21 +620,35 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                 key={`${taskId}_${comparisonLevel}`}
               />
             );
-          } */
+          }
 
-          return task.barChildren.map(({
-            dependentTask,
-            dependentTarget,
+          const mapTaskToCoordinatesByLevel = mapTaskToCoordinates.get(comparisonLevel);
+
+          if (!mapTaskToCoordinatesByLevel) {
+            throw new Error(`Coordinates are not found for level ${mapTaskToCoordinatesByLevel}`);
+          }
+
+          const mapTaskRowIndexByLevel = mapTaskToRowIndex.get(comparisonLevel);
+
+          if (!mapTaskRowIndexByLevel) {
+            throw new Error(`Row indexes are not found for level ${mapTaskToCoordinatesByLevel}`);
+          }
+
+          return dependenciesByTask.map(({
+            ownTarget,
+            source,
             sourceTarget,
           }) => {
             return (
               <Arrow
-                key={`Arrow from ${taskId} to ${dependentTask.id} on ${comparisonLevel}`}
-                taskFrom={task}
+                key={`Arrow from ${taskId} to ${source.id} on ${comparisonLevel}`}
+                taskFrom={source}
                 targetFrom={sourceTarget}
-                taskTo={dependentTask}
-                targetTo={dependentTarget}
-                warningsByTask={warnngsByLevel ? warnngsByLevel.get(dependentTask.id) : undefined}
+                taskTo={task}
+                targetTo={ownTarget}
+                warningsByTask={warnngsByLevel ? warnngsByLevel.get(task.id) : undefined}
+                mapTaskToCoordinatesByLevel={mapTaskToCoordinatesByLevel}
+                mapTaskRowIndexByLevel={mapTaskRowIndexByLevel}
                 fullRowHeight={fullRowHeight}
                 taskHeight={taskHeight}
                 arrowIndent={arrowIndent}
@@ -668,6 +689,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               childOutOfParentWarnings={childOutOfParentWarnings}
               dependencyWarningMap={dependencyWarningMap}
               mapTaskToGlobalIndex={mapTaskToGlobalIndex}
+              mapTaskToCoordinates={mapTaskToCoordinates}
               arrowIndent={arrowIndent}
               taskHeight={taskHeight}
               taskHalfHeight={taskHalfHeight}

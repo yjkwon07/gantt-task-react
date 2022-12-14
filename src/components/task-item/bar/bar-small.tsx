@@ -5,13 +5,15 @@ import React, {
 import { getProgressPoint } from "../../../helpers/bar-helper";
 import { BarDisplay } from "./bar-display";
 import { BarProgressHandle } from "./bar-progress-handle";
-import { TaskItemProps } from "../task-item";
+import { TaskItemExtendedProps } from "../task-item";
 import { useHasChildren } from "../use-has-children";
 
 import styles from "./bar.module.css";
 
-export const BarSmall: React.FC<TaskItemProps> = ({
+export const BarSmall: React.FC<TaskItemExtendedProps> = ({
   task,
+  coordinates,
+  taskHeight,
   childTasksMap,
   isProgressChangeable,
   isDateChangeable,
@@ -21,18 +23,18 @@ export const BarSmall: React.FC<TaskItemProps> = ({
   const hasChildren = useHasChildren(task, childTasksMap);
 
   const progressPoint = useMemo(() => getProgressPoint(
-    task.progressWidth + task.x1,
-    task.y,
-    task.height
-  ), [task]);
+    task.progressWidth + coordinates.x1,
+    coordinates.y,
+    taskHeight,
+  ), [task, coordinates, taskHeight]);
 
   return (
     <g className={styles.barWrapper} tabIndex={0}>
       <BarDisplay
-        x={task.x1}
-        y={task.y}
-        width={task.x2 - task.x1}
-        height={task.height}
+        x={coordinates.x1}
+        y={coordinates.y}
+        width={coordinates.x2 - coordinates.x1}
+        height={taskHeight}
         progressX={task.progressX}
         progressWidth={task.progressWidth}
         barCornerRadius={task.barCornerRadius}

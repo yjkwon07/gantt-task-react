@@ -9,15 +9,17 @@ import { BarDisplay } from "./bar-display";
 import { BarDateHandle } from "./bar-date-handle";
 import { BarRelationHandle } from "./bar-relation-handle";
 import { BarProgressHandle } from "./bar-progress-handle";
-import { TaskItemProps } from "../task-item";
+import { TaskItemExtendedProps } from "../task-item";
 import { useHasChildren } from "../use-has-children";
 
 import styles from "./bar.module.css";
 import stylesRelationHandle from "./bar-relation-handle.module.css";
 
-export const Bar: React.FC<TaskItemProps> = ({
+export const Bar: React.FC<TaskItemExtendedProps> = ({
+  coordinates,
   task,
   childTasksMap,
+  taskHeight,
   taskHalfHeight,
   relationCircleOffset,
   relationCircleRadius,
@@ -81,20 +83,20 @@ export const Bar: React.FC<TaskItemProps> = ({
 
   const progressPoint = getProgressPoint(
     +!rtl * task.progressWidth + task.progressX,
-    task.y,
-    task.height
+    coordinates.y,
+    taskHeight,
   );
-  const handleHeight = task.height - 2;
+  const handleHeight = taskHeight - 2;
   return (
     <g
       className={cx(styles.barWrapper, stylesRelationHandle.barRelationHandleWrapper)}
       tabIndex={0}
     >
       <BarDisplay
-        x={task.x1}
-        y={task.y}
-        width={task.x2 - task.x1}
-        height={task.height}
+        x={coordinates.x1}
+        y={coordinates.y}
+        width={coordinates.x2 - coordinates.x1}
+        height={taskHeight}
         progressX={task.progressX}
         progressWidth={task.progressWidth}
         barCornerRadius={task.barCornerRadius}
@@ -110,8 +112,8 @@ export const Bar: React.FC<TaskItemProps> = ({
           <g>
             {/* left */}
             <BarDateHandle
-              x={task.x1 + 1}
-              y={task.y + 1}
+              x={coordinates.x1 + 1}
+              y={coordinates.y + 1}
               width={task.handleWidth}
               height={handleHeight}
               barCornerRadius={task.barCornerRadius}
@@ -119,8 +121,8 @@ export const Bar: React.FC<TaskItemProps> = ({
             />
             {/* right */}
             <BarDateHandle
-              x={task.x2 - task.handleWidth - 1}
-              y={task.y + 1}
+              x={coordinates.x2 - task.handleWidth - 1}
+              y={coordinates.y + 1}
               width={task.handleWidth}
               height={handleHeight}
               barCornerRadius={task.barCornerRadius}
@@ -134,16 +136,16 @@ export const Bar: React.FC<TaskItemProps> = ({
             {/* left */}
             <BarRelationHandle
               isRelationDrawMode={isRelationDrawMode}
-              x={task.x1 - relationCircleOffset}
-              y={task.y + taskHalfHeight}
+              x={coordinates.x1 - relationCircleOffset}
+              y={coordinates.y + taskHalfHeight}
               radius={relationCircleRadius}
               onMouseDown={onLeftRelationTriggerMouseDown}
             />
             {/* right */}
             <BarRelationHandle
               isRelationDrawMode={isRelationDrawMode}
-              x={task.x2 + relationCircleOffset}
-              y={task.y + taskHalfHeight}
+              x={coordinates.x2 + relationCircleOffset}
+              y={coordinates.y + taskHalfHeight}
               radius={relationCircleRadius}
               onMouseDown={onRightRelationTriggerMouseDown}
             />

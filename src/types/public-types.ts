@@ -338,3 +338,18 @@ export type DependencyMap = Map<number, Map<string, ExpandedDependency[]>>;
 
 // comparisson level -> task id -> dependency id -> difference in milliseconds for move
 export type DependencyWarnings = Map<number, Map<string, Map<string, number>>>;
+
+export type TaskCoordinates = {
+  x1: number;
+  x2: number;
+  y: number;
+};
+
+/**
+ * comparisson level -> task id -> {
+ *   x1: number;
+ *   x2: number;
+ *   y: number;
+ * }
+ */
+export type MapTaskToCoordinates = Map<number, Map<string, TaskCoordinates>>;
