@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { RelationMoveTarget } from "./gantt-task-actions";
+import type { BarMoveAction, RelationMoveTarget } from "./gantt-task-actions";
 
 export enum ViewMode {
   Hour = "Hour",
@@ -38,6 +38,12 @@ export interface ExpandedDependency {
   sourceTarget: RelationMoveTarget;
   ownTarget: RelationMoveTarget;
 }
+
+export interface ExpandedDependent {
+  dependent: Task;
+  dependentTarget: RelationMoveTarget;
+  ownTarget: RelationMoveTarget;
+};
 
 export interface TaskBarColorStyles {
   barProgressColor: string,
@@ -336,6 +342,9 @@ export type ChildOutOfParentWarnings = Map<number, Map<string, TaskOutOfParentWa
 // comparisson level -> task id -> expanded dependencies
 export type DependencyMap = Map<number, Map<string, ExpandedDependency[]>>;
 
+// comparisson level -> task id -> expanded dependents
+export type DependentMap = Map<number, Map<string, ExpandedDependent[]>>;
+
 // comparisson level -> task id -> dependency id -> difference in milliseconds for move
 export type DependencyWarnings = Map<number, Map<string, Map<string, number>>>;
 
@@ -343,6 +352,8 @@ export type TaskCoordinates = {
   x1: number;
   x2: number;
   y: number;
+  progressWidth: number;
+  progressX: number;
 };
 
 /**
@@ -353,3 +364,11 @@ export type TaskCoordinates = {
  * }
  */
 export type MapTaskToCoordinates = Map<number, Map<string, TaskCoordinates>>;
+
+export type ChangeInProgress = {
+  action: BarMoveAction;
+  task: Task;
+  startX: number;
+  initialCoordinates: TaskCoordinates;
+  coordinates: TaskCoordinates;
+};

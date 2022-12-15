@@ -1,4 +1,4 @@
-import { Task, TaskBarColorStyles } from "../types/public-types";
+import { Task, TaskBarColorStyles, TaskCoordinates } from "../types/public-types";
 import { BarTask, TaskTypeInternal } from "../types/bar-task";
 import { BarMoveAction } from "../types/gantt-task-actions";
 
@@ -41,38 +41,6 @@ export const convertToBarTasks = (
       rtl,
       styles,
     );
-  });
-
-  // set dependencies
-  barTasks = barTasks.map(task => {
-    const {
-      dependencies = [],
-      comparisonLevel = 1,
-    } = task;
-
-    for (let j = 0; j < dependencies.length; j++) {
-      const {
-        sourceId,
-        sourceTarget,
-        ownTarget,
-      } = dependencies[j];
-
-      const dependence = barTasks.findIndex(
-        ({
-          id: barTaskId,
-          comparisonLevel: barTaskComparisonLevel = 1,
-        }) => barTaskId === sourceId && comparisonLevel === barTaskComparisonLevel,
-      );
-
-      if (dependence !== -1) {
-        barTasks[dependence].barChildren.push({
-          dependentTask: task,
-          dependentTarget: ownTarget,
-          sourceTarget,
-        });
-      }
-    }
-    return task;
   });
 
   return barTasks;
@@ -198,7 +166,6 @@ const convertToBar = (
     handleWidth,
     hideChildren,
     height: taskHeight,
-    barChildren: [],
     styles: task.styles ? {
       ...styles,
       ...task.styles,
@@ -254,7 +221,6 @@ const convertToMilestone = (
     progress: 0,
     height: rotatedHeight,
     hideChildren: undefined,
-    barChildren: [],
     styles: task.styles ? {
       ...styles,
       ...task.styles,
@@ -304,7 +270,7 @@ export const progressWithByParams = (
   taskX2: number,
   progress: number,
   rtl: boolean
-) => {
+): [number, number] => {
   const progressWidth = (taskX2 - taskX1) * progress * 0.01;
   let progressX: number;
   if (rtl) {
@@ -326,25 +292,6 @@ export const progressByProgressWidth = (
   else return progressPercent;
 };
 
-const progressByX = (x: number, task: BarTask) => {
-  if (x >= task.x2) return 100;
-  else if (x <= task.x1) return 0;
-  else {
-    const barWidth = task.x2 - task.x1;
-    const progressPercent = Math.round(((x - task.x1) * 100) / barWidth);
-    return progressPercent;
-  }
-};
-const progressByXRTL = (x: number, task: BarTask) => {
-  if (x >= task.x2) return 0;
-  else if (x <= task.x1) return 100;
-  else {
-    const barWidth = task.x2 - task.x1;
-    const progressPercent = Math.round(((task.x2 - x) * 100) / barWidth);
-    return progressPercent;
-  }
-};
-
 export const getProgressPoint = (
   progressX: number,
   taskY: number,
@@ -359,34 +306,6 @@ export const getProgressPoint = (
     taskY + taskHeight - 8.66,
   ];
   return point.join(",");
-};
-
-const startByX = (x: number, xStep: number, task: BarTask) => {
-  if (x >= task.x2 - task.handleWidth * 2) {
-    x = task.x2 - task.handleWidth * 2;
-  }
-  const steps = Math.round((x - task.x1) / xStep);
-  const additionalXValue = steps * xStep;
-  const newX = task.x1 + additionalXValue;
-  return newX;
-};
-
-const endByX = (x: number, xStep: number, task: BarTask) => {
-  if (x <= task.x1 + task.handleWidth * 2) {
-    x = task.x1 + task.handleWidth * 2;
-  }
-  const steps = Math.round((x - task.x2) / xStep);
-  const additionalXValue = steps * xStep;
-  const newX = task.x2 + additionalXValue;
-  return newX;
-};
-
-const moveByX = (x: number, xStep: number, task: BarTask) => {
-  const steps = Math.round((x - task.x1) / xStep);
-  const additionalXValue = steps * xStep;
-  const newX1 = task.x1 + additionalXValue;
-  const newX2 = newX1 + task.x2 - task.x1;
-  return [newX1, newX2];
 };
 
 const dateByX = (
@@ -408,35 +327,35 @@ const dateByX = (
  * Method handles event in real time(mousemove) and on finish(mouseup)
  */
 export const handleTaskBySVGMouseEvent = (
-  svgX: number,
   action: BarMoveAction,
-  selectedTask: BarTask,
+  selectedTask: Task,
+  initialCoordinates: TaskCoordinates,
+  coordinates: TaskCoordinates,
   xStep: number,
   timeStep: number,
-  initEventX1Delta: number,
   rtl: boolean
-): { isChanged: boolean; changedTask: BarTask } => {
-  let result: { isChanged: boolean; changedTask: BarTask };
+): { isChanged: boolean; changedTask: Task } => {
+  let result: { isChanged: boolean; changedTask: Task };
   switch (selectedTask.type) {
     case "milestone":
       result = handleTaskBySVGMouseEventForMilestone(
-        svgX,
         action,
         selectedTask,
+        initialCoordinates,
+        coordinates,
         xStep,
         timeStep,
-        initEventX1Delta
       );
       break;
     default:
       result = handleTaskBySVGMouseEventForBar(
-        svgX,
         action,
         selectedTask,
+        initialCoordinates,
+        coordinates,
         xStep,
         timeStep,
-        initEventX1Delta,
-        rtl
+        rtl,
       );
       break;
   }
@@ -444,133 +363,114 @@ export const handleTaskBySVGMouseEvent = (
 };
 
 const handleTaskBySVGMouseEventForBar = (
-  svgX: number,
   action: BarMoveAction,
-  selectedTask: BarTask,
+  selectedTask: Task,
+  initialCoordinates: TaskCoordinates,
+  coordinates: TaskCoordinates,
   xStep: number,
   timeStep: number,
-  initEventX1Delta: number,
   rtl: boolean
-): { isChanged: boolean; changedTask: BarTask } => {
-  const changedTask: BarTask = { ...selectedTask };
+): { isChanged: boolean; changedTask: Task } => {
+  const changedTask: Task = { ...selectedTask };
+
   let isChanged = false;
   switch (action) {
     case "progress":
-      if (rtl) {
-        changedTask.progress = progressByXRTL(svgX, selectedTask);
-      } else {
-        changedTask.progress = progressByX(svgX, selectedTask);
-      }
-      isChanged = changedTask.progress !== selectedTask.progress;
+      isChanged = initialCoordinates.progressWidth !== coordinates.progressWidth;
+
       if (isChanged) {
-        const [progressWidth, progressX] = progressWithByParams(
-          changedTask.x1,
-          changedTask.x2,
-          changedTask.progress,
-          rtl
+        changedTask.progress = Math.round(
+          (coordinates.progressWidth * 100) / (coordinates.x2 - coordinates.x1),
         );
-        changedTask.progressWidth = progressWidth;
-        changedTask.progressX = progressX;
       }
+
       break;
+
     case "start": {
-      const newX1 = startByX(svgX, xStep, selectedTask);
-      changedTask.x1 = newX1;
-      isChanged = changedTask.x1 !== selectedTask.x1;
+      isChanged = initialCoordinates.x1 !== coordinates.x1;
+
       if (isChanged) {
         if (rtl) {
           changedTask.end = dateByX(
-            newX1,
-            selectedTask.x1,
+            coordinates.x1,
+            initialCoordinates.x1,
             selectedTask.end,
             xStep,
-            timeStep
+            timeStep,
           );
         } else {
           changedTask.start = dateByX(
-            newX1,
-            selectedTask.x1,
+            coordinates.x1,
+            initialCoordinates.x1,
             selectedTask.start,
             xStep,
-            timeStep
+            timeStep,
           );
         }
-        const [progressWidth, progressX] = progressWithByParams(
-          changedTask.x1,
-          changedTask.x2,
-          changedTask.progress,
-          rtl
-        );
-        changedTask.progressWidth = progressWidth;
-        changedTask.progressX = progressX;
       }
       break;
     }
+
     case "end": {
-      const newX2 = endByX(svgX, xStep, selectedTask);
-      changedTask.x2 = newX2;
-      isChanged = changedTask.x2 !== selectedTask.x2;
+      isChanged = initialCoordinates.x2 !== coordinates.x2;
+
       if (isChanged) {
         if (rtl) {
           changedTask.start = dateByX(
-            newX2,
-            selectedTask.x2,
+            coordinates.x2,
+            initialCoordinates.x2,
             selectedTask.start,
             xStep,
-            timeStep
+            timeStep,
           );
         } else {
           changedTask.end = dateByX(
-            newX2,
-            selectedTask.x2,
+            coordinates.x2,
+            initialCoordinates.x2,
             selectedTask.end,
             xStep,
-            timeStep
+            timeStep,
           );
         }
-        const [progressWidth, progressX] = progressWithByParams(
-          changedTask.x1,
-          changedTask.x2,
-          changedTask.progress,
-          rtl
-        );
-        changedTask.progressWidth = progressWidth;
-        changedTask.progressX = progressX;
       }
       break;
     }
+
     case "move": {
-      const [newMoveX1, newMoveX2] = moveByX(
-        svgX - initEventX1Delta,
-        xStep,
-        selectedTask
-      );
-      isChanged = newMoveX1 !== selectedTask.x1;
+      isChanged = initialCoordinates.x1 !== coordinates.x1;
+
       if (isChanged) {
-        changedTask.start = dateByX(
-          newMoveX1,
-          selectedTask.x1,
-          selectedTask.start,
-          xStep,
-          timeStep
-        );
-        changedTask.end = dateByX(
-          newMoveX2,
-          selectedTask.x2,
-          selectedTask.end,
-          xStep,
-          timeStep
-        );
-        changedTask.x1 = newMoveX1;
-        changedTask.x2 = newMoveX2;
-        const [progressWidth, progressX] = progressWithByParams(
-          changedTask.x1,
-          changedTask.x2,
-          changedTask.progress,
-          rtl
-        );
-        changedTask.progressWidth = progressWidth;
-        changedTask.progressX = progressX;
+        if (rtl) {
+          changedTask.end = dateByX(
+            coordinates.x1,
+            initialCoordinates.x1,
+            selectedTask.end,
+            xStep,
+            timeStep,
+          );
+          changedTask.start = dateByX(
+            coordinates.x2,
+            initialCoordinates.x2,
+            selectedTask.start,
+            xStep,
+            timeStep,
+          );
+        } else {
+          changedTask.start = dateByX(
+            coordinates.x1,
+            initialCoordinates.x1,
+            selectedTask.start,
+            xStep,
+            timeStep,
+          );
+          changedTask.end = dateByX(
+            coordinates.x2,
+            initialCoordinates.x2,
+            selectedTask.end,
+            xStep,
+            timeStep,
+          );
+        }
       }
       break;
     }
@@ -579,37 +479,32 @@ const handleTaskBySVGMouseEventForBar = (
 };
 
 const handleTaskBySVGMouseEventForMilestone = (
-  svgX: number,
   action: BarMoveAction,
-  selectedTask: BarTask,
+  selectedTask: Task,
+  initialCoordinates: TaskCoordinates,
+  coordinates: TaskCoordinates,
   xStep: number,
   timeStep: number,
-  initEventX1Delta: number
-): { isChanged: boolean; changedTask: BarTask } => {
-  const changedTask: BarTask = { ...selectedTask };
-  let isChanged = false;
-  switch (action) {
-    case "move": {
-      const [newMoveX1, newMoveX2] = moveByX(
-        svgX - initEventX1Delta,
-        xStep,
-        selectedTask
-      );
-      isChanged = newMoveX1 !== selectedTask.x1;
-      if (isChanged) {
+): { isChanged: boolean; changedTask: Task } => {
+  const changedTask: Task = { ...selectedTask };
+
+  const isChanged = coordinates.x1 !== initialCoordinates.x1;
+ 
+  if (isChanged) {
+    switch (action) {
+      case "move": {
         changedTask.start = dateByX(
-          newMoveX1,
-          selectedTask.x1,
+          coordinates.x1,
+          initialCoordinates.x1,
           selectedTask.start,
           xStep,
           timeStep
         );
         changedTask.end = changedTask.start;
-        changedTask.x1 = newMoveX1;
-        changedTask.x2 = newMoveX2;
+        break;
       }
-      break;
     }
   }
+
   return { isChanged, changedTask };
 };

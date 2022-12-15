@@ -5,11 +5,15 @@ import React, {
   useState,
 } from "react";
 
+import useLatest from "use-latest";
+
 import {
+  ChangeInProgress,
   ChildMapByLevel,
   ChildOutOfParentWarnings,
   DependencyMap,
   DependencyWarnings,
+  DependentMap,
   EventOption,
   FixPosition,
   MapTaskToCoordinates,
@@ -46,6 +50,7 @@ export type TaskGanttContentProps = {
   mapTaskToCoordinates: MapTaskToCoordinates;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
   dependencyMap: DependencyMap;
+  dependentMap: DependentMap;
   dependencyWarningMap: DependencyWarnings;
   dates: Date[];
   ganttEvent: GanttEvent;
@@ -70,6 +75,8 @@ export type TaskGanttContentProps = {
   fontSize: string;
   fontFamily: string;
   rtl: boolean;
+  changeInProgress: ChangeInProgress | null;
+  setChangeInProgress: React.Dispatch<React.SetStateAction<ChangeInProgress | null>>;
   setGanttEvent: (value: GanttEvent) => void;
   setGanttRelationEvent: React.Dispatch<React.SetStateAction<GanttRelationEvent | null>>;
   setFailedTask: (value: BarTask | null) => void;
@@ -89,6 +96,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   mapTaskToCoordinates,
   childOutOfParentWarnings,
   dependencyMap,
+  dependentMap,
   dependencyWarningMap,
   dates,
   ganttEvent,
@@ -112,6 +120,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   fontFamily,
   fontSize,
   rtl,
+  changeInProgress,
+  setChangeInProgress,
   setGanttEvent,
   setGanttRelationEvent,
   setFailedTask,
@@ -130,8 +140,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
 }) => {
   const point = svg?.current?.createSVGPoint();
   const [xStep, setXStep] = useState(0);
-  const [initEventX1Delta, setInitEventX1Delta] = useState(0);
-  const [isMoving, setIsMoving] = useState(false);
 
   // create xStep
   useEffect(() => {
@@ -144,157 +152,272 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     setXStep(newXStep);
   }, [columnWidth, dates, timeStep]);
 
+  const changeInProgressTask = changeInProgress?.task;
+  const changeInProgressLatestRef = useLatest(changeInProgress);
+
   useEffect(() => {
-    const handleMouseMove = async (event: MouseEvent) => {
-      if (!ganttEvent.changedTask || !point || !svg?.current) return;
+    const svgNode = svg?.current;
+
+    if (
+      !svgNode
+      || !changeInProgressTask
+    ) {
+      return;
+    }
+
+    const handleMouseMove = (event: MouseEvent) => {
+      const changeInProgressLatest = changeInProgressLatestRef.current;
+
+      if (!point || !changeInProgressLatest) {
+        return;
+      }
+
+      const {
+        task,
+      } = changeInProgressLatest;
+
       event.preventDefault();
 
       point.x = event.clientX;
       const cursor = point.matrixTransform(
-        svg?.current.getScreenCTM()?.inverse()
+        svgNode.getScreenCTM()?.inverse()
       );
 
-      const { isChanged, changedTask } = handleTaskBySVGMouseEvent(
-        cursor.x,
-        ganttEvent.action as BarMoveAction,
-        ganttEvent.changedTask,
-        xStep,
-        timeStep,
-        initEventX1Delta,
-        rtl
-      );
-      if (isChanged) {
-        setGanttEvent({ action: ganttEvent.action, changedTask });
-      }
+      const nextX = cursor.x;
+
+      setChangeInProgress((prevValue) => {
+        if (!prevValue) {
+          return null;
+        }
+
+        const {
+          action,
+          initialCoordinates,
+          startX,
+        } = prevValue;
+
+        switch (action) {
+          case "end":
+          {
+            const nextX2 = Math.max(nextX, initialCoordinates.x1);
+            const progressWidth = (nextX2 - initialCoordinates.x1) * task.progress * 0.01;
+
+            if (rtl) {
+
+              return {
+                ...prevValue,
+                coordinates: {
+                  ...prevValue.coordinates,
+                  progressWidth,
+                  progressX: nextX2 - progressWidth,
+                  x2: nextX2,
+                },
+              };
+            }
+
+            return {
+              ...prevValue,
+              coordinates: {
+                ...prevValue.coordinates,
+                progressWidth,
+                x2: nextX2,
+              },
+            };
+          }
+
+          case "start":
+          {
+            const nextX1 = Math.min(nextX, initialCoordinates.x2);
+            const progressWidth = (initialCoordinates.x2 - nextX1) * task.progress * 0.01;
+
+            if (rtl) {
+
+              return {
+                ...prevValue,
+                coordinates: {
+                  ...prevValue.coordinates,
+                  progressWidth,
+                  progressX: initialCoordinates.x2 - progressWidth,
+                  x1: Math.min(nextX, initialCoordinates.x2),
+                },
+              };
+            }
+
+            return {
+              ...prevValue,
+              coordinates: {
+                ...prevValue.coordinates,
+                progressX: nextX1,
+                progressWidth,
+                x1: Math.min(nextX, initialCoordinates.x2),
+              },
+            };
+          }
+
+          case "progress":
+          {
+            const nextProgressEndX = Math.min(
+              Math.max(
+                nextX,
+                initialCoordinates.x1,
+              ),
+              initialCoordinates.x2,
+            );
+
+            if (rtl) {
+              return {
+                ...prevValue,
+                coordinates: {
+                  ...prevValue.coordinates,
+                  progressX: nextProgressEndX,
+                  progressWidth: initialCoordinates.x2 - nextProgressEndX,
+                },
+              };
+            }
+
+            return {
+              ...prevValue,
+              coordinates: {
+                ...prevValue.coordinates,
+                progressWidth: nextProgressEndX - initialCoordinates.x1,
+              },
+            };
+          }
+
+          case "move":
+          {
+            const diff = nextX - startX;
+
+            return {
+              ...prevValue,
+              coordinates: {
+                ...prevValue.coordinates,
+                x1: initialCoordinates.x1 + diff,
+                x2: initialCoordinates.x2 + diff,
+                progressX: initialCoordinates.progressX + diff,
+              },
+            };
+          }
+
+          default:
+            return null;
+        }
+      });
     };
 
     const handleMouseUp = async (event: MouseEvent) => {
-      const { action, originalSelectedTask, changedTask } = ganttEvent;
-      if (!changedTask || !point || !svg?.current || !originalSelectedTask)
+      const changeInProgressLatest = changeInProgressLatestRef.current;
+
+      if (!changeInProgressLatest || !point) {
         return;
+      }
+
       event.preventDefault();
 
-      point.x = event.clientX;
-      const cursor = point.matrixTransform(
-        svg?.current.getScreenCTM()?.inverse()
-      );
-      const { changedTask: newChangedTask } = handleTaskBySVGMouseEvent(
-        cursor.x,
-        action as BarMoveAction,
-        changedTask,
+      const {
+        action,
+        task,
+      } = changeInProgressLatest;
+
+      const { isChanged, changedTask: newChangedTask } = handleTaskBySVGMouseEvent(
+        action,
+        task,
+        changeInProgressLatest.initialCoordinates,
+        changeInProgressLatest.coordinates,
         xStep,
         timeStep,
-        initEventX1Delta,
-        rtl
+        rtl,
       );
 
-      const isNotLikeOriginal =
-        originalSelectedTask.start !== newChangedTask.start ||
-        originalSelectedTask.end !== newChangedTask.end ||
-        originalSelectedTask.progress !== newChangedTask.progress;
+      setChangeInProgress(null);
 
-      // remove listeners
-      svg.current.removeEventListener("mousemove", handleMouseMove);
-      svg.current.removeEventListener("mouseup", handleMouseUp);
-      setGanttEvent({ action: "" });
-      setIsMoving(false);
-
-      // custom operation start
-      let operationSuccess = true;
-      if (
-        (action === "move" || action === "end" || action === "start") &&
-        onDateChange &&
-        isNotLikeOriginal
-      ) {
-        const parents = collectParents(newChangedTask, tasksMap);
-        const suggestions = parents.map((parentTask) => getSuggestedStartEndChanges(
-          parentTask,
-          newChangedTask,
-          childTasksMap,
-          mapTaskToGlobalIndex,
-        ));
-
-        const {
-          id: taskId,
-          comparisonLevel = 1,
-        } = newChangedTask;
-
-        const taskIndexMapByLevel = mapTaskToGlobalIndex.get(comparisonLevel);
-
-        if (!taskIndexMapByLevel) {
-          console.error(`Tasks by level ${comparisonLevel} are not found`);
-        }
-
-        const taskIndex = taskIndexMapByLevel
-          ? taskIndexMapByLevel.get(taskId)
-          : undefined;
-
-        if (!taskIndexMapByLevel) {
-          console.error(`Index for task ${taskId} is not found`);
-        }
-
-        try {
-          const result = await onDateChange(
-            newChangedTask,
-            newChangedTask.barChildren.map(({ dependentTask }) => dependentTask),
-            typeof taskIndex === 'number' ? taskIndex : -1,
-            parents,
-            suggestions,
-          );
-          if (result !== undefined) {
-            operationSuccess = result;
-          }
-        } catch (error) {
-          operationSuccess = false;
-        }
-      } else if (onProgressChange && isNotLikeOriginal) {
-        try {
-          const result = await onProgressChange(
-            newChangedTask,
-            newChangedTask.barChildren.map(({ dependentTask }) => dependentTask),
-          );
-          if (result !== undefined) {
-            operationSuccess = result;
-          }
-        } catch (error) {
-          operationSuccess = false;
-        }
+      if (!isChanged) {
+        return;
       }
 
-      // If operation is failed - return old state
-      if (!operationSuccess) {
-        setFailedTask(originalSelectedTask);
+      const {
+        id: taskId,
+        comparisonLevel = 1,
+      } = task;
+
+      const dependentMapByLevel = dependentMap.get(comparisonLevel);
+      const dependentsByTask = dependentMapByLevel
+        ? dependentMapByLevel.get(taskId)
+        : undefined;
+
+      const dependentTasks = dependentsByTask ? dependentsByTask.map(({ dependent }) => dependent) : [];
+
+      if (action === "progress") {
+        if (onProgressChange) {
+          onProgressChange(
+            newChangedTask,
+            dependentTasks,
+          );
+        }
+
+        return;
       }
+
+      if (!onDateChange) {
+        return;
+      }
+
+      const parents = collectParents(newChangedTask, tasksMap);
+      const suggestions = parents.map((parentTask) => getSuggestedStartEndChanges(
+        parentTask,
+        newChangedTask,
+        childTasksMap,
+        mapTaskToGlobalIndex,
+      ));
+
+      const taskIndexMapByLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+
+      if (!taskIndexMapByLevel) {
+        console.error(`Tasks by level ${comparisonLevel} are not found`);
+      }
+
+      const taskIndex = taskIndexMapByLevel
+        ? taskIndexMapByLevel.get(taskId)
+        : undefined;
+
+      if (!taskIndexMapByLevel) {
+        console.error(`Index for task ${taskId} is not found`);
+      }
+
+      onDateChange(
+        newChangedTask,
+        dependentTasks,
+        typeof taskIndex === 'number' ? taskIndex : -1,
+        parents,
+        suggestions,
+      );
     };
 
-    if (
-      !isMoving &&
-      (ganttEvent.action === "move" ||
-        ganttEvent.action === "end" ||
-        ganttEvent.action === "start" ||
-        ganttEvent.action === "progress") &&
-      svg?.current
-    ) {
-      svg.current.addEventListener("mousemove", handleMouseMove);
-      svg.current.addEventListener("mouseup", handleMouseUp);
-      setIsMoving(true);
-    }
+    svgNode.addEventListener("mousemove", handleMouseMove);
+    svgNode.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      svgNode.removeEventListener("mousemove", handleMouseMove);
+      svgNode.removeEventListener("mouseup", handleMouseUp);
+    };
   }, [
     childTasksMap,
     mapTaskToGlobalIndex,
+    dependentMap,
     ganttEvent,
     xStep,
-    initEventX1Delta,
     onProgressChange,
     timeStep,
     onDateChange,
     svg,
-    isMoving,
+    changeInProgressTask,
     point,
     rtl,
     tasksMap,
     setFailedTask,
     setGanttEvent,
+    setChangeInProgress,
+    changeInProgressLatestRef,
   ]);
 
   const startRelationTarget = ganttRelationEvent?.target;
@@ -441,6 +564,11 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     task: BarTask,
     event?: React.MouseEvent | React.KeyboardEvent
   ) => {
+    const {
+      id,
+      comparisonLevel = 1,
+    } = task;
+
     if (!event) {
       if (action === "select") {
         setSelectedTask(task.id);
@@ -480,23 +608,32 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       !!onClick && onClick(task);
     }
     // Change task event start
-    else if (action === "move") {
-      if (!svg?.current || !point) return;
+    else {
+      if (!svg?.current || !point) {
+        return;
+      }
+
       point.x = event.clientX;
       const cursor = point.matrixTransform(
         svg.current.getScreenCTM()?.inverse()
       );
-      setInitEventX1Delta(cursor.x - task.x1);
-      setGanttEvent({
-        action,
-        changedTask: task,
-        originalSelectedTask: task,
-      });
-    } else {
-      setGanttEvent({
-        action,
-        changedTask: task,
-        originalSelectedTask: task,
+
+      const coordinatesByLevel = mapTaskToCoordinates.get(comparisonLevel);
+      if (!coordinatesByLevel) {
+        throw new Error(`Coordinates are not found for level ${comparisonLevel}`);
+      }
+
+      const coordinates = coordinatesByLevel.get(id);
+      if (!coordinates) {
+        throw new Error(`Coordinates are not found for task ${id}`);
+      }
+
+      setChangeInProgress({
+        action: action as BarMoveAction,
+        task,
+        startX: cursor.x,
+        coordinates,
+        initialCoordinates: coordinates,
       });
     }
   };
@@ -570,9 +707,16 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       console.error(`Warning: index for task ${taskId} is not found`);
     }
 
+    const dependentMapByLevel = dependentMap.get(comparisonLevel);
+    const dependentsByTask = dependentMapByLevel
+      ? dependentMapByLevel.get(taskId)
+      : undefined;
+
+    const dependentTasks = dependentsByTask ? dependentsByTask.map(({ dependent }) => dependent) : [];
+
     onFixDependencyPosition(
       newChangedTask,
-      (newChangedTask as BarTask).barChildren.map(({ dependentTask }) => dependentTask),
+      dependentTasks,
       typeof taskIndex === 'number' ? taskIndex : -1,
       parents,
       suggestions,
@@ -582,6 +726,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     tasksMap,
     childTasksMap,
     mapTaskToGlobalIndex,
+    dependentMap,
   ]);
 
   return (
@@ -706,6 +851,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               key={key}
               isSelected={!!selectedTask && task.id === selectedTask.id}
               rtl={rtl}
+              changeInProgress={changeInProgress}
               fixStartPosition={fixStartPosition}
               fixEndPosition={fixEndPosition}
             />

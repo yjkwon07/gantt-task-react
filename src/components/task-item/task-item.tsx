@@ -9,6 +9,7 @@ import React, {
 import { BarTask } from "../../types/bar-task";
 import { GanttContentMoveAction, RelationMoveTarget } from "../../types/gantt-task-actions";
 import {
+  ChangeInProgress,
   ChildMapByLevel,
   ChildOutOfParentWarnings,
   DependencyWarnings,
@@ -45,6 +46,7 @@ export type TaskItemProps = {
   isSelected: boolean;
   isRelationDrawMode: boolean;
   rtl: boolean;
+  changeInProgress: ChangeInProgress | null;
   onEventStart: (
     action: GanttContentMoveAction,
     selectedTask: BarTask,
@@ -78,12 +80,17 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     isSelected,
     isRelationDrawMode,
     rtl,
+    changeInProgress,
     onEventStart,
     fixStartPosition = undefined,
     fixEndPosition = undefined,
   } = props;
 
   const coordinates = useMemo(() => {
+    if (changeInProgress && changeInProgress.task === task) {
+      return changeInProgress.coordinates;
+    }
+
     const {
       id,
       comparisonLevel = 1,
@@ -92,7 +99,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     const mapByLevel = mapTaskToCoordinates.get(comparisonLevel);
 
     if (!mapByLevel) {
-      throw new Error(`Coordinates are not found for level ${mapByLevel}`);
+      throw new Error(`Coordinates are not found for level ${comparisonLevel}`);
     }
 
     const res = mapByLevel.get(id);
@@ -102,7 +109,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     }
 
     return res;
-  }, [task, mapTaskToCoordinates]);
+  }, [task, mapTaskToCoordinates, changeInProgress]);
 
   const outOfParentWarnings = useMemo(() => {
     const {
@@ -243,27 +250,25 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
 
   useEffect(() => {
     if (textRef.current) {
-      setIsTextInside(textRef.current.getBBox().width < task.x2 - task.x1);
+      setIsTextInside(textRef.current.getBBox().width < coordinates.x2 - coordinates.x1);
     }
-  }, [textRef, task]);
+  }, [textRef, coordinates]);
 
   const x = useMemo(() => {
-    const width = task.x2 - task.x1;
-    const hasChild = task.barChildren.length > 0;
+    const width = coordinates.x2 - coordinates.x1;
     if (isTextInside) {
-      return task.x1 + width * 0.5;
+      return coordinates.x1 + width * 0.5;
     }
     if (rtl && textRef.current) {
       return (
-        task.x1 -
+        coordinates.x1 -
         textRef.current.getBBox().width -
-        arrowIndent * +hasChild -
-        arrowIndent * 0.2
+        arrowIndent * 0.8
       );
     }
 
-    return task.x1 + width + arrowIndent * +hasChild + arrowIndent * 0.2;
-  }, [task, isTextInside, rtl, arrowIndent]);
+    return coordinates.x1 + width + arrowIndent * 1.2;
+  }, [coordinates, isTextInside, rtl, arrowIndent]);
 
   return (
     <g
@@ -298,7 +303,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
       {taskItem}
       <text
         x={x}
-        y={task.y + taskHeight * 0.5}
+        y={coordinates.y + taskHeight * 0.5}
         className={
           isTextInside
             ? style.barLabel
@@ -324,8 +329,8 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
         <>
           {outOfParentWarnings.start && (
             <BarFixWidth
-              x={rtl ? task.x2 : task.x1}
-              y={task.y + taskHeight}
+              x={rtl ? coordinates.x2 : coordinates.x1}
+              y={coordinates.y + taskHeight}
               height={16}
               width={10}
               isLeft={outOfParentWarnings.start.isOutside !== rtl}
@@ -336,8 +341,8 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
 
           {outOfParentWarnings.end && (
             <BarFixWidth
-              x={rtl ? task.x1 : task.x2}
-              y={task.y + taskHeight}
+              x={rtl ? coordinates.x1 : coordinates.x2}
+              y={coordinates.y + taskHeight}
               height={16}
               width={10}
               isLeft={outOfParentWarnings.end.isOutside === rtl}

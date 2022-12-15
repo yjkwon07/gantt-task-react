@@ -82,7 +82,7 @@ export const Bar: React.FC<TaskItemExtendedProps> = ({
   );
 
   const progressPoint = getProgressPoint(
-    +!rtl * task.progressWidth + task.progressX,
+    +!rtl * coordinates.progressWidth + coordinates.progressX,
     coordinates.y,
     taskHeight,
   );
@@ -97,8 +97,8 @@ export const Bar: React.FC<TaskItemExtendedProps> = ({
         y={coordinates.y}
         width={coordinates.x2 - coordinates.x1}
         height={taskHeight}
-        progressX={task.progressX}
-        progressWidth={task.progressWidth}
+        progressX={coordinates.progressX}
+        progressWidth={coordinates.progressWidth}
         barCornerRadius={task.barCornerRadius}
         styles={task.styles}
         isSelected={isSelected}

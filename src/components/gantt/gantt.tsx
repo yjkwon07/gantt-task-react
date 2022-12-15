@@ -7,6 +7,7 @@ import React, {
 } from "react";
 
 import {
+  ChangeInProgress,
   ChildOutOfParentWarnings,
   DateSetup,
   GanttProps,
@@ -40,7 +41,7 @@ import { getMapTaskToCoordinates } from "../../helpers/get-map-task-to-coordinat
 
 import styles from "./gantt.module.css";
 
-export const Gantt: React.FunctionComponent<GanttProps> = ({
+export const Gantt: React.FC<GanttProps> = ({
   tasks,
   headerHeight = 50,
   columnWidth = 60,
@@ -108,6 +109,8 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
 
+  const [changeInProgress, setChangeInProgress] = useState<ChangeInProgress | null>(null);
+
   const [currentViewDate, setCurrentViewDate] = useState<Date | undefined>(
     undefined
   );
@@ -135,7 +138,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     [tasks],
   );
 
-  const [dependencyMap, dependencyWarningMap] = useMemo(
+  const [dependencyMap, dependentMap, dependencyWarningMap] = useMemo(
     () => getDependencyMapAndWarnings(
       tasks,
       tasksMap,
@@ -634,6 +637,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     mapTaskToCoordinates,
     childOutOfParentWarnings,
     dependencyMap,
+    dependentMap,
     dependencyWarningMap,
     dates: dateSetup.dates,
     ganttEvent,
@@ -657,6 +661,8 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     fontSize,
     svgWidth,
     rtl,
+    changeInProgress,
+    setChangeInProgress,
     setGanttEvent,
     setGanttRelationEvent,
     setFailedTask,

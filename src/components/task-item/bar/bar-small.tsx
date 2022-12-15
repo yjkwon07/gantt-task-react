@@ -23,10 +23,10 @@ export const BarSmall: React.FC<TaskItemExtendedProps> = ({
   const hasChildren = useHasChildren(task, childTasksMap);
 
   const progressPoint = useMemo(() => getProgressPoint(
-    task.progressWidth + coordinates.x1,
+    coordinates.progressWidth + coordinates.x1,
     coordinates.y,
     taskHeight,
-  ), [task, coordinates, taskHeight]);
+  ), [coordinates, taskHeight]);
 
   return (
     <g className={styles.barWrapper} tabIndex={0}>
@@ -35,8 +35,8 @@ export const BarSmall: React.FC<TaskItemExtendedProps> = ({
         y={coordinates.y}
         width={coordinates.x2 - coordinates.x1}
         height={taskHeight}
-        progressX={task.progressX}
-        progressWidth={task.progressWidth}
+        progressX={coordinates.progressX}
+        progressWidth={coordinates.progressWidth}
         barCornerRadius={task.barCornerRadius}
         styles={task.styles}
         isSelected={isSelected}

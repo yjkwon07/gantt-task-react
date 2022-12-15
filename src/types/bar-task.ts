@@ -1,11 +1,4 @@
-import { RelationMoveTarget } from "./gantt-task-actions";
 import { Task, TaskBarColorStyles, TaskType } from "./public-types";
-
-export interface BarDependency {
-  dependentTask: BarTask;
-  dependentTarget: RelationMoveTarget;
-  sourceTarget: RelationMoveTarget;
-}
 
 export interface BarTask extends Task {
   /**
@@ -21,7 +14,6 @@ export interface BarTask extends Task {
   progressWidth: number;
   barCornerRadius: number;
   handleWidth: number;
-  barChildren: BarDependency[];
   styles: TaskBarColorStyles;
 }
 

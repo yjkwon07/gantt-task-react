@@ -5,7 +5,12 @@ import {
   TaskCoordinates,
 } from "../types/public-types";
 
-import { taskXCoordinate, taskXCoordinateRTL, taskYCoordinate } from "./bar-helper";
+import {
+  progressWithByParams,
+  taskXCoordinate,
+  taskXCoordinateRTL,
+  taskYCoordinate,
+} from "./bar-helper";
 
 /**
  * @param tasks List of tasks
@@ -26,6 +31,7 @@ export const getMapTaskToCoordinates = (
     const {
       id,
       comparisonLevel = 1,
+      progress,
       type,
     } = task;
 
@@ -59,6 +65,15 @@ export const getMapTaskToCoordinates = (
       comparisonLevel,
     );
 
+    const [progressWidth, progressX] = type === 'milestone'
+      ? [0, x1]
+      : progressWithByParams(
+        x1,
+        x2,
+        progress,
+        rtl,
+      );
+
     const taskCoordinates: TaskCoordinates = {
       x1: type === 'milestone'
         ? x1 - taskHeight * 0.5
@@ -67,6 +82,8 @@ export const getMapTaskToCoordinates = (
         ? x2 + taskHeight * 0.5
         : x2,
       y,
+      progressWidth,
+      progressX,
     };
 
     const resByLevel = res.get(comparisonLevel) || new Map<string, TaskCoordinates>();

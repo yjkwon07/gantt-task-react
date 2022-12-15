@@ -1,7 +1,9 @@
 import {
   DependencyMap,
   DependencyWarnings,
+  DependentMap,
   ExpandedDependency,
+  ExpandedDependent,
   Task,
   TaskMapByLevel,
 } from "../types/public-types";
@@ -11,8 +13,9 @@ export const getDependencyMapAndWarnings = (
   tasks: readonly Task[],
   tasksMap: TaskMapByLevel,
   isShowDependencyWarnings: boolean,
-): [DependencyMap, DependencyWarnings] => {
+): [DependencyMap, DependentMap, DependencyWarnings] => {
   const dependencyRes = new Map<number, Map<string, ExpandedDependency[]>>();
+  const dependentRes = new Map<number, Map<string, ExpandedDependent[]>>();
   const warningsRes = new Map<number, Map<string, Map<string, number>>>();
 
   tasks.forEach((task) => {
@@ -30,6 +33,8 @@ export const getDependencyMapAndWarnings = (
 
     const dependenciesByLevel = dependencyRes.get(comparisonLevel)
       || new Map<string, ExpandedDependency[]>();
+    const dependentsByLevel = dependentRes.get(comparisonLevel)
+      || new Map<string, ExpandedDependent[]>();
     const warningsByLevel = warningsRes.get(comparisonLevel)
       || new Map<string, Map<string, number>>();
 
@@ -55,6 +60,14 @@ export const getDependencyMapAndWarnings = (
         sourceTarget,
         ownTarget,
       });
+
+      const dependentsByTask = dependentsByLevel.get(sourceId) || [];
+      dependentsByTask.push({
+        dependent: task,
+        dependentTarget: ownTarget,
+        ownTarget: sourceTarget,
+      });
+      dependentsByLevel.set(sourceId, dependentsByTask);
 
       if (isShowDependencyWarnings) {
         switch (sourceTarget) {
@@ -127,5 +140,5 @@ export const getDependencyMapAndWarnings = (
     }
   });
 
-  return [dependencyRes, warningsRes];
+  return [dependencyRes, dependentRes, warningsRes];
 };
