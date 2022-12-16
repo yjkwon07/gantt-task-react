@@ -13,6 +13,7 @@ import {
 } from "../../types/public-types";
 import { RelationMoveTarget } from "../../types/gantt-task-actions";
 import { generateTrianglePoints } from "../../helpers/generate-triangle-points";
+import { getCoordinatesOnLevel } from "../../helpers/get-task-coordinates";
 import { FixDependencyPosition, fixPositionContainerClass } from "./fix-dependency-position";
 
 import styles from "./arrow.module.css";
@@ -26,7 +27,7 @@ type ArrowProps = {
    * dependency warnings for task `taskTo`
    */
   warningsByTask?: Map<string, number>;
-  mapTaskToCoordinatesByLevel: Map<string, TaskCoordinates>;
+  mapTaskToCoordinatesOnLevel: Map<string, TaskCoordinates>;
   mapTaskRowIndexByLevel: Map<string, number>;
   fullRowHeight: number;
   taskHeight: number;
@@ -50,7 +51,7 @@ const ArrowInner: React.FC<ArrowProps> = ({
   taskTo,
   targetTo,
   warningsByTask = undefined,
-  mapTaskToCoordinatesByLevel,
+  mapTaskToCoordinatesOnLevel,
   mapTaskRowIndexByLevel,
   fullRowHeight,
   taskHeight,
@@ -74,19 +75,10 @@ const ArrowInner: React.FC<ArrowProps> = ({
     onArrowDoubleClick,
   ]);
 
-  const coordinatesFrom = useMemo(() => {
-    const {
-      id,
-    } = taskFrom;
-
-    const res = mapTaskToCoordinatesByLevel.get(id);
-
-    if (!res) {
-      throw new Error(`Coordinates for task ${id} are not found`);
-    }
-
-    return res;
-  }, [taskFrom, mapTaskToCoordinatesByLevel]);
+  const coordinatesFrom = useMemo(
+    () => getCoordinatesOnLevel(taskFrom.id, mapTaskToCoordinatesOnLevel),
+    [taskFrom, mapTaskToCoordinatesOnLevel],
+  );
 
   const indexFrom = useMemo(() => {
     const {
@@ -102,19 +94,10 @@ const ArrowInner: React.FC<ArrowProps> = ({
     return res;
   }, [taskFrom, mapTaskRowIndexByLevel]);
 
-  const coordinatesTo = useMemo(() => {
-    const {
-      id,
-    } = taskTo;
-
-    const res = mapTaskToCoordinatesByLevel.get(id);
-
-    if (!res) {
-      throw new Error(`Coordinates for task ${id} are not found`);
-    }
-
-    return res;
-  }, [taskTo, mapTaskToCoordinatesByLevel]);
+  const coordinatesTo = useMemo(
+    () => getCoordinatesOnLevel(taskTo.id, mapTaskToCoordinatesOnLevel),
+    [taskTo, mapTaskToCoordinatesOnLevel],
+  );
 
   const indexTo = useMemo(() => {
     const {

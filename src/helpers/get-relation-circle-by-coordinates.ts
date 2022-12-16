@@ -1,14 +1,16 @@
-import { BarTask } from "../types/bar-task";
 import { RelationMoveTarget } from "../types/gantt-task-actions";
+import { Task, TaskCoordinates } from "../types/public-types";
+import { getCoordinatesOnLevel } from "./get-task-coordinates";
 
 export const getRelationCircleByCoordinates = (
   svgP: DOMPoint,
-  tasks: BarTask[],
+  tasks: Task[],
   taskHalfHeight: number,
   relationCircleOffset: number,
   relationCircleRadius: number,
   rtl: boolean,
-): [BarTask, RelationMoveTarget] | null => {
+  mapTaskToCoordinatesOnLevel: Map<string, TaskCoordinates>,
+): [Task, RelationMoveTarget] | null => {
   const {
     x,
     y,
@@ -17,20 +19,22 @@ export const getRelationCircleByCoordinates = (
   for (let i = 0, l = tasks.length; i < l; ++i) {
     const task = tasks[i];
 
+    const taskCoordinates = getCoordinatesOnLevel(task.id, mapTaskToCoordinatesOnLevel);
+
     if (
-      y >= task.y + taskHalfHeight - relationCircleRadius
-      && y <= task.y + taskHalfHeight + relationCircleRadius
+      y >= taskCoordinates.y + taskHalfHeight - relationCircleRadius
+      && y <= taskCoordinates.y + taskHalfHeight + relationCircleRadius
     ) {
       if (
-        x >= task.x1 - relationCircleOffset - relationCircleRadius
-        && x <= task.x1 - relationCircleOffset + relationCircleRadius
+        x >= taskCoordinates.x1 - relationCircleOffset - relationCircleRadius
+        && x <= taskCoordinates.x1 - relationCircleOffset + relationCircleRadius
       ) {
         return [task, rtl ? "endOfTask" : "startOfTask"];
       }
 
       if (
-        x >= task.x2 + relationCircleOffset - relationCircleRadius
-        && x <= task.x2 + relationCircleOffset + relationCircleRadius
+        x >= taskCoordinates.x2 + relationCircleOffset - relationCircleRadius
+        && x <= taskCoordinates.x2 + relationCircleOffset + relationCircleRadius
       ) {
         return [task, rtl ? "startOfTask" : "endOfTask"];
       }

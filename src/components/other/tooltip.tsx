@@ -1,10 +1,14 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Task } from "../../types/public-types";
-import { BarTask } from "../../types/bar-task";
+
+import { MapTaskToCoordinates, MapTaskToRowIndex, Task } from "../../types/public-types";
 import styles from "./tooltip.module.css";
+import { getTaskCoordinates } from "../../helpers/get-task-coordinates";
+import { getTaskRowIndex } from "../../helpers/get-task-row-index";
 
 export type TooltipProps = {
-  task: BarTask;
+  task: Task;
+  mapTaskToCoordinates: MapTaskToCoordinates;
+  mapTaskToRowIndex: MapTaskToRowIndex;
   arrowIndent: number;
   rtl: boolean;
   svgContainerHeight: number;
@@ -26,6 +30,8 @@ export type TooltipProps = {
 };
 export const Tooltip: React.FC<TooltipProps> = ({
   task,
+  mapTaskToCoordinates,
+  mapTaskToRowIndex,
   rowHeight,
   fullRowHeight,
   rtl,
@@ -45,19 +51,22 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const [relatedX, setRelatedX] = useState(0);
   useEffect(() => {
     if (tooltipRef.current) {
+      const coordinates = getTaskCoordinates(task, mapTaskToCoordinates);
+      const rowIndex = getTaskRowIndex(task, mapTaskToRowIndex);
+
       const tooltipHeight = tooltipRef.current.offsetHeight * 1.1;
       const tooltipWidth = tooltipRef.current.offsetWidth * 1.1;
 
-      let newRelatedY = task.index * fullRowHeight
+      let newRelatedY = rowIndex * fullRowHeight
         + (((task.comparisonLevel || 1) - 1) * rowHeight)
         - scrollY
         + headerHeight;
 
       let newRelatedX: number;
       if (rtl) {
-        newRelatedX = task.x1 - arrowIndent * 1.5 - tooltipWidth - scrollX;
+        newRelatedX = coordinates.x1 - arrowIndent * 1.5 - tooltipWidth - scrollX;
         if (newRelatedX < 0) {
-          newRelatedX = task.x2 + arrowIndent * 1.5 - scrollX;
+          newRelatedX = coordinates.x2 + arrowIndent * 1.5 - scrollX;
         }
         const tooltipLeftmostPoint = tooltipWidth + newRelatedX;
         if (tooltipLeftmostPoint > svgContainerWidth) {
@@ -65,12 +74,12 @@ export const Tooltip: React.FC<TooltipProps> = ({
           newRelatedY += rowHeight;
         }
       } else {
-        newRelatedX = task.x2 + arrowIndent * 1.5 + taskListWidth - scrollX;
+        newRelatedX = coordinates.x2 + arrowIndent * 1.5 + taskListWidth - scrollX;
         const tooltipLeftmostPoint = tooltipWidth + newRelatedX;
         const fullChartWidth = taskListWidth + svgContainerWidth;
         if (tooltipLeftmostPoint > fullChartWidth) {
           newRelatedX =
-            task.x1 +
+            coordinates.x1 +
             taskListWidth -
             arrowIndent * 1.5 -
             scrollX -
@@ -92,6 +101,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
   }, [
     tooltipRef,
     task,
+    mapTaskToCoordinates,
+    mapTaskToRowIndex,
     arrowIndent,
     scrollX,
     scrollY,

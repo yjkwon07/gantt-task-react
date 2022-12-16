@@ -19,6 +19,8 @@ export const Bar: React.FC<TaskItemExtendedProps> = ({
   coordinates,
   task,
   childTasksMap,
+  barCornerRadius,
+  handleWidth,
   taskHeight,
   taskHalfHeight,
   relationCircleOffset,
@@ -99,7 +101,7 @@ export const Bar: React.FC<TaskItemExtendedProps> = ({
         height={taskHeight}
         progressX={coordinates.progressX}
         progressWidth={coordinates.progressWidth}
-        barCornerRadius={task.barCornerRadius}
+        barCornerRadius={barCornerRadius}
         styles={task.styles}
         isSelected={isSelected}
         hasChildren={hasChildren}
@@ -114,18 +116,18 @@ export const Bar: React.FC<TaskItemExtendedProps> = ({
             <BarDateHandle
               x={coordinates.x1 + 1}
               y={coordinates.y + 1}
-              width={task.handleWidth}
+              width={handleWidth}
               height={handleHeight}
-              barCornerRadius={task.barCornerRadius}
+              barCornerRadius={barCornerRadius}
               onMouseDown={startMoveStartOfTask}
             />
             {/* right */}
             <BarDateHandle
-              x={coordinates.x2 - task.handleWidth - 1}
+              x={coordinates.x2 - handleWidth - 1}
               y={coordinates.y + 1}
-              width={task.handleWidth}
+              width={handleWidth}
               height={handleHeight}
-              barCornerRadius={task.barCornerRadius}
+              barCornerRadius={barCornerRadius}
               onMouseDown={startMoveEndOfTask}
             />
           </g>

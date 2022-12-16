@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from "react";
 
-import { BarTask } from "../../types/bar-task";
 import { MonthFormats, Task, TaskListTableProps } from "../../types/public-types";
 
 export type TaskListProps = {
@@ -17,8 +16,8 @@ export type TaskListProps = {
   tasks: Task[];
   taskListRef: React.RefObject<HTMLDivElement>;
   horizontalContainerClass?: string;
-  selectedTask: BarTask | undefined;
-  setSelectedTask: (task: string) => void;
+  selectedTask: Task | null;
+  setSelectedTask: (task: Task) => void;
   onExpanderClick: (task: Task) => void;
   TaskListHeader: React.FC<{
     headerHeight: number;

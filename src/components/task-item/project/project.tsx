@@ -8,6 +8,7 @@ import styles from "./project.module.css";
 export const Project: React.FC<TaskItemExtendedProps> = ({
   coordinates,
   task,
+  barCornerRadius,
   taskHalfHeight,
   taskHeight,
   isSelected,
@@ -55,17 +56,17 @@ export const Project: React.FC<TaskItemExtendedProps> = ({
         width={projectWith}
         y={coordinates.y}
         height={taskHeight}
-        rx={task.barCornerRadius}
-        ry={task.barCornerRadius}
+        rx={barCornerRadius}
+        ry={barCornerRadius}
         className={styles.projectBackground}
       />
       <rect
-        x={task.progressX}
-        width={task.progressWidth}
+        x={coordinates.progressX}
+        width={coordinates.progressWidth}
         y={coordinates.y}
         height={taskHeight}
-        ry={task.barCornerRadius}
-        rx={task.barCornerRadius}
+        ry={barCornerRadius}
+        rx={barCornerRadius}
         fill={processColor}
       />
       <rect
@@ -74,8 +75,8 @@ export const Project: React.FC<TaskItemExtendedProps> = ({
         width={projectWith}
         y={coordinates.y}
         height={taskHalfHeight}
-        rx={task.barCornerRadius}
-        ry={task.barCornerRadius}
+        rx={barCornerRadius}
+        ry={barCornerRadius}
         className={styles.projectTop}
       />
       <polygon

@@ -1,4 +1,4 @@
-import { BarTask } from "./bar-task";
+import { Task } from "./public-types";
 
 export type BarMoveAction = "progress" | "end" | "start" | "move";
 export type GanttContentMoveAction =
@@ -7,21 +7,20 @@ export type GanttContentMoveAction =
   | "delete"
   | "dblclick"
   | "click"
-  | "select"
   | ""
   | BarMoveAction;
 
 export type RelationMoveTarget = "startOfTask" | "endOfTask";
 
 export type GanttEvent = {
-  changedTask?: BarTask;
-  originalSelectedTask?: BarTask;
+  changedTask?: Task;
+  originalSelectedTask?: Task;
   action: GanttContentMoveAction;
 };
 
 export type GanttRelationEvent = {
   target: RelationMoveTarget;
-  task: BarTask;
+  task: Task;
   startX: number;
   startY: number;
   endX: number;

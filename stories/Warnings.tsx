@@ -232,10 +232,6 @@ export const Warnings: React.FC<AppProps> = (props) => {
     console.log("On Click event Id:" + task.id);
   };
 
-  const handleSelect = (task: Task, isSelected: boolean) => {
-    console.log(task.name + " has " + (isSelected ? "selected" : "unselected"));
-  };
-
   const handleExpanderClick = useCallback((task: Task) => {
     const {
       id: taskId,
@@ -271,7 +267,6 @@ export const Warnings: React.FC<AppProps> = (props) => {
       onProgressChange={handleProgressChange}
       onDoubleClick={handleDblClick}
       onClick={handleClick}
-      onSelect={handleSelect}
       onExpanderClick={handleExpanderClick}
       onArrowDoubleClick={onArrowDoubleClick}
       fixStartPosition={handleFixStartPosition}

@@ -17,7 +17,9 @@ export const BarSmall: React.FC<TaskItemExtendedProps> = ({
   childTasksMap,
   isProgressChangeable,
   isDateChangeable,
+  barCornerRadius,
   onEventStart,
+  handleWidth,
   isSelected,
 }) => {
   const hasChildren = useHasChildren(task, childTasksMap);
@@ -33,11 +35,11 @@ export const BarSmall: React.FC<TaskItemExtendedProps> = ({
       <BarDisplay
         x={coordinates.x1}
         y={coordinates.y}
-        width={coordinates.x2 - coordinates.x1}
+        width={handleWidth * 2}
         height={taskHeight}
         progressX={coordinates.progressX}
         progressWidth={coordinates.progressWidth}
-        barCornerRadius={task.barCornerRadius}
+        barCornerRadius={barCornerRadius}
         styles={task.styles}
         isSelected={isSelected}
         hasChildren={hasChildren}

@@ -6,7 +6,6 @@ import React, {
   useCallback,
 } from "react";
 
-import { BarTask } from "../../types/bar-task";
 import { GanttContentMoveAction, RelationMoveTarget } from "../../types/gantt-task-actions";
 import {
   ChangeInProgress,
@@ -16,6 +15,7 @@ import {
   FixPosition,
   MapTaskToCoordinates,
   MapTaskToGlobalIndex,
+  Task,
   TaskCoordinates,
 } from "../../types/public-types";
 import { Bar } from "./bar/bar";
@@ -25,15 +25,18 @@ import { TaskWarning } from "./task-warning";
 import { Project } from "./project/project";
 import style from "./task-list.module.css";
 import { BarFixWidth, fixWidthContainerClass } from "../other/bar-fix-width";
+import { getTaskCoordinates } from "../../helpers/get-task-coordinates";
 
 export type TaskItemProps = {
-  task: BarTask;
+  task: Task;
   childTasksMap: ChildMapByLevel;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
   dependencyWarningMap: DependencyWarnings;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   mapTaskToCoordinates: MapTaskToCoordinates;
   arrowIndent: number;
+  barCornerRadius: number;
+  handleWidth: number;
   taskHeight: number;
   taskHalfHeight: number;
   relationCircleOffset: number;
@@ -49,12 +52,15 @@ export type TaskItemProps = {
   changeInProgress: ChangeInProgress | null;
   onEventStart: (
     action: GanttContentMoveAction,
-    selectedTask: BarTask,
-    event?: React.MouseEvent | React.KeyboardEvent
+    selectedTask: Task,
+    event: React.MouseEvent | React.KeyboardEvent
   ) => any;
   onRelationStart: (
     target: RelationMoveTarget,
-    selectedTask: BarTask,
+    selectedTask: Task,
+  ) => void;
+  setSelectedTask: (
+    task: Task | null,
   ) => void;
   fixStartPosition?: FixPosition;
   fixEndPosition?: FixPosition;
@@ -82,8 +88,10 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     rtl,
     changeInProgress,
     onEventStart,
+    setSelectedTask,
     fixStartPosition = undefined,
     fixEndPosition = undefined,
+    handleWidth,
   } = props;
 
   const coordinates = useMemo(() => {
@@ -91,24 +99,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
       return changeInProgress.coordinates;
     }
 
-    const {
-      id,
-      comparisonLevel = 1,
-    } = task;
-
-    const mapByLevel = mapTaskToCoordinates.get(comparisonLevel);
-
-    if (!mapByLevel) {
-      throw new Error(`Coordinates are not found for level ${comparisonLevel}`);
-    }
-
-    const res = mapByLevel.get(id);
-
-    if (!res) {
-      throw new Error(`Coordinates are not found for task ${id}`);
-    }
-
-    return res;
+    return getTaskCoordinates(task, mapTaskToCoordinates);;
   }, [task, mapTaskToCoordinates, changeInProgress]);
 
   const outOfParentWarnings = useMemo(() => {
@@ -206,7 +197,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
   const [isTextInside, setIsTextInside] = useState(true);
 
   const taskItem = useMemo(() => {
-    switch (task.typeInternal) {
+    switch (task.type) {
       case "milestone":
         return (
           <Milestone
@@ -223,15 +214,16 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
           />
         );
 
-      case "smalltask":
-        return (
-          <BarSmall
-            {...props}
-            coordinates={coordinates}
-          />
-        );
-
       default:
+        if (coordinates.x2 - coordinates.x1 < handleWidth * 2) {
+          return (
+            <BarSmall
+              {...props}
+              coordinates={coordinates}
+            />
+          );
+        }
+
         return (
           <Bar
             {...props}
@@ -246,6 +238,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     isRelationDrawMode,
     childTasksMap,
     outOfParentWarnings,
+    handleWidth,
   ]);
 
   useEffect(() => {
@@ -269,6 +262,10 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
 
     return coordinates.x1 + width + arrowIndent * 1.2;
   }, [coordinates, isTextInside, rtl, arrowIndent]);
+
+  const onFocus = useCallback(() => {
+    setSelectedTask(task);
+  }, [setSelectedTask, task]);
 
   return (
     <g
@@ -296,9 +293,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
       onClick={e => {
         onEventStart("click", task, e);
       }}
-      onFocus={() => {
-        onEventStart("select", task);
-      }}
+      onFocus={onFocus}
     >
       {taskItem}
       <text
@@ -316,12 +311,12 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
 
       {(outOfParentWarnings || dependencyWarningsForTask) && (
         <TaskWarning
-          barTask={task}
           taskHalfHeight={taskHalfHeight}
           taskWarningOffset={taskWarningOffset}
           rtl={rtl}
           outOfParentWarnings={outOfParentWarnings}
           dependencyWarningMap={dependencyWarningsForTask}
+          coordinates={coordinates}
         />
       )}
 

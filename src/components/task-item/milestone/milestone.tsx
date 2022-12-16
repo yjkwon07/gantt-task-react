@@ -13,6 +13,7 @@ import styles from "./milestone.module.css";
 export const Milestone: React.FC<TaskItemExtendedProps> = ({
   task,
   coordinates,
+  barCornerRadius,
   taskHeight,
   taskHalfHeight,
   relationCircleOffset,
@@ -48,8 +49,8 @@ export const Milestone: React.FC<TaskItemExtendedProps> = ({
         width={rotatedHeight}
         y={coordinates.y}
         height={rotatedHeight}
-        rx={task.barCornerRadius}
-        ry={task.barCornerRadius}
+        rx={barCornerRadius}
+        ry={barCornerRadius}
         transform={transform}
         className={styles.milestoneBackground}
         onMouseDown={e => {

@@ -1,44 +1,14 @@
 import { Task, TaskBarColorStyles, TaskCoordinates } from "../types/public-types";
-import { BarTask, TaskTypeInternal } from "../types/bar-task";
+import { BarTask } from "../types/bar-task";
 import { BarMoveAction } from "../types/gantt-task-actions";
 
 export const convertToBarTasks = (
   tasks: readonly Task[],
-  dates: Date[],
-  columnWidth: number,
-  rowHeight: number,
-  fullRowHeight: number,
-  taskHeight: number,
-  barCornerRadius: number,
-  handleWidth: number,
-  rtl: boolean,
   styles: TaskBarColorStyles,
 ) => {
-  const indexesByLevels: Record<string, number> = {};
-
   let barTasks = tasks.map((task) => {
-    const {
-      comparisonLevel = 1,
-    } = task;
-
-    if (!indexesByLevels[comparisonLevel]) {
-      indexesByLevels[comparisonLevel] = 0;
-    }
-
-    const index = indexesByLevels[comparisonLevel];
-    ++indexesByLevels[comparisonLevel];
-
     return convertToBarTask(
       task,
-      index,
-      dates,
-      columnWidth,
-      rowHeight,
-      fullRowHeight,
-      taskHeight,
-      barCornerRadius,
-      handleWidth,
-      rtl,
       styles,
     );
   });
@@ -48,15 +18,6 @@ export const convertToBarTasks = (
 
 const convertToBarTask = (
   task: Task,
-  rowIndex: number,
-  dates: Date[],
-  columnWidth: number,
-  rowHeight: number,
-  fullRowHeight: number,
-  taskHeight: number,
-  barCornerRadius: number,
-  handleWidth: number,
-  rtl: boolean,
   styles: TaskBarColorStyles,
 ): BarTask => {
   let barTask: BarTask;
@@ -64,45 +25,18 @@ const convertToBarTask = (
     case "milestone":
       barTask = convertToMilestone(
         task,
-        rowIndex,
-        dates,
-        columnWidth,
-        rowHeight,
-        fullRowHeight,
-        taskHeight,
-        barCornerRadius,
-        handleWidth,
-        rtl,
         styles,
       );
       break;
     case "project":
       barTask = convertToBar(
         task,
-        rowIndex,
-        dates,
-        columnWidth,
-        rowHeight,
-        fullRowHeight,
-        taskHeight,
-        barCornerRadius,
-        handleWidth,
-        rtl,
         styles,
       );
       break;
     default:
       barTask = convertToBar(
         task,
-        rowIndex,
-        dates,
-        columnWidth,
-        rowHeight,
-        fullRowHeight,
-        taskHeight,
-        barCornerRadius,
-        handleWidth,
-        rtl,
         styles,
       );
       break;
@@ -112,60 +46,13 @@ const convertToBarTask = (
 
 const convertToBar = (
   task: Task,
-  rowIndex: number,
-  dates: Date[],
-  columnWidth: number,
-  rowHeight: number,
-  fullRowHeight: number,
-  taskHeight: number,
-  barCornerRadius: number,
-  handleWidth: number,
-  rtl: boolean,
   styles: TaskBarColorStyles,
 ): BarTask => {
-  let x1: number;
-  let x2: number;
-  if (rtl) {
-    x2 = taskXCoordinateRTL(task.start, dates, columnWidth);
-    x1 = taskXCoordinateRTL(task.end, dates, columnWidth);
-  } else {
-    x1 = taskXCoordinate(task.start, dates, columnWidth);
-    x2 = taskXCoordinate(task.end, dates, columnWidth);
-  }
-  let typeInternal: TaskTypeInternal = task.type;
-  if (typeInternal === "task" && x2 - x1 < handleWidth * 2) {
-    typeInternal = "smalltask";
-    x2 = x1 + handleWidth * 2;
-  }
-
-  const [progressWidth, progressX] = progressWithByParams(
-    x1,
-    x2,
-    task.progress,
-    rtl
-  );
-  const y = taskYCoordinate(
-    rowIndex,
-    rowHeight,
-    fullRowHeight,
-    taskHeight,
-    task.comparisonLevel || 1,
-  );
   const hideChildren = task.type === "project" ? task.hideChildren : undefined;
 
   return {
     ...task,
-    typeInternal,
-    x1,
-    x2,
-    y,
-    index: rowIndex,
-    progressX,
-    progressWidth,
-    barCornerRadius,
-    handleWidth,
     hideChildren,
-    height: taskHeight,
     styles: task.styles ? {
       ...styles,
       ...task.styles,
@@ -175,51 +62,12 @@ const convertToBar = (
 
 const convertToMilestone = (
   task: Task,
-  rowIndex: number,
-  dates: Date[],
-  columnWidth: number,
-  rowHeight: number,
-  fullRowHeight: number,
-  taskHeight: number,
-  barCornerRadius: number,
-  handleWidth: number,
-  rtl: boolean,
   styles: TaskBarColorStyles,
 ): BarTask => {
-  let x: number;
-  if (rtl) {
-    x = taskXCoordinateRTL(task.start, dates, columnWidth);
-  } else {
-    x = taskXCoordinate(task.start, dates, columnWidth);
-  }
-
-  const y = taskYCoordinate(
-    rowIndex,
-    rowHeight,
-    fullRowHeight,
-    taskHeight,
-    task.comparisonLevel || 1,
-  );
-
-  const x1 = x - taskHeight * 0.5;
-  const x2 = x + taskHeight * 0.5;
-
-  const rotatedHeight = taskHeight / 1.414;
-
   return {
     ...task,
     end: task.start,
-    x1,
-    x2,
-    y,
-    index: rowIndex,
-    progressX: 0,
-    progressWidth: 0,
-    barCornerRadius,
-    handleWidth,
-    typeInternal: task.type,
     progress: 0,
-    height: rotatedHeight,
     hideChildren: undefined,
     styles: task.styles ? {
       ...styles,
@@ -279,17 +127,6 @@ export const progressWithByParams = (
     progressX = taskX1;
   }
   return [progressWidth, progressX];
-};
-
-export const progressByProgressWidth = (
-  progressWidth: number,
-  barTask: BarTask
-) => {
-  const barWidth = barTask.x2 - barTask.x1;
-  const progressPercent = Math.round((progressWidth * 100) / barWidth);
-  if (progressPercent >= 100) return 100;
-  else if (progressPercent <= 0) return 0;
-  else return progressPercent;
 };
 
 export const getProgressPoint = (

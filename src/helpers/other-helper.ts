@@ -1,4 +1,3 @@
-import { BarTask } from "../types/bar-task";
 import { Task } from "../types/public-types";
 
 export function isKeyboardEvent(
@@ -11,10 +10,6 @@ export function isMouseEvent(
   event: React.MouseEvent | React.KeyboardEvent | React.FocusEvent
 ): event is React.MouseEvent {
   return (event as React.MouseEvent).clientX !== undefined;
-}
-
-export function isBarTask(task: Task | BarTask): task is BarTask {
-  return (task as BarTask).x1 !== undefined;
 }
 
 export function removeHiddenTasks(tasks: readonly Task[]) {

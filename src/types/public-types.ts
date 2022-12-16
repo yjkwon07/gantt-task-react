@@ -143,7 +143,7 @@ export interface EventOption {
   /**
    * Invokes on bar select on unselect.
    */
-  onSelect?: (task: Task, isSelected: boolean) => void;
+  onSelect?: (task: Task | null) => void;
   /**
    * Invokes on bar double click.
    */
@@ -263,10 +263,7 @@ export interface StylingOption extends Partial<TaskBarColorStyles> {
     locale: string;
     tasks: Task[];
     selectedTaskId: string;
-    /**
-     * Sets selected task by id
-     */
-    setSelectedTask: (taskId: string) => void;
+    setSelectedTask: (task: Task) => void;
     onExpanderClick: (task: Task) => void;
   }>;
 
@@ -298,7 +295,7 @@ export interface TaskListTableProps {
   monthFormat: MonthFormats;
   tasks: Task[];
   selectedTaskId: string;
-  setSelectedTask: (taskId: string) => void;
+  setSelectedTask: (task: Task) => void;
   onExpanderClick: (task: Task) => void;
 }
 

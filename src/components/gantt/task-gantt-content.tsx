@@ -40,6 +40,7 @@ import {
   RelationMoveTarget,
 } from "../../types/gantt-task-actions";
 import { getSuggestedStartEndChanges } from "../../helpers/get-suggested-start-end-changes";
+import { getMapTaskToCoordinatesOnLevel, getTaskCoordinates } from "../../helpers/get-task-coordinates";
 
 export type TaskGanttContentProps = {
   tasks: BarTask[];
@@ -55,8 +56,9 @@ export type TaskGanttContentProps = {
   dates: Date[];
   ganttEvent: GanttEvent;
   ganttRelationEvent: GanttRelationEvent | null;
-  selectedTask: BarTask | undefined;
+  selectedTask: Task | null;
   fullRowHeight: number;
+  handleWidth: number;
   columnWidth: number;
   timeStep: number;
   svg?: React.RefObject<SVGSVGElement>;
@@ -69,6 +71,7 @@ export type TaskGanttContentProps = {
   arrowColor: string;
   arrowWarningColor: string;
   arrowIndent: number;
+  barCornerRadius: number;
   dependencyFixWidth: number;
   dependencyFixHeight: number;
   dependencyFixIndent: number;
@@ -80,7 +83,7 @@ export type TaskGanttContentProps = {
   setGanttEvent: (value: GanttEvent) => void;
   setGanttRelationEvent: React.Dispatch<React.SetStateAction<GanttRelationEvent | null>>;
   setFailedTask: (value: BarTask | null) => void;
-  setSelectedTask: (taskId: string) => void;
+  setSelectedTask: (task: Task | null) => void;
   onArrowDoubleClick?: OnArrowDoubleClick;
   comparisonLevels: number;
   fixStartPosition?: FixPosition;
@@ -103,6 +106,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   ganttRelationEvent,
   selectedTask,
   fullRowHeight,
+  handleWidth,
   columnWidth,
   timeStep,
   svg,
@@ -114,6 +118,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   arrowColor,
   arrowWarningColor,
   arrowIndent,
+  barCornerRadius,
   dependencyFixWidth,
   dependencyFixHeight,
   dependencyFixIndent,
@@ -499,6 +504,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
         relationCircleOffset,
         relationCircleRadius,
         rtl,
+        getMapTaskToCoordinatesOnLevel(startRelationTask, mapTaskToCoordinates),
       );
 
       if (endTargetRelationCircle) {
@@ -548,6 +554,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     startRelationTarget,
     startRelationTask,
     setGanttRelationEvent,
+    mapTaskToCoordinates,
     tasks,
     tasksMap,
     taskHalfHeight,
@@ -561,21 +568,11 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
    */
   const handleBarEventStart = async (
     action: GanttContentMoveAction,
-    task: BarTask,
-    event?: React.MouseEvent | React.KeyboardEvent
+    task: Task,
+    event: React.MouseEvent | React.KeyboardEvent
   ) => {
-    const {
-      id,
-      comparisonLevel = 1,
-    } = task;
-
-    if (!event) {
-      if (action === "select") {
-        setSelectedTask(task.id);
-      }
-    }
     // Keyboard events
-    else if (isKeyboardEvent(event)) {
+    if (isKeyboardEvent(event)) {
       if (action === "delete") {
         if (onDelete) {
           try {
@@ -618,15 +615,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
         svg.current.getScreenCTM()?.inverse()
       );
 
-      const coordinatesByLevel = mapTaskToCoordinates.get(comparisonLevel);
-      if (!coordinatesByLevel) {
-        throw new Error(`Coordinates are not found for level ${comparisonLevel}`);
-      }
-
-      const coordinates = coordinatesByLevel.get(id);
-      if (!coordinates) {
-        throw new Error(`Coordinates are not found for task ${id}`);
-      }
+      const coordinates = getTaskCoordinates(task, mapTaskToCoordinates);
 
       setChangeInProgress({
         action: action as BarMoveAction,
@@ -643,10 +632,12 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
    */
   const handleBarRelationStart = useCallback((
     target: RelationMoveTarget,
-    task: BarTask,
+    task: Task,
   ) => {
-    const startX = ((target === 'startOfTask') !== rtl) ? task.x1 - 10 : task.x2 + 10;
-    const startY = (task.y + Math.round(task.height / 2));
+    const coordinates = getTaskCoordinates(task, mapTaskToCoordinates);
+
+    const startX = ((target === 'startOfTask') !== rtl) ? coordinates.x1 - 10 : coordinates.x2 + 10;
+    const startY = coordinates.y + taskHalfHeight;
 
     setGanttRelationEvent({
       target,
@@ -657,7 +648,9 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       endY: startY,
     });
   }, [
+    taskHalfHeight,
     setGanttRelationEvent,
+    mapTaskToCoordinates,
     rtl,
   ]);
 
@@ -767,16 +760,15 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             );
           }
 
-          const mapTaskToCoordinatesByLevel = mapTaskToCoordinates.get(comparisonLevel);
-
-          if (!mapTaskToCoordinatesByLevel) {
-            throw new Error(`Coordinates are not found for level ${mapTaskToCoordinatesByLevel}`);
-          }
+          const mapTaskToCoordinatesOnLevel = getMapTaskToCoordinatesOnLevel(
+            task,
+            mapTaskToCoordinates,
+          );
 
           const mapTaskRowIndexByLevel = mapTaskToRowIndex.get(comparisonLevel);
 
           if (!mapTaskRowIndexByLevel) {
-            throw new Error(`Row indexes are not found for level ${mapTaskToCoordinatesByLevel}`);
+            throw new Error(`Row indexes are not found for level ${comparisonLevel}`);
           }
 
           return dependenciesByTask.map(({
@@ -792,7 +784,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                 taskTo={task}
                 targetTo={ownTarget}
                 warningsByTask={warnngsByLevel ? warnngsByLevel.get(task.id) : undefined}
-                mapTaskToCoordinatesByLevel={mapTaskToCoordinatesByLevel}
+                mapTaskToCoordinatesOnLevel={mapTaskToCoordinatesOnLevel}
                 mapTaskRowIndexByLevel={mapTaskRowIndexByLevel}
                 fullRowHeight={fullRowHeight}
                 taskHeight={taskHeight}
@@ -836,6 +828,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               mapTaskToGlobalIndex={mapTaskToGlobalIndex}
               mapTaskToCoordinates={mapTaskToCoordinates}
               arrowIndent={arrowIndent}
+              barCornerRadius={barCornerRadius}
+              handleWidth={handleWidth}
               taskHeight={taskHeight}
               taskHalfHeight={taskHalfHeight}
               relationCircleOffset={relationCircleOffset}
@@ -848,12 +842,13 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               isDelete={!task.isDisabled}
               onEventStart={handleBarEventStart}
               onRelationStart={handleBarRelationStart}
-              key={key}
-              isSelected={!!selectedTask && task.id === selectedTask.id}
+              setSelectedTask={setSelectedTask}
+              isSelected={selectedTask === task}
               rtl={rtl}
               changeInProgress={changeInProgress}
               fixStartPosition={fixStartPosition}
               fixEndPosition={fixEndPosition}
+              key={key}
             />
           );
         })}

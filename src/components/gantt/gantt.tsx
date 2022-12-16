@@ -233,7 +233,7 @@ export const Gantt: React.FC<GanttProps> = ({
     return maxLength;
   }, [tasks]);
 
-  const [selectedTask, setSelectedTask] = useState<BarTask>();
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [failedTask, setFailedTask] = useState<BarTask | null>(null);
 
   const ganttFullHeight = useMemo(
@@ -317,27 +317,11 @@ export const Gantt: React.FC<GanttProps> = ({
     setBarTasks(
       convertToBarTasks(
         sortedTasks,
-        dates,
-        columnWidth,
-        rowHeight,
-        fullRowHeight,
-        taskHeight,
-        barCornerRadius,
-        handleWidth,
-        rtl,
         colorStyles,
       )
     );
   }, [
     sortedTasks,
-    dates,
-    columnWidth,
-    rowHeight,
-    fullRowHeight,
-    taskHeight,
-    barCornerRadius,
-    handleWidth,
-    rtl,
     colorStyles,
   ]);
 
@@ -384,39 +368,6 @@ export const Gantt: React.FC<GanttProps> = ({
           id: otherId,
           comparisonLevel: otherComparisonLevel = 1,
         }) => otherId !== changedId || comparisonLevel !== otherComparisonLevel));
-      } else if (
-        action === "move" ||
-        action === "end" ||
-        action === "start" ||
-        action === "progress"
-      ) {
-        const prevStateTask = barTasks.find(({
-          id: otherId,
-          comparisonLevel: otherComparisonLevel = 1,
-        }) => otherId === changedId && comparisonLevel === otherComparisonLevel);
-
-        if (
-          prevStateTask &&
-          (prevStateTask.start.getTime() !== changedTask.start.getTime() ||
-            prevStateTask.end.getTime() !== changedTask.end.getTime() ||
-            prevStateTask.progress !== changedTask.progress)
-        ) {
-          // actions for change
-          const newTaskList = barTasks.map((otherTask) => {
-            const {
-              id: otherId,
-              comparisonLevel: otherComparisonLevel = 1,
-            } = otherTask;
-
-            if (otherId === changedId && comparisonLevel === otherComparisonLevel) {
-              return changedTask;
-            }
-
-            return otherTask;
-          });
-
-          setBarTasks(newTaskList);
-        }
       }
     }
   }, [ganttEvent, barTasks]);
@@ -585,24 +536,18 @@ export const Gantt: React.FC<GanttProps> = ({
     setIgnoreScrollEvent(true);
   };
 
-  /**
-   * Task select event
-   */
-  const handleSelectedTask = (taskId: string) => {
-    const newSelectedTask = barTasks.find(t => t.id === taskId);
-    const oldSelectedTask = barTasks.find(
-      t => !!selectedTask && t.id === selectedTask.id
-    );
-    if (onSelect) {
-      if (oldSelectedTask) {
-        onSelect(oldSelectedTask, false);
-      }
-      if (newSelectedTask) {
-        onSelect(newSelectedTask, true);
-      }
+  const isFirstRenderRef = useRef(true);
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
     }
-    setSelectedTask(newSelectedTask);
-  };
+
+    if (onSelect) {
+      onSelect(selectedTask);
+    }
+  }, [onSelect, selectedTask]);
+
   const handleExpanderClick = (task: Task) => {
     if (onExpanderClick && task.hideChildren !== undefined) {
       onExpanderClick({ ...task, hideChildren: !task.hideChildren });
@@ -644,6 +589,7 @@ export const Gantt: React.FC<GanttProps> = ({
     ganttRelationEvent,
     selectedTask,
     fullRowHeight,
+    handleWidth,
     taskHeight,
     taskHalfHeight,
     relationCircleOffset,
@@ -653,6 +599,7 @@ export const Gantt: React.FC<GanttProps> = ({
     arrowColor,
     arrowWarningColor,
     arrowIndent,
+    barCornerRadius,
     dependencyFixWidth,
     dependencyFixHeight,
     dependencyFixIndent,
@@ -666,7 +613,7 @@ export const Gantt: React.FC<GanttProps> = ({
     setGanttEvent,
     setGanttRelationEvent,
     setFailedTask,
-    setSelectedTask: handleSelectedTask,
+    setSelectedTask,
     onDateChange,
     onFixDependencyPosition,
     onRelationChange,
@@ -695,7 +642,7 @@ export const Gantt: React.FC<GanttProps> = ({
     horizontalContainerClass: styles.horizontalContainer,
     selectedTask,
     taskListRef,
-    setSelectedTask: handleSelectedTask,
+    setSelectedTask,
     onExpanderClick: handleExpanderClick,
     TaskListHeader,
     TaskListTable,
@@ -721,6 +668,8 @@ export const Gantt: React.FC<GanttProps> = ({
         {ganttEvent.changedTask && (
           <Tooltip
             arrowIndent={arrowIndent}
+            mapTaskToCoordinates={mapTaskToCoordinates}
+            mapTaskToRowIndex={mapTaskToRowIndex}
             rowHeight={rowHeight}
             fullRowHeight={fullRowHeight}
             svgContainerHeight={svgContainerHeight}
