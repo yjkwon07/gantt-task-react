@@ -14,6 +14,7 @@ import {
   DependencyMap,
   DependencyWarnings,
   DependentMap,
+  EmptyTask,
   EventOption,
   FixPosition,
   MapTaskToCoordinates,
@@ -23,27 +24,24 @@ import {
   Task,
   TaskBarColorStyles,
   TaskMapByLevel,
+  TaskOrEmpty,
 } from "../../types/public-types";
 import { Arrow } from "../other/arrow";
 import { RelationLine } from "../other/relation-line";
 import { handleTaskBySVGMouseEvent } from "../../helpers/bar-helper";
 import { getRelationCircleByCoordinates } from "../../helpers/get-relation-circle-by-coordinates";
-import { isKeyboardEvent } from "../../helpers/other-helper";
 import { checkIsDescendant } from "../../helpers/check-is-descendant";
-import { collectParents } from "../../helpers/collect-parents";
 import { TaskItem } from "../task-item/task-item";
 import {
   BarMoveAction,
-  GanttContentMoveAction,
-  GanttEvent,
   GanttRelationEvent,
   RelationMoveTarget,
 } from "../../types/gantt-task-actions";
-import { getSuggestedStartEndChanges } from "../../helpers/get-suggested-start-end-changes";
 import { getMapTaskToCoordinatesOnLevel, getTaskCoordinates } from "../../helpers/get-task-coordinates";
+import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
 
 export type TaskGanttContentProps = {
-  tasks: readonly Task[];
+  tasks: readonly TaskOrEmpty[];
   childTasksMap: ChildMapByLevel;
   tasksMap: TaskMapByLevel;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
@@ -54,7 +52,6 @@ export type TaskGanttContentProps = {
   dependentMap: DependentMap;
   dependencyWarningMap: DependencyWarnings;
   dates: Date[];
-  ganttEvent: GanttEvent;
   ganttRelationEvent: GanttRelationEvent | null;
   selectedTask: Task | null;
   fullRowHeight: number;
@@ -80,7 +77,7 @@ export type TaskGanttContentProps = {
   rtl: boolean;
   changeInProgress: ChangeInProgress | null;
   setChangeInProgress: React.Dispatch<React.SetStateAction<ChangeInProgress | null>>;
-  setGanttEvent: (value: GanttEvent) => void;
+  setTooltipTask: (task: Task | null) => void;
   setGanttRelationEvent: React.Dispatch<React.SetStateAction<GanttRelationEvent | null>>;
   setSelectedTask: (task: Task | null) => void;
   onArrowDoubleClick?: OnArrowDoubleClick;
@@ -102,7 +99,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   dependentMap,
   dependencyWarningMap,
   dates,
-  ganttEvent,
   ganttRelationEvent,
   selectedTask,
   fullRowHeight,
@@ -127,7 +123,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   rtl,
   changeInProgress,
   setChangeInProgress,
-  setGanttEvent,
+  setTooltipTask,
   setGanttRelationEvent,
   setSelectedTask,
   onDateChange = undefined,
@@ -136,7 +132,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   onProgressChange,
   onDoubleClick,
   onClick,
-  onDelete,
+  onDelete = undefined,
   onArrowDoubleClick = undefined,
   comparisonLevels,
   fixStartPosition = undefined,
@@ -340,17 +336,18 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
         return;
       }
 
-      const {
-        id: taskId,
-        comparisonLevel = 1,
-      } = task;
-
-      const dependentMapByLevel = dependentMap.get(comparisonLevel);
-      const dependentsByTask = dependentMapByLevel
-        ? dependentMapByLevel.get(taskId)
-        : undefined;
-
-      const dependentTasks = dependentsByTask ? dependentsByTask.map(({ dependent }) => dependent) : [];
+      const [
+        dependentTasks,
+        taskIndex,
+        parents,
+        suggestions,
+      ] = getChangeTaskMetadata(
+        newChangedTask,
+        tasksMap,
+        childTasksMap,
+        mapTaskToGlobalIndex,
+        dependentMap,
+      );
 
       if (action === "progress") {
         if (onProgressChange) {
@@ -365,28 +362,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
 
       if (!onDateChange) {
         return;
-      }
-
-      const parents = collectParents(newChangedTask, tasksMap);
-      const suggestions = parents.map((parentTask) => getSuggestedStartEndChanges(
-        parentTask,
-        newChangedTask,
-        childTasksMap,
-        mapTaskToGlobalIndex,
-      ));
-
-      const taskIndexMapByLevel = mapTaskToGlobalIndex.get(comparisonLevel);
-
-      if (!taskIndexMapByLevel) {
-        console.error(`Tasks by level ${comparisonLevel} are not found`);
-      }
-
-      const taskIndex = taskIndexMapByLevel
-        ? taskIndexMapByLevel.get(taskId)
-        : undefined;
-
-      if (!taskIndexMapByLevel) {
-        console.error(`Index for task ${taskId} is not found`);
       }
 
       onDateChange(
@@ -409,7 +384,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     childTasksMap,
     mapTaskToGlobalIndex,
     dependentMap,
-    ganttEvent,
     xStep,
     onProgressChange,
     timeStep,
@@ -419,7 +393,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     point,
     rtl,
     tasksMap,
-    setGanttEvent,
     setChangeInProgress,
     changeInProgressLatestRef,
   ]);
@@ -566,64 +539,28 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
    * Method is Start point of task change
    */
   const handleBarEventStart = async (
-    action: GanttContentMoveAction,
+    action: BarMoveAction,
     task: Task,
-    event: React.MouseEvent | React.KeyboardEvent
+    event: React.MouseEvent,
   ) => {
-    // Keyboard events
-    if (isKeyboardEvent(event)) {
-      if (action === "delete") {
-        if (onDelete) {
-          try {
-            const result = await onDelete(task);
-            if (result !== undefined && result) {
-              setGanttEvent({ action, changedTask: task });
-            }
-          } catch (error) {
-            console.error("Error on Delete. " + error);
-          }
-        }
-      }
+    if (!svg?.current || !point) {
+      return;
     }
-    // Mouse Events
-    else if (action === "mouseenter") {
-      if (!ganttEvent.action) {
-        setGanttEvent({
-          action,
-          changedTask: task,
-          originalSelectedTask: task,
-        });
-      }
-    } else if (action === "mouseleave") {
-      if (ganttEvent.action === "mouseenter") {
-        setGanttEvent({ action: "" });
-      }
-    } else if (action === "dblclick") {
-      !!onDoubleClick && onDoubleClick(task);
-    } else if (action === "click") {
-      !!onClick && onClick(task);
-    }
-    // Change task event start
-    else {
-      if (!svg?.current || !point) {
-        return;
-      }
 
-      point.x = event.clientX;
-      const cursor = point.matrixTransform(
-        svg.current.getScreenCTM()?.inverse()
-      );
+    point.x = event.clientX;
+    const cursor = point.matrixTransform(
+      svg.current.getScreenCTM()?.inverse()
+    );
 
-      const coordinates = getTaskCoordinates(task, mapTaskToCoordinates);
+    const coordinates = getTaskCoordinates(task, mapTaskToCoordinates);
 
-      setChangeInProgress({
-        action: action as BarMoveAction,
-        task,
-        startX: cursor.x,
-        coordinates,
-        initialCoordinates: coordinates,
-      });
-    }
+    setChangeInProgress({
+      action: action as BarMoveAction,
+      task,
+      startX: cursor.x,
+      coordinates,
+      initialCoordinates: coordinates,
+    });
   };
 
   /**
@@ -653,19 +590,14 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     rtl,
   ]);
 
-  /**
-   * TO DO: compute metadata for change handler in a separate function
-   */
   const handleFixDependency = useCallback((task: Task, delta: number) => {
     if (!onFixDependencyPosition) {
       return;
     }
 
     const {
-      id: taskId,
       start,
       end,
-      comparisonLevel = 1,
     } = task;
 
     const newStart = new Date(start.getTime() + delta);
@@ -677,39 +609,23 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       end: newEnd,
     };
 
-    const parents = collectParents(newChangedTask, tasksMap);
-    const suggestions = parents.map((parentTask) => getSuggestedStartEndChanges(
-      parentTask,
+    const [
+      dependentTasks,
+      taskIndex,
+      parents,
+      suggestions,
+    ] = getChangeTaskMetadata(
       newChangedTask,
+      tasksMap,
       childTasksMap,
       mapTaskToGlobalIndex,
-    ));
-
-    const taskIndexMapByLevel = mapTaskToGlobalIndex.get(comparisonLevel);
-
-    if (!taskIndexMapByLevel) {
-      console.error(`Warning: tasks by level ${comparisonLevel} are not found`);
-    }
-
-    const taskIndex = taskIndexMapByLevel
-      ? taskIndexMapByLevel.get(taskId)
-      : undefined;
-
-    if (!taskIndexMapByLevel) {
-      console.error(`Warning: index for task ${taskId} is not found`);
-    }
-
-    const dependentMapByLevel = dependentMap.get(comparisonLevel);
-    const dependentsByTask = dependentMapByLevel
-      ? dependentMapByLevel.get(taskId)
-      : undefined;
-
-    const dependentTasks = dependentsByTask ? dependentsByTask.map(({ dependent }) => dependent) : [];
+      dependentMap,
+    );
 
     onFixDependencyPosition(
       newChangedTask,
       dependentTasks,
-      typeof taskIndex === 'number' ? taskIndex : -1,
+      taskIndex,
       parents,
       suggestions,
     );
@@ -721,6 +637,51 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     dependentMap,
   ]);
 
+  const handleDeteleTask = useCallback((task: Task) => {
+    if (!onDelete) {
+      return;
+    }
+
+    setTooltipTask(null);
+
+    const newChangedTask: EmptyTask = {
+      type: "empty",
+      id: task.id,
+      comparisonLevel: task.comparisonLevel || 1,
+      name: task.name,
+      displayOrder: task.displayOrder,
+      parent: task.parent,
+    };
+
+    const [
+      dependentTasks,
+      taskIndex,
+      parents,
+      suggestions,
+    ] = getChangeTaskMetadata(
+      newChangedTask,
+      tasksMap,
+      childTasksMap,
+      mapTaskToGlobalIndex,
+      dependentMap,
+    );
+
+    onDelete(
+      task,
+      dependentTasks,
+      taskIndex,
+      parents,
+      suggestions,
+    );
+  }, [
+    onDelete,
+    tasksMap,
+    childTasksMap,
+    mapTaskToGlobalIndex,
+    dependentMap,
+    setTooltipTask,
+  ]);
+
   return (
     <g className="content">
       <g className="arrows" fill={arrowColor} stroke={arrowColor}>
@@ -730,7 +691,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             comparisonLevel = 1,
           } = task;
 
-          if (comparisonLevel > comparisonLevels) {
+          if (task.type === "empty" || comparisonLevel > comparisonLevels) {
             return (
               <Fragment
                 key={`${taskId}_${comparisonLevel}`}
@@ -810,7 +771,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
 
           const key = `${comparisonLevel}_${task.id}`;
 
-          if (comparisonLevel > comparisonLevels) {
+          if (task.type === "empty" || comparisonLevel > comparisonLevels) {
             return (
               <Fragment
                 key={key}
@@ -839,7 +800,10 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               isDateChangeable={!!onDateChange && !task.isDisabled}
               isRelationChangeable={!!onRelationChange && !task.isDisabled}
               isDelete={!task.isDisabled}
+              onDoubleClick={onDoubleClick}
+              onClick={onClick}
               onEventStart={handleBarEventStart}
+              setTooltipTask={setTooltipTask}
               onRelationStart={handleBarRelationStart}
               setSelectedTask={setSelectedTask}
               isSelected={selectedTask === task}
@@ -847,6 +811,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               changeInProgress={changeInProgress}
               fixStartPosition={fixStartPosition}
               fixEndPosition={fixEndPosition}
+              handleDeteleTask={handleDeteleTask}
               colorStyles={colorStyles}
               key={key}
             />

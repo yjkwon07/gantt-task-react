@@ -1,8 +1,8 @@
 import {
   MapTaskToCoordinates,
   MapTaskToRowIndex,
-  Task,
   TaskCoordinates,
+  TaskOrEmpty,
 } from "../types/public-types";
 
 import {
@@ -16,7 +16,7 @@ import {
  * @param tasks List of tasks
  */
 export const getMapTaskToCoordinates = (
-  tasks: readonly Task[],
+  tasks: readonly TaskOrEmpty[],
   mapTaskToRowIndex: MapTaskToRowIndex,
   dates: Date[],
   rtl: boolean,
@@ -28,6 +28,10 @@ export const getMapTaskToCoordinates = (
   const res = new Map<number, Map<string, TaskCoordinates>>();
 
   tasks.forEach((task) => {
+    if (task.type === "empty") {
+      return;
+    }
+
     const {
       id,
       comparisonLevel = 1,

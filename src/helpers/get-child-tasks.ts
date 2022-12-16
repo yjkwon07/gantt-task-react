@@ -1,18 +1,22 @@
-import { ChildMapByLevel, Task } from "../types/public-types";
+import { ChildMapByLevel, Task, TaskOrEmpty } from "../types/public-types";
 
 /**
  * @param tasks List of tasks
  */
 export const getChildTasks = (
-  tasks: readonly Task[],
+  tasks: readonly TaskOrEmpty[],
 ): ChildMapByLevel => {
   const res = new Map<number, Map<string, Task[]>>();
 
-  tasks.forEach((otherTask) => {
+  tasks.forEach((task) => {
+    if (task.type === 'empty') {
+      return;
+    }
+
     const {
       parent,
       comparisonLevel = 1,
-    } = otherTask;
+    } = task;
 
     if (!parent) {
       return;
@@ -21,7 +25,7 @@ export const getChildTasks = (
     const parentsByLevel = res.get(comparisonLevel) || new Map<string, Task[]>();
     const prevValue = parentsByLevel.get(parent) || [];
 
-    parentsByLevel.set(parent, [...prevValue, otherTask]);
+    parentsByLevel.set(parent, [...prevValue, task]);
     res.set(comparisonLevel, parentsByLevel);
   });
 

@@ -1,10 +1,10 @@
-import { MapTaskToRowIndex, Task } from "../types/public-types";
+import { MapTaskToRowIndex, TaskOrEmpty } from "../types/public-types";
 
 /**
  * @param sortedTasks Sorted list of tasks
  */
 export const getMapTaskToRowIndex = (
-  sortedTasks: readonly Task[],
+  sortedTasks: readonly TaskOrEmpty[],
 ): MapTaskToRowIndex => {
   const res = new Map<number, Map<string, number>>();
 

@@ -1,10 +1,10 @@
 import { RelationMoveTarget } from "../types/gantt-task-actions";
-import { Task, TaskCoordinates } from "../types/public-types";
+import { Task, TaskCoordinates, TaskOrEmpty } from "../types/public-types";
 import { getCoordinatesOnLevel } from "./get-task-coordinates";
 
 export const getRelationCircleByCoordinates = (
   svgP: DOMPoint,
-  tasks: readonly Task[],
+  tasks: readonly TaskOrEmpty[],
   taskHalfHeight: number,
   relationCircleOffset: number,
   relationCircleRadius: number,
@@ -19,24 +19,26 @@ export const getRelationCircleByCoordinates = (
   for (let i = 0, l = tasks.length; i < l; ++i) {
     const task = tasks[i];
 
-    const taskCoordinates = getCoordinatesOnLevel(task.id, mapTaskToCoordinatesOnLevel);
-
-    if (
-      y >= taskCoordinates.y + taskHalfHeight - relationCircleRadius
-      && y <= taskCoordinates.y + taskHalfHeight + relationCircleRadius
-    ) {
+    if (task.type !== "empty") {
+      const taskCoordinates = getCoordinatesOnLevel(task.id, mapTaskToCoordinatesOnLevel);
+  
       if (
-        x >= taskCoordinates.x1 - relationCircleOffset - relationCircleRadius
-        && x <= taskCoordinates.x1 - relationCircleOffset + relationCircleRadius
+        y >= taskCoordinates.y + taskHalfHeight - relationCircleRadius
+        && y <= taskCoordinates.y + taskHalfHeight + relationCircleRadius
       ) {
-        return [task, rtl ? "endOfTask" : "startOfTask"];
-      }
-
-      if (
-        x >= taskCoordinates.x2 + relationCircleOffset - relationCircleRadius
-        && x <= taskCoordinates.x2 + relationCircleOffset + relationCircleRadius
-      ) {
-        return [task, rtl ? "startOfTask" : "endOfTask"];
+        if (
+          x >= taskCoordinates.x1 - relationCircleOffset - relationCircleRadius
+          && x <= taskCoordinates.x1 - relationCircleOffset + relationCircleRadius
+        ) {
+          return [task, rtl ? "endOfTask" : "startOfTask"];
+        }
+  
+        if (
+          x >= taskCoordinates.x2 + relationCircleOffset - relationCircleRadius
+          && x <= taskCoordinates.x2 + relationCircleOffset + relationCircleRadius
+        ) {
+          return [task, rtl ? "startOfTask" : "endOfTask"];
+        }
       }
     }
   }

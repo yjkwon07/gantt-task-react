@@ -63,6 +63,7 @@ export interface TaskBarColorStyles {
 }
 
 export type TaskType = "task" | "milestone" | "project";
+
 export interface Task {
   id: string;
   type: TaskType;
@@ -84,6 +85,17 @@ export interface Task {
   displayOrder?: number;
   comparisonLevel?: number;
 }
+
+export interface EmptyTask {
+  id: string;
+  type: "empty";
+  name: string;
+  parent?: string;
+  comparisonLevel?: number;
+  displayOrder?: number;
+}
+
+export type TaskOrEmpty = Task | EmptyTask;
 
 export type OnArrowDoubleClick = (
   taskFrom: Task,
@@ -124,7 +136,7 @@ export type OnDateChange = (
   index: number,
   parents: Task[],
   suggestions: OnDateChangeSuggestionType[],
-) => void | boolean | Promise<void> | Promise<boolean>;
+) => void;
 
 export type FixPosition = (
   task: Task,
@@ -165,16 +177,16 @@ export interface EventOption {
    */
   onRelationChange?: OnRelationChange;
   /**
-   * Invokes on progress change. Chart undoes operation if method return false or error.
+   * Invokes on progress change
    */
   onProgressChange?: (
     task: Task,
     children: Task[]
-  ) => void | boolean | Promise<void> | Promise<boolean>;
+  ) => void;
   /**
-   * Invokes on delete selected task. Chart undoes operation if method return false or error.
+   * Invokes on delete selected task
    */
-  onDelete?: (task: Task) => void | boolean | Promise<void> | Promise<boolean>;
+  onDelete?: OnDateChange;
   /**
    * Invokes on expander on task list
    */
@@ -255,17 +267,7 @@ export interface StylingOption extends Partial<TaskBarColorStyles> {
     fontFamily: string;
     fontSize: string;
   }>;
-  TaskListTable?: React.FC<{
-    rowHeight: number;
-    rowWidth: string;
-    fontFamily: string;
-    fontSize: string;
-    locale: string;
-    tasks: readonly Task[];
-    selectedTaskId: string;
-    setSelectedTask: (task: Task) => void;
-    onExpanderClick: (task: Task) => void;
-  }>;
+  TaskListTable?: React.FC<TaskListTableProps>;
 
   /**
    * Render function of bottom part of header above chart
@@ -278,7 +280,7 @@ export interface StylingOption extends Partial<TaskBarColorStyles> {
 }
 
 export interface GanttProps extends EventOption, DisplayOption, StylingOption {
-  tasks: readonly Task[];
+  tasks: readonly TaskOrEmpty[];
   /**
    * Can be used to compare multiple graphs. This prop is the number of graps being compared
    */
@@ -293,7 +295,7 @@ export interface TaskListTableProps {
   fontSize: string;
   locale: string;
   monthFormat: MonthFormats;
-  tasks: readonly Task[];
+  tasks: readonly TaskOrEmpty[];
   selectedTaskId: string;
   setSelectedTask: (task: Task) => void;
   onExpanderClick: (task: Task) => void;
@@ -309,7 +311,7 @@ export type MapTaskToRowIndex = Map<number, Map<string, number>>;
 export type ChildMapByLevel = Map<number, Map<string, Task[]>>;
 
 // comparisson level -> task id -> the task
-export type TaskMapByLevel = Map<number, Map<string, Task>>;
+export type TaskMapByLevel = Map<number, Map<string, TaskOrEmpty>>;
 
 export interface TaskOutOfParentWarning {
   isOutside: boolean;

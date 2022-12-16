@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 
-import { MonthFormats, Task, TaskListTableProps } from "../../types/public-types";
+import { MonthFormats, Task, TaskListTableProps, TaskOrEmpty } from "../../types/public-types";
 
 export type TaskListProps = {
   headerHeight: number;
@@ -13,7 +13,7 @@ export type TaskListProps = {
   scrollY: number;
   locale: string;
   monthFormat: MonthFormats;
-  tasks: readonly Task[];
+  tasks: readonly TaskOrEmpty[];
   taskListRef: React.RefObject<HTMLDivElement>;
   horizontalContainerClass?: string;
   selectedTask: Task | null;

@@ -1,12 +1,12 @@
-import { Task, TaskMapByLevel } from "../types/public-types";
+import { TaskOrEmpty, TaskMapByLevel } from "../types/public-types";
 
 /**
  * @param tasks List of tasks
  */
 export const getTasksMap = (
-  tasks: readonly Task[],
+  tasks: readonly TaskOrEmpty[],
 ): TaskMapByLevel => {
-  const res = new Map<number, Map<string, Task>>();
+  const res = new Map<number, Map<string, TaskOrEmpty>>();
 
   tasks.forEach((task) => {
     const {
@@ -14,7 +14,7 @@ export const getTasksMap = (
       id,
     } = task;
 
-    const tasksByLevel = res.get(comparisonLevel) || new Map<string, Task>();
+    const tasksByLevel = res.get(comparisonLevel) || new Map<string, TaskOrEmpty>();
     tasksByLevel.set(id, task);
 
     res.set(comparisonLevel, tasksByLevel);

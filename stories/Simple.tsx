@@ -163,21 +163,36 @@ export const Simple: React.FC<AppProps> = (props) => {
     }
   }, []);
 
-  const handleTaskDelete = (task: Task) => {
-    const {
-      id: taskId,
-      comparisonLevel = 1,
-    } = task;
-
+  const handleTaskDelete = useCallback<OnDateChange>((
+    task,
+    dependentTasks,
+    taskIndex,
+    parents,
+    suggestions,
+  ) => {
     const conf = window.confirm("Are you sure about " + task.name + " ?");
+
     if (conf) {
-      setTasks(tasks.filter(({
-        id: otherId,
-        comparisonLevel: otherComparisonLevel = 1,
-      }) => otherId !== taskId || comparisonLevel !== otherComparisonLevel));
+      setTasks((prevTasks) => {
+        const newTasks = [...prevTasks];
+
+        newTasks[taskIndex] = task;
+
+        suggestions.forEach(([start, end, task, index]) => {
+          newTasks[index] = {
+            ...task,
+            start,
+            end,
+          };
+        });
+
+        newTasks.splice(taskIndex, 1);
+
+        return newTasks;
+      });
     }
     return conf;
-  };
+  }, []);
 
   const handleProgressChange = useCallback(async (task: Task) => {
     const {

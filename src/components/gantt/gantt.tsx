@@ -13,6 +13,7 @@ import {
   GanttProps,
   Task,
   TaskBarColorStyles,
+  TaskOrEmpty,
   TaskOutOfParentWarnings,
   ViewMode,
 } from "../../types/public-types";
@@ -26,7 +27,7 @@ import { StandardTooltipContent, Tooltip } from "../other/tooltip";
 import { VerticalScroll } from "../other/vertical-scroll";
 import { TaskListProps, TaskList } from "../task-list/task-list";
 import { TaskGantt } from "./task-gantt";
-import { GanttEvent, GanttRelationEvent } from "../../types/gantt-task-actions";
+import { GanttRelationEvent } from "../../types/gantt-task-actions";
 import { HorizontalScroll } from "../other/horizontal-scroll";
 import { removeHiddenTasks, sortTasks } from "../../helpers/other-helper";
 import { getChildTasks } from "../../helpers/get-child-tasks";
@@ -92,7 +93,7 @@ export const Gantt: React.FC<GanttProps> = ({
   onProgressChange,
   onDoubleClick,
   onClick,
-  onDelete,
+  onDelete = undefined,
   onSelect,
   onExpanderClick,
   onArrowDoubleClick = undefined,
@@ -115,10 +116,9 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const [taskListWidth, setTaskListWidth] = useState(0);
   const [svgContainerWidth, setSvgContainerWidth] = useState(0);
-  const [barTasks, setBarTasks] = useState<readonly Task[]>([]);
-  const [ganttEvent, setGanttEvent] = useState<GanttEvent>({
-    action: "",
-  });
+
+  const [tooltipTask, setTooltipTask] = useState<Task | null>(null);
+
   const [ganttRelationEvent, setGanttRelationEvent] = useState<GanttRelationEvent | null>(null);
 
   const childTasksMap = useMemo(
@@ -162,6 +162,34 @@ export const Gantt: React.FC<GanttProps> = ({
     },
     [tasks, childTasksMap, isShowChildOutOfParentWarnings],
   );
+
+  /**
+   * Prevent crash after task delete
+   */
+  const tooltipTaskFromMap = useMemo(() => {
+    if (!tooltipTask) {
+      return null;
+    }
+
+    const {
+      id,
+      comparisonLevel = 1,
+    } = tooltipTask;
+
+    const tasksMapOnLevel = tasksMap.get(comparisonLevel);
+
+    if (!tasksMapOnLevel) {
+      return null;
+    }
+
+    const resTask = tasksMapOnLevel.get(id);
+
+    if (!resTask || resTask.type === "empty") {
+      return null;
+    }
+
+    return resTask;
+  }, [tooltipTask, tasksMap]);
 
   const fullRowHeight = useMemo(
     () => rowHeight * comparisonLevels,
@@ -223,13 +251,13 @@ export const Gantt: React.FC<GanttProps> = ({
   
       ++countByLevel[comparisonLevel];
 
-      if (maxLength < countByLevel[comparisonLevel]) {
+      if (comparisonLevel <= comparisonLevels && maxLength < countByLevel[comparisonLevel]) {
         maxLength = countByLevel[comparisonLevel];
       }
     });
 
     return maxLength;
-  }, [tasks]);
+  }, [tasks, comparisonLevels]);
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
@@ -242,7 +270,7 @@ export const Gantt: React.FC<GanttProps> = ({
   const [scrollX, setScrollX] = useState(-1);
   const [ignoreScrollEvent, setIgnoreScrollEvent] = useState(false);
 
-  const sortedTasks = useMemo<readonly Task[]>(() => {
+  const barTasks = useMemo<readonly TaskOrEmpty[]>(() => {
     const filteredTasks = onExpanderClick
       ? removeHiddenTasks(tasks)
       : [...tasks];
@@ -251,13 +279,13 @@ export const Gantt: React.FC<GanttProps> = ({
   }, [onExpanderClick, tasks]);
 
   const mapTaskToRowIndex = useMemo(
-    () => getMapTaskToRowIndex(sortedTasks),
-    [sortedTasks],
+    () => getMapTaskToRowIndex(barTasks),
+    [barTasks],
   );
 
   const dates = useMemo(() => {
     const [startDate, endDate] = ganttDateRange(
-      sortedTasks,
+      barTasks,
       viewMode,
       preStepsCount,
     );
@@ -269,7 +297,7 @@ export const Gantt: React.FC<GanttProps> = ({
     }
 
     return res;
-  }, [sortedTasks, viewMode, preStepsCount, rtl]);
+  }, [barTasks, viewMode, preStepsCount, rtl]);
 
   const mapTaskToCoordinates = useMemo(() => getMapTaskToCoordinates(
     tasks,
@@ -309,13 +337,6 @@ export const Gantt: React.FC<GanttProps> = ({
     }
   }, [dates, rtl, columnWidth, scrollX]);
 
-  // task change events
-  useEffect(() => {
-    setBarTasks(sortedTasks);
-  }, [
-    sortedTasks,
-  ]);
-
   useEffect(() => {
     if (
       viewMode === dateSetup.viewMode &&
@@ -344,24 +365,6 @@ export const Gantt: React.FC<GanttProps> = ({
     currentViewDate,
     setCurrentViewDate,
   ]);
-
-  useEffect(() => {
-    const { changedTask, action } = ganttEvent;
-    if (changedTask) {
-      const {
-        id: changedId,
-        comparisonLevel = 1,
-      } = changedTask;
-
-      if (action === "delete") {
-        setGanttEvent({ action: "" });
-        setBarTasks(barTasks.filter(({
-          id: otherId,
-          comparisonLevel: otherComparisonLevel = 1,
-        }) => otherId !== changedId || comparisonLevel !== otherComparisonLevel));
-      }
-    }
-  }, [ganttEvent, barTasks]);
 
   useEffect(() => {
     if (!listCellWidth) {
@@ -552,7 +555,6 @@ export const Gantt: React.FC<GanttProps> = ({
     dependentMap,
     dependencyWarningMap,
     dates: dateSetup.dates,
-    ganttEvent,
     ganttRelationEvent,
     selectedTask,
     fullRowHeight,
@@ -577,7 +579,7 @@ export const Gantt: React.FC<GanttProps> = ({
     rtl,
     changeInProgress,
     setChangeInProgress,
-    setGanttEvent,
+    setTooltipTask,
     setGanttRelationEvent,
     setSelectedTask,
     onDateChange,
@@ -632,7 +634,7 @@ export const Gantt: React.FC<GanttProps> = ({
           scrollY={scrollY}
           scrollX={scrollX}
         />
-        {ganttEvent.changedTask && (
+        {tooltipTaskFromMap && (
           <Tooltip
             arrowIndent={arrowIndent}
             mapTaskToCoordinates={mapTaskToCoordinates}
@@ -645,7 +647,7 @@ export const Gantt: React.FC<GanttProps> = ({
             fontSize={fontSize}
             scrollX={scrollX}
             scrollY={scrollY}
-            task={ganttEvent.changedTask}
+            task={tooltipTaskFromMap}
             headerHeight={headerHeight}
             taskListWidth={taskListWidth}
             TooltipContent={TooltipContent}

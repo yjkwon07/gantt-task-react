@@ -42,7 +42,7 @@ export const checkIsDescendant = (
 
     const parentTask = tasksByLevel.get(parent);
 
-    if (!parentTask) {
+    if (!parentTask || parentTask.type === "empty") {
       return false;
     }
 

@@ -1,7 +1,7 @@
-import { Task, TaskMapByLevel } from "../types/public-types";
+import { Task, TaskMapByLevel, TaskOrEmpty } from "../types/public-types";
 
 export const collectParents = (
-  task: Task,
+  task: TaskOrEmpty,
   tasksMap: TaskMapByLevel,
 ): Task[] => {
   /**
@@ -38,7 +38,7 @@ export const collectParents = (
 
     const parentTask = tasksByLevel.get(parent);
 
-    if (!parentTask) {
+    if (!parentTask || parentTask.type === "empty") {
       return res;
     }
 

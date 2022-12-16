@@ -1,23 +1,12 @@
-import { Task } from "../types/public-types";
+import { Task, TaskOrEmpty } from "../types/public-types";
 
-export function isKeyboardEvent(
-  event: React.MouseEvent | React.KeyboardEvent | React.FocusEvent
-): event is React.KeyboardEvent {
-  return (event as React.KeyboardEvent).key !== undefined;
-}
-
-export function isMouseEvent(
-  event: React.MouseEvent | React.KeyboardEvent | React.FocusEvent
-): event is React.MouseEvent {
-  return (event as React.MouseEvent).clientX !== undefined;
-}
-
-export function removeHiddenTasks(tasks: readonly Task[]) {
+export function removeHiddenTasks(tasks: readonly TaskOrEmpty[]) {
   let res = [...tasks];
 
   const groupedTasks = res.filter(
-    t => t.hideChildren && t.type === "project"
-  );
+    t => t.type === "project" && t.hideChildren
+  ) as Task[];
+
   if (groupedTasks.length > 0) {
     for (let i = 0; groupedTasks.length > i; i++) {
       const groupedTask = groupedTasks[i];
@@ -28,8 +17,12 @@ export function removeHiddenTasks(tasks: readonly Task[]) {
   return res;
 }
 
-function getChildren(taskList: readonly Task[], task: Task) {
-  let tasks: Task[] = [];
+function getChildren(taskList: readonly TaskOrEmpty[], task: TaskOrEmpty) {
+  if (task.type === "empty") {
+    return [];
+  }
+
+  let tasks: TaskOrEmpty[] = [];
 
   const {
     id,
@@ -45,16 +38,24 @@ function getChildren(taskList: readonly Task[], task: Task) {
       break;
 
     default:
-      tasks = taskList.filter(({
-        dependencies,
-        comparisonLevel: otherComparisonLevel = 1,
-      }) => dependencies
-        && dependencies.some(({ sourceId }) => sourceId === task.id)
-        && comparisonLevel === otherComparisonLevel);
+      tasks = taskList.filter((task) => {
+        if (task.type === "empty") {
+          return false;
+        }
+
+        const {
+          dependencies,
+          comparisonLevel: otherComparisonLevel = 1,
+        } = task;
+
+        return dependencies
+          && dependencies.some(({ sourceId }) => sourceId === task.id)
+          && comparisonLevel === otherComparisonLevel;
+      });
       break;
   }
 
-  var taskChildren: Task[] = [];
+  var taskChildren: TaskOrEmpty[] = [];
   tasks.forEach(t => {
     taskChildren.push(...getChildren(taskList, t));
   })
@@ -62,7 +63,7 @@ function getChildren(taskList: readonly Task[], task: Task) {
   return tasks;
 }
 
-export const sortTasks = (taskA: Task, taskB: Task) => {
+export const sortTasks = (taskA: TaskOrEmpty, taskB: TaskOrEmpty) => {
   const orderA = taskA.displayOrder || Number.MAX_VALUE;
   const orderB = taskB.displayOrder || Number.MAX_VALUE;
   if (orderA > orderB) {

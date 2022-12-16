@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 
 import styles from "./task-list-table.module.css";
-import { TaskListTableProps } from "../../types/public-types";
+import { TaskListTableProps, TaskOrEmpty } from "../../types/public-types";
 
 const localeDateStringCache = {};
 const toLocaleDateStringFactory =
@@ -15,6 +15,26 @@ const toLocaleDateStringFactory =
     }
     return lds;
   };
+
+const getExpanderSymbol = (task: TaskOrEmpty) => {
+  if (task.type === "empty") {
+    return null;
+  }
+
+  const {
+    hideChildren,
+  } = task;
+
+  if (typeof hideChildren === "boolean")  {
+    if (hideChildren) {
+      return "▶";
+    }
+
+    return "▼";
+  }
+
+  return null;
+};
 
 export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   fullRowHeight,
@@ -51,12 +71,7 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
          */
         .filter((task) => !task.comparisonLevel || task.comparisonLevel === 1)
         .map(t => {
-          let expanderSymbol = "";
-          if (t.hideChildren === false) {
-            expanderSymbol = "▼";
-          } else if (t.hideChildren === true) {
-            expanderSymbol = "▶";
-          }
+          const expanderSymbol = getExpanderSymbol(t);
 
           return (
             <div
@@ -81,7 +96,7 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
                         ? styles.taskListExpander
                         : styles.taskListEmptyExpander
                     }
-                    onClick={() => onExpanderClick(t)}
+                    onClick={t.type === "empty" ? undefined : () => onExpanderClick(t)}
                   >
                     {expanderSymbol}
                   </div>
@@ -95,7 +110,7 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
                   maxWidth: rowWidth,
                 }}
               >
-                &nbsp;{toLocaleDateString(t.start, dateTimeOptions)}
+                &nbsp;{t.type !== "empty" && toLocaleDateString(t.start, dateTimeOptions)}
               </div>
               <div
                 className={styles.taskListCell}
@@ -104,7 +119,7 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
                   maxWidth: rowWidth,
                 }}
               >
-                &nbsp;{toLocaleDateString(t.end, dateTimeOptions)}
+                &nbsp;{t.type !== "empty" && toLocaleDateString(t.end, dateTimeOptions)}
               </div>
             </div>
           );

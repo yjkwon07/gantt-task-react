@@ -4,13 +4,13 @@ import {
   DependentMap,
   ExpandedDependency,
   ExpandedDependent,
-  Task,
+  TaskOrEmpty,
   TaskMapByLevel,
 } from "../types/public-types";
 import { compareDates } from "./compare-dates";
 
 export const getDependencyMapAndWarnings = (
-  tasks: readonly Task[],
+  tasks: readonly TaskOrEmpty[],
   tasksMap: TaskMapByLevel,
   isShowDependencyWarnings: boolean,
 ): [DependencyMap, DependentMap, DependencyWarnings] => {
@@ -19,6 +19,10 @@ export const getDependencyMapAndWarnings = (
   const warningsRes = new Map<number, Map<string, Map<string, number>>>();
 
   tasks.forEach((task) => {
+    if (task.type === 'empty') {
+      return;
+    }
+
     const {
       id,
       dependencies,
@@ -52,6 +56,10 @@ export const getDependencyMapAndWarnings = (
 
       if (!source) {
         console.error(`Warning: dependency with id "${sourceId}" is not found`);
+        return;
+      }
+
+      if (source.type === 'empty') {
         return;
       }
 

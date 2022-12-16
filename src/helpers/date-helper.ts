@@ -11,7 +11,7 @@ import startOfMonth from "date-fns/startOfMonth";
 import startOfDay from "date-fns/startOfDay";
 import startOfHour from "date-fns/startOfHour";
 
-import { MonthFormats, Task, ViewMode } from "../types/public-types";
+import { MonthFormats, TaskOrEmpty, ViewMode } from "../types/public-types";
 import DateTimeFormatOptions = Intl.DateTimeFormatOptions;
 import DateTimeFormat = Intl.DateTimeFormat;
 
@@ -37,20 +37,28 @@ export const getCachedDateTimeFormat = (
 };
 
 export const ganttDateRange = (
-  tasks: readonly Task[],
+  tasks: readonly TaskOrEmpty[],
   viewMode: ViewMode,
   preStepsCount: number
 ) => {
-  let newStartDate: Date = tasks[0].start;
-  let newEndDate: Date = tasks[0].start;
+  let newStartDate: Date | null = null;
+  let newEndDate: Date | null = null;
   for (const task of tasks) {
-    if (task.start < newStartDate) {
-      newStartDate = task.start;
-    }
-    if (task.end > newEndDate) {
-      newEndDate = task.end;
+    if (task.type !== 'empty') {
+      if (!newStartDate || task.start < newStartDate) {
+        newStartDate = task.start;
+      }
+
+      if (!newEndDate || task.end > newEndDate) {
+        newEndDate = task.end;
+      }
     }
   }
+
+  if (!newStartDate || !newEndDate) {
+    return [new Date(), new Date()];
+  }
+
   switch (viewMode) {
     case ViewMode.Year:
       newStartDate = subYears(newStartDate, 1);

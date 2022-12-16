@@ -3,14 +3,15 @@ import {
   MapTaskToGlobalIndex,
   OnDateChangeSuggestionType,
   Task,
+  TaskOrEmpty,
 } from "../types/public-types";
 
 const getMinAndMaxDatesInDescendants = (
   task: Task,
-  changedTask: Task,
+  changedTask: TaskOrEmpty,
   childTasksMap: ChildMapByLevel,
   checkedTasks: Set<string>,
-): [Date, Date] => {
+): [Date, Date] | null => {
   const {
     id,
     comparisonLevel = 1,
@@ -23,7 +24,7 @@ const getMinAndMaxDatesInDescendants = (
   checkedTasks.add(id);
 
   if (task.id === changedTask.id) {
-    return [changedTask.start, changedTask.end];
+    return null;
   }
 
   const taskMapByLevel = childTasksMap.get(comparisonLevel);
@@ -42,12 +43,18 @@ const getMinAndMaxDatesInDescendants = (
   let end: Date | null = null;
 
   childTasks.forEach((childTask) => {
-    const [childStart, childEnd] = getMinAndMaxDatesInDescendants(
+    const descendantsResult = getMinAndMaxDatesInDescendants(
       childTask,
       changedTask,
       childTasksMap,
       checkedTasks,
     );
+
+    if (!descendantsResult) {
+      return;
+    }
+
+    const [childStart, childEnd] = descendantsResult;
 
     if (!start) {
       start = childStart;
@@ -67,7 +74,7 @@ const getMinAndMaxDatesInDescendants = (
 
 export const getSuggestedStartEndChanges = (
   task: Task,
-  changedTask: Task,
+  changedTask: TaskOrEmpty,
   childTasksMap: ChildMapByLevel,
   mapTaskToGlobalIndex: MapTaskToGlobalIndex,
 ): OnDateChangeSuggestionType => {
@@ -81,15 +88,23 @@ export const getSuggestedStartEndChanges = (
    */
   const checkedTasks = new Set<string>(id);
 
-  const [start, end] = getMinAndMaxDatesInDescendants(
+  const indexesByLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+  const index = indexesByLevel ? indexesByLevel.get(id) : -1;
+
+  const resIndex = typeof index === 'number' ? index : -1;
+
+  const descendantsResult = getMinAndMaxDatesInDescendants(
     task,
     changedTask,
     childTasksMap,
     checkedTasks,
   );
 
-  const indexesByLevel = mapTaskToGlobalIndex.get(comparisonLevel);
-  const index = indexesByLevel ? indexesByLevel.get(id) : -1;
+  if (!descendantsResult) {
+    return [task.start, task.end, task, resIndex];
+  }
 
-  return [start, end, task, typeof index === 'number' ? index : -1];
+  const [start, end] = descendantsResult;
+
+  return [start, end, task, resIndex];
 };

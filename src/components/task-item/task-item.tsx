@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from "react";
 
-import { GanttContentMoveAction, RelationMoveTarget } from "../../types/gantt-task-actions";
+import { BarMoveAction, RelationMoveTarget } from "../../types/gantt-task-actions";
 import {
   ChangeInProgress,
   ChildMapByLevel,
@@ -51,10 +51,13 @@ export type TaskItemProps = {
   isRelationDrawMode: boolean;
   rtl: boolean;
   changeInProgress: ChangeInProgress | null;
+  onDoubleClick?: (task: Task) => void;
+  onClick?: (task: Task) => void;
+  setTooltipTask: (task: Task | null) => void;
   onEventStart: (
-    action: GanttContentMoveAction,
+    action: BarMoveAction,
     selectedTask: Task,
-    event: React.MouseEvent | React.KeyboardEvent
+    event: React.MouseEvent,
   ) => any;
   onRelationStart: (
     target: RelationMoveTarget,
@@ -65,6 +68,7 @@ export type TaskItemProps = {
   ) => void;
   fixStartPosition?: FixPosition;
   fixEndPosition?: FixPosition;
+  handleDeteleTask: (task: Task) => void;
   colorStyles: TaskBarColorStyles;
 };
 
@@ -93,10 +97,13 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     isRelationDrawMode,
     rtl,
     changeInProgress,
-    onEventStart,
+    onClick = undefined,
+    onDoubleClick = undefined,
+    setTooltipTask,
     setSelectedTask,
     fixStartPosition = undefined,
     fixEndPosition = undefined,
+    handleDeteleTask,
     handleWidth,
     colorStyles: stylesProp,
   } = props;
@@ -211,6 +218,18 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     );
   }, [task, fixEndPosition, outOfParentWarnings, globalIndex]);
 
+  const handleClick = useCallback(() => {
+    if (onClick) {
+      onClick(task);
+    }
+  }, [onClick, task]);
+
+  const handleDoubleClick = useCallback(() => {
+    if (onDoubleClick) {
+      onDoubleClick(task);
+    }
+  }, [onDoubleClick, task]);
+
   const textRef = useRef<SVGTextElement>(null);
   const [isTextInside, setIsTextInside] = useState(true);
 
@@ -289,6 +308,14 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     setSelectedTask(task);
   }, [setSelectedTask, task]);
 
+  const onMouseEnter = useCallback(() => {
+    setTooltipTask(task);
+  }, [setTooltipTask, task]);
+
+  const onMouseLeave = useCallback(() => {
+    setTooltipTask(null);
+  }, [setTooltipTask]);
+
   return (
     <g
       className={fixWidthContainerClass}
@@ -296,25 +323,17 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
         switch (e.key) {
           case "Delete": {
             if (isDelete) {
-              onEventStart("delete", task, e);
+              handleDeteleTask(task);
             }
             break;
           }
         }
         e.stopPropagation();
       }}
-      onMouseEnter={e => {
-        onEventStart("mouseenter", task, e);
-      }}
-      onMouseLeave={e => {
-        onEventStart("mouseleave", task, e);
-      }}
-      onDoubleClick={e => {
-        onEventStart("dblclick", task, e);
-      }}
-      onClick={e => {
-        onEventStart("click", task, e);
-      }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       onFocus={onFocus}
     >
       {taskItem}

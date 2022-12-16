@@ -1,5 +1,5 @@
 import {
-  Task,
+  TaskOrEmpty,
   TaskOutOfParentWarnings,
   ChildOutOfParentWarnings,
   ChildMapByLevel,
@@ -7,12 +7,16 @@ import {
 import { compareDates } from "./compare-dates";
 
 export const getChildOutOfParentWarnings = (
-  tasks: readonly Task[],
+  tasks: readonly TaskOrEmpty[],
   childTasksMap: ChildMapByLevel,
 ): ChildOutOfParentWarnings => {
   const res = new Map<number, Map<string, TaskOutOfParentWarnings>>();
 
   tasks.forEach((task) => {
+    if (task.type === 'empty') {
+      return;
+    }
+
     const {
       id,
       comparisonLevel = 1,
