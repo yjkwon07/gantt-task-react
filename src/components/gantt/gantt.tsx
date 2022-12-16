@@ -26,8 +26,6 @@ import { StandardTooltipContent, Tooltip } from "../other/tooltip";
 import { VerticalScroll } from "../other/vertical-scroll";
 import { TaskListProps, TaskList } from "../task-list/task-list";
 import { TaskGantt } from "./task-gantt";
-import { BarTask } from "../../types/bar-task";
-import { convertToBarTasks } from "../../helpers/bar-helper";
 import { GanttEvent, GanttRelationEvent } from "../../types/gantt-task-actions";
 import { HorizontalScroll } from "../other/horizontal-scroll";
 import { removeHiddenTasks, sortTasks } from "../../helpers/other-helper";
@@ -117,7 +115,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const [taskListWidth, setTaskListWidth] = useState(0);
   const [svgContainerWidth, setSvgContainerWidth] = useState(0);
-  const [barTasks, setBarTasks] = useState<BarTask[]>([]);
+  const [barTasks, setBarTasks] = useState<readonly Task[]>([]);
   const [ganttEvent, setGanttEvent] = useState<GanttEvent>({
     action: "",
   });
@@ -234,7 +232,6 @@ export const Gantt: React.FC<GanttProps> = ({
   }, [tasks]);
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [failedTask, setFailedTask] = useState<BarTask | null>(null);
 
   const ganttFullHeight = useMemo(
     () => maxLevelLength * fullRowHeight,
@@ -314,15 +311,9 @@ export const Gantt: React.FC<GanttProps> = ({
 
   // task change events
   useEffect(() => {
-    setBarTasks(
-      convertToBarTasks(
-        sortedTasks,
-        colorStyles,
-      )
-    );
+    setBarTasks(sortedTasks);
   }, [
     sortedTasks,
-    colorStyles,
   ]);
 
   useEffect(() => {
@@ -371,30 +362,6 @@ export const Gantt: React.FC<GanttProps> = ({
       }
     }
   }, [ganttEvent, barTasks]);
-
-  useEffect(() => {
-    if (failedTask) {
-      const {
-        id: failedId,
-        comparisonLevel = 1,
-      } = failedTask;
-
-      setBarTasks(barTasks.map((otherTask) => {
-        const {
-          id: otherId,
-          comparisonLevel: otherComparisonLevel = 1,
-        } = otherTask;
-
-        if (otherId === failedId && comparisonLevel === otherComparisonLevel) {
-          return failedTask;
-        }
-
-        return otherTask;
-      }));
-
-      setFailedTask(null);
-    }
-  }, [failedTask, barTasks]);
 
   useEffect(() => {
     if (!listCellWidth) {
@@ -612,7 +579,6 @@ export const Gantt: React.FC<GanttProps> = ({
     setChangeInProgress,
     setGanttEvent,
     setGanttRelationEvent,
-    setFailedTask,
     setSelectedTask,
     onDateChange,
     onFixDependencyPosition,
@@ -625,6 +591,7 @@ export const Gantt: React.FC<GanttProps> = ({
     fixStartPosition,
     fixEndPosition,
     comparisonLevels,
+    colorStyles,
   };
 
   const tableProps: TaskListProps = {

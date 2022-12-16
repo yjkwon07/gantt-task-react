@@ -24,6 +24,7 @@ export const Milestone: React.FC<TaskItemExtendedProps> = ({
   onEventStart,
   onRelationStart,
   isSelected,
+  colorStyles,
 }) => {
   const rotatedHeight = taskHeight / 1.414;
 
@@ -32,11 +33,11 @@ export const Milestone: React.FC<TaskItemExtendedProps> = ({
 
   const barColor = useMemo(() => {
     if (isSelected) {
-      return task.styles.milestoneBackgroundSelectedColor;
+      return colorStyles.milestoneBackgroundSelectedColor;
     }
 
-    return task.styles.milestoneBackgroundColor;
-  }, [isSelected, task.styles]);
+    return colorStyles.milestoneBackgroundColor;
+  }, [isSelected, colorStyles]);
 
   return (
     <g

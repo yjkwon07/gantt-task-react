@@ -7,27 +7,27 @@ import styles from "./project.module.css";
 
 export const Project: React.FC<TaskItemExtendedProps> = ({
   coordinates,
-  task,
   barCornerRadius,
   taskHalfHeight,
   taskHeight,
   isSelected,
+  colorStyles,
 }) => {
   const barColor = useMemo(() => {
     if (isSelected) {
-      return task.styles.projectBackgroundSelectedColor;
+      return colorStyles.projectBackgroundSelectedColor;
     }
 
-    return task.styles.projectBackgroundColor;
-  }, [isSelected, task.styles]);
+    return colorStyles.projectBackgroundColor;
+  }, [isSelected, colorStyles]);
 
   const processColor = useMemo(() => {
     if (isSelected) {
-      return task.styles.projectProgressSelectedColor;
+      return colorStyles.projectProgressSelectedColor;
     }
 
-    return task.styles.projectProgressColor;
-  }, [isSelected, task.styles]);
+    return colorStyles.projectProgressColor;
+  }, [isSelected, colorStyles]);
 
   const projectWith = coordinates.x2 - coordinates.x1;
 

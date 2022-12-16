@@ -21,9 +21,9 @@ import {
   MapTaskToRowIndex,
   OnArrowDoubleClick,
   Task,
+  TaskBarColorStyles,
   TaskMapByLevel,
 } from "../../types/public-types";
-import { BarTask } from "../../types/bar-task";
 import { Arrow } from "../other/arrow";
 import { RelationLine } from "../other/relation-line";
 import { handleTaskBySVGMouseEvent } from "../../helpers/bar-helper";
@@ -43,7 +43,7 @@ import { getSuggestedStartEndChanges } from "../../helpers/get-suggested-start-e
 import { getMapTaskToCoordinatesOnLevel, getTaskCoordinates } from "../../helpers/get-task-coordinates";
 
 export type TaskGanttContentProps = {
-  tasks: BarTask[];
+  tasks: readonly Task[];
   childTasksMap: ChildMapByLevel;
   tasksMap: TaskMapByLevel;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
@@ -82,12 +82,12 @@ export type TaskGanttContentProps = {
   setChangeInProgress: React.Dispatch<React.SetStateAction<ChangeInProgress | null>>;
   setGanttEvent: (value: GanttEvent) => void;
   setGanttRelationEvent: React.Dispatch<React.SetStateAction<GanttRelationEvent | null>>;
-  setFailedTask: (value: BarTask | null) => void;
   setSelectedTask: (task: Task | null) => void;
   onArrowDoubleClick?: OnArrowDoubleClick;
   comparisonLevels: number;
   fixStartPosition?: FixPosition;
   fixEndPosition?: FixPosition;
+  colorStyles: TaskBarColorStyles;
 } & EventOption;
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
@@ -129,7 +129,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   setChangeInProgress,
   setGanttEvent,
   setGanttRelationEvent,
-  setFailedTask,
   setSelectedTask,
   onDateChange = undefined,
   onFixDependencyPosition = undefined,
@@ -142,6 +141,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   comparisonLevels,
   fixStartPosition = undefined,
   fixEndPosition = undefined,
+  colorStyles,
 }) => {
   const point = svg?.current?.createSVGPoint();
   const [xStep, setXStep] = useState(0);
@@ -419,7 +419,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     point,
     rtl,
     tasksMap,
-    setFailedTask,
     setGanttEvent,
     setChangeInProgress,
     changeInProgressLatestRef,
@@ -848,6 +847,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               changeInProgress={changeInProgress}
               fixStartPosition={fixStartPosition}
               fixEndPosition={fixEndPosition}
+              colorStyles={colorStyles}
               key={key}
             />
           );

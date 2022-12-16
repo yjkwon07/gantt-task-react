@@ -16,6 +16,7 @@ import {
   MapTaskToCoordinates,
   MapTaskToGlobalIndex,
   Task,
+  TaskBarColorStyles,
   TaskCoordinates,
 } from "../../types/public-types";
 import { Bar } from "./bar/bar";
@@ -64,6 +65,7 @@ export type TaskItemProps = {
   ) => void;
   fixStartPosition?: FixPosition;
   fixEndPosition?: FixPosition;
+  colorStyles: TaskBarColorStyles;
 };
 
 export type TaskItemExtendedProps = TaskItemProps & {
@@ -73,6 +75,10 @@ export type TaskItemExtendedProps = TaskItemProps & {
 export const TaskItem: React.FC<TaskItemProps> = props => {
   const {
     task,
+    task: {
+      styles: taskStyles,
+    },
+
     childTasksMap,
     childOutOfParentWarnings,
     dependencyWarningMap,
@@ -92,7 +98,19 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     fixStartPosition = undefined,
     fixEndPosition = undefined,
     handleWidth,
+    colorStyles: stylesProp,
   } = props;
+
+  const styles = useMemo(() => {
+    if (taskStyles) {
+      return {
+        ...stylesProp,
+        ...taskStyles,
+      };
+    }
+
+    return stylesProp;
+  }, [taskStyles, stylesProp]);
 
   const coordinates = useMemo(() => {
     if (changeInProgress && changeInProgress.task === task) {
@@ -203,6 +221,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
           <Milestone
             {...props}
             coordinates={coordinates}
+            colorStyles={styles}
           />
         );
 
@@ -211,6 +230,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
           <Project
             {...props}
             coordinates={coordinates}
+            colorStyles={styles}
           />
         );
 
@@ -220,6 +240,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
             <BarSmall
               {...props}
               coordinates={coordinates}
+              colorStyles={styles}
             />
           );
         }
@@ -228,6 +249,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
           <Bar
             {...props}
             coordinates={coordinates}
+            colorStyles={styles}
           />
         );
     }

@@ -4,7 +4,7 @@ import { getCoordinatesOnLevel } from "./get-task-coordinates";
 
 export const getRelationCircleByCoordinates = (
   svgP: DOMPoint,
-  tasks: Task[],
+  tasks: readonly Task[],
   taskHalfHeight: number,
   relationCircleOffset: number,
   relationCircleRadius: number,

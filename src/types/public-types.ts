@@ -261,7 +261,7 @@ export interface StylingOption extends Partial<TaskBarColorStyles> {
     fontFamily: string;
     fontSize: string;
     locale: string;
-    tasks: Task[];
+    tasks: readonly Task[];
     selectedTaskId: string;
     setSelectedTask: (task: Task) => void;
     onExpanderClick: (task: Task) => void;
@@ -293,7 +293,7 @@ export interface TaskListTableProps {
   fontSize: string;
   locale: string;
   monthFormat: MonthFormats;
-  tasks: Task[];
+  tasks: readonly Task[];
   selectedTaskId: string;
   setSelectedTask: (task: Task) => void;
   onExpanderClick: (task: Task) => void;

@@ -13,7 +13,7 @@ export type TaskListProps = {
   scrollY: number;
   locale: string;
   monthFormat: MonthFormats;
-  tasks: Task[];
+  tasks: readonly Task[];
   taskListRef: React.RefObject<HTMLDivElement>;
   horizontalContainerClass?: string;
   selectedTask: Task | null;
