@@ -229,6 +229,10 @@ export interface DisplayOption {
    * and show elements to fix these warnings
    */
   isShowDependencyWarnings?: boolean;
+  /**
+   * Show critical path
+   */
+  isShowCriticalPath?: boolean;
 }
 
 export interface StylingOption extends Partial<TaskBarColorStyles> {
@@ -344,8 +348,8 @@ export type DependencyMap = Map<number, Map<string, ExpandedDependency[]>>;
 // comparisson level -> task id -> expanded dependents
 export type DependentMap = Map<number, Map<string, ExpandedDependent[]>>;
 
-// comparisson level -> task id -> dependency id -> difference in milliseconds for move
-export type DependencyWarnings = Map<number, Map<string, Map<string, number>>>;
+// comparisson level -> task id -> dependency id -> difference in milliseconds between edges of dependency
+export type DependencyMargins = Map<number, Map<string, Map<string, number>>>;
 
 export type TaskCoordinates = {
   x1: number;

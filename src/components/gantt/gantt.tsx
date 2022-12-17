@@ -104,6 +104,7 @@ export const Gantt: React.FC<GanttProps> = ({
   comparisonLevels = 1,
   isShowChildOutOfParentWarnings = false,
   isShowDependencyWarnings = false,
+  isShowCriticalPath = false,
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
@@ -136,16 +137,18 @@ export const Gantt: React.FC<GanttProps> = ({
     [tasks],
   );
 
-  const [dependencyMap, dependentMap, dependencyWarningMap] = useMemo(
+  const [dependencyMap, dependentMap, dependencyMarginsMap] = useMemo(
     () => getDependencyMapAndWarnings(
       tasks,
       tasksMap,
       isShowDependencyWarnings,
+      isShowCriticalPath,
     ),
     [
       tasks,
       tasksMap,
       isShowDependencyWarnings,
+      isShowCriticalPath,
     ],
   );
 
@@ -553,7 +556,7 @@ export const Gantt: React.FC<GanttProps> = ({
     childOutOfParentWarnings,
     dependencyMap,
     dependentMap,
-    dependencyWarningMap,
+    dependencyMarginsMap,
     dates: dateSetup.dates,
     ganttRelationEvent,
     selectedTask,

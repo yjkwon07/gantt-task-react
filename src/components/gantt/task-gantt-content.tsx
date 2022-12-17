@@ -12,7 +12,7 @@ import {
   ChildMapByLevel,
   ChildOutOfParentWarnings,
   DependencyMap,
-  DependencyWarnings,
+  DependencyMargins,
   DependentMap,
   EmptyTask,
   EventOption,
@@ -50,7 +50,7 @@ export type TaskGanttContentProps = {
   childOutOfParentWarnings: ChildOutOfParentWarnings;
   dependencyMap: DependencyMap;
   dependentMap: DependentMap;
-  dependencyWarningMap: DependencyWarnings;
+  dependencyMarginsMap: DependencyMargins;
   dates: Date[];
   ganttRelationEvent: GanttRelationEvent | null;
   selectedTask: Task | null;
@@ -97,7 +97,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   childOutOfParentWarnings,
   dependencyMap,
   dependentMap,
-  dependencyWarningMap,
+  dependencyMarginsMap,
   dates,
   ganttRelationEvent,
   selectedTask,
@@ -700,7 +700,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
           }
 
           const dependenciesByLevel = dependencyMap.get(comparisonLevel);
-          const warnngsByLevel = dependencyWarningMap.get(comparisonLevel);
+          const marginsByLevel = dependencyMarginsMap.get(comparisonLevel);
 
           if (!dependenciesByLevel) {
             return (
@@ -743,7 +743,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                 targetFrom={sourceTarget}
                 taskTo={task}
                 targetTo={ownTarget}
-                warningsByTask={warnngsByLevel ? warnngsByLevel.get(task.id) : undefined}
+                marginsByTask={marginsByLevel ? marginsByLevel.get(task.id) : undefined}
                 mapTaskToCoordinatesOnLevel={mapTaskToCoordinatesOnLevel}
                 mapTaskRowIndexByLevel={mapTaskRowIndexByLevel}
                 fullRowHeight={fullRowHeight}
@@ -784,7 +784,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               task={task}
               childTasksMap={childTasksMap}
               childOutOfParentWarnings={childOutOfParentWarnings}
-              dependencyWarningMap={dependencyWarningMap}
+              dependencyMarginsMap={dependencyMarginsMap}
               mapTaskToGlobalIndex={mapTaskToGlobalIndex}
               mapTaskToCoordinates={mapTaskToCoordinates}
               arrowIndent={arrowIndent}

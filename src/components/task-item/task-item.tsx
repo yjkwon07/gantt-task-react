@@ -11,7 +11,7 @@ import {
   ChangeInProgress,
   ChildMapByLevel,
   ChildOutOfParentWarnings,
-  DependencyWarnings,
+  DependencyMargins,
   FixPosition,
   MapTaskToCoordinates,
   MapTaskToGlobalIndex,
@@ -32,7 +32,7 @@ export type TaskItemProps = {
   task: Task;
   childTasksMap: ChildMapByLevel;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
-  dependencyWarningMap: DependencyWarnings;
+  dependencyMarginsMap: DependencyMargins;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   mapTaskToCoordinates: MapTaskToCoordinates;
   arrowIndent: number;
@@ -85,7 +85,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
 
     childTasksMap,
     childOutOfParentWarnings,
-    dependencyWarningMap,
+    dependencyMarginsMap,
     mapTaskToGlobalIndex,
     mapTaskToCoordinates,
     taskWarningOffset,
@@ -142,20 +142,34 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     return warningsByLevel.get(id);
   }, [task, childOutOfParentWarnings]);
 
-  const dependencyWarningsForTask = useMemo(() => {
+  const dependencyMarginsForTask = useMemo(() => {
     const {
       id,
       comparisonLevel = 1,
     } = task;
 
-    const warningsByLevel = dependencyWarningMap.get(comparisonLevel);
+    const marginsByLevel = dependencyMarginsMap.get(comparisonLevel);
 
-    if (!warningsByLevel) {
+    if (!marginsByLevel) {
       return;
     }
 
-    return warningsByLevel.get(id);
-  }, [task, dependencyWarningMap]);
+    return marginsByLevel.get(id);
+  }, [task, dependencyMarginsMap]);
+
+  const hasDependencyWarning = useMemo(() => {
+    if (!dependencyMarginsForTask) {
+      return false;
+    }
+
+    for (let value of dependencyMarginsForTask.values()) {
+      if (value < 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }, [dependencyMarginsForTask]);
 
   const globalIndex = useMemo(() => {
     const {
@@ -350,13 +364,13 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
         {task.name}
       </text>
 
-      {(outOfParentWarnings || dependencyWarningsForTask) && (
+      {(outOfParentWarnings || hasDependencyWarning) && (
         <TaskWarning
           taskHalfHeight={taskHalfHeight}
           taskWarningOffset={taskWarningOffset}
           rtl={rtl}
           outOfParentWarnings={outOfParentWarnings}
-          dependencyWarningMap={dependencyWarningsForTask}
+          hasDependencyWarning={hasDependencyWarning}
           coordinates={coordinates}
         />
       )}

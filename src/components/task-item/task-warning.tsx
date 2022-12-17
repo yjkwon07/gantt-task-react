@@ -8,7 +8,7 @@ import { TaskCoordinates, TaskOutOfParentWarnings } from '../../types/public-typ
 type TaskWarningProps = {
   rtl: boolean;
   outOfParentWarnings?: TaskOutOfParentWarnings;
-  dependencyWarningMap?: Map<string, number>;
+  hasDependencyWarning: boolean;
   taskWarningOffset: number;
   taskHalfHeight: number;
   coordinates: TaskCoordinates;
@@ -17,14 +17,14 @@ type TaskWarningProps = {
 const TaskWarningInner: React.FC<TaskWarningProps> = ({
   rtl,
   outOfParentWarnings = undefined,
-  dependencyWarningMap = undefined,
+  hasDependencyWarning,
   taskWarningOffset,
   taskHalfHeight,
   coordinates,
 }) => {
   const isError = useMemo(
     () => {
-      if (dependencyWarningMap) {
+      if (hasDependencyWarning) {
         return true;
       }
 
@@ -39,7 +39,7 @@ const TaskWarningInner: React.FC<TaskWarningProps> = ({
 
       return false;
     },
-    [outOfParentWarnings, dependencyWarningMap],
+    [outOfParentWarnings, hasDependencyWarning],
   );
 
   const centerX = useMemo(() => {

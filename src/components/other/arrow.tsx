@@ -24,9 +24,9 @@ type ArrowProps = {
   taskTo: Task;
   targetTo: RelationMoveTarget;
   /**
-   * dependency warnings for task `taskTo`
+   * dependency margins for task `taskTo`
    */
-  warningsByTask?: Map<string, number>;
+  marginsByTask?: Map<string, number>;
   mapTaskToCoordinatesOnLevel: Map<string, TaskCoordinates>;
   mapTaskRowIndexByLevel: Map<string, number>;
   fullRowHeight: number;
@@ -50,7 +50,7 @@ const ArrowInner: React.FC<ArrowProps> = ({
   targetFrom,
   taskTo,
   targetTo,
-  warningsByTask = undefined,
+  marginsByTask = undefined,
   mapTaskToCoordinatesOnLevel,
   mapTaskRowIndexByLevel,
   fullRowHeight,
@@ -169,36 +169,36 @@ const ArrowInner: React.FC<ArrowProps> = ({
     dependencyFixIndent,
   ]);
 
-  const warningDelta = useMemo(() => {
-    if (!warningsByTask) {
+  const marginBetweenTasks = useMemo(() => {
+    if (!marginsByTask) {
       return undefined;
     }
 
-    return warningsByTask.get(taskFrom.id);
+    return marginsByTask.get(taskFrom.id);
   }, [
     taskFrom,
-    warningsByTask,
+    marginsByTask,
   ]);
 
   const fixDependencyTaskFrom = useCallback(() => {
-    if (typeof warningDelta !== 'number') {
+    if (typeof marginBetweenTasks !== 'number') {
       return;
     }
 
-    handleFixDependency(taskFrom, -warningDelta);
-  }, [taskFrom, handleFixDependency, warningDelta]);
+    handleFixDependency(taskFrom, marginBetweenTasks);
+  }, [taskFrom, handleFixDependency, marginBetweenTasks]);
 
   const fixDependencyTaskTo = useCallback(() => {
-    if (typeof warningDelta !== 'number') {
+    if (typeof marginBetweenTasks !== 'number') {
       return;
     }
 
-    handleFixDependency(taskTo, warningDelta);
-  }, [taskTo, handleFixDependency, warningDelta]);
+    handleFixDependency(taskTo, -marginBetweenTasks);
+  }, [taskTo, handleFixDependency, marginBetweenTasks]);
 
   const hasWarning = useMemo(
-    () => typeof warningDelta === 'number',
-    [warningDelta],
+    () => typeof marginBetweenTasks === 'number' && marginBetweenTasks < 0,
+    [marginBetweenTasks],
   );
 
   const color = useMemo(() => {

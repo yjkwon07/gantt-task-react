@@ -1,22 +1,24 @@
 import {
   DependencyMap,
-  DependencyWarnings,
+  DependencyMargins,
   DependentMap,
   ExpandedDependency,
   ExpandedDependent,
   TaskOrEmpty,
   TaskMapByLevel,
 } from "../types/public-types";
-import { compareDates } from "./compare-dates";
 
 export const getDependencyMapAndWarnings = (
   tasks: readonly TaskOrEmpty[],
   tasksMap: TaskMapByLevel,
   isShowDependencyWarnings: boolean,
-): [DependencyMap, DependentMap, DependencyWarnings] => {
+  isShowCriticalPath: boolean,
+): [DependencyMap, DependentMap, DependencyMargins] => {
   const dependencyRes = new Map<number, Map<string, ExpandedDependency[]>>();
   const dependentRes = new Map<number, Map<string, ExpandedDependent[]>>();
-  const warningsRes = new Map<number, Map<string, Map<string, number>>>();
+  const marginsRes = new Map<number, Map<string, Map<string, number>>>();
+
+  const isCollectMargins = isShowDependencyWarnings || isShowCriticalPath;
 
   tasks.forEach((task) => {
     if (task.type === 'empty') {
@@ -39,13 +41,11 @@ export const getDependencyMapAndWarnings = (
       || new Map<string, ExpandedDependency[]>();
     const dependentsByLevel = dependentRes.get(comparisonLevel)
       || new Map<string, ExpandedDependent[]>();
-    const warningsByLevel = warningsRes.get(comparisonLevel)
+    const marginsByLevel = marginsRes.get(comparisonLevel)
       || new Map<string, Map<string, number>>();
 
-    let hasWarning = false;
-
     const dependenciesByTask = dependenciesByLevel.get(id) || [];
-    const warningsByTask = warningsByLevel.get(id) || new Map<string, number>();
+    const warningsByTask = marginsByLevel.get(id) || new Map<string, number>();
 
     dependencies.forEach(({
       sourceId,
@@ -77,76 +77,27 @@ export const getDependencyMapAndWarnings = (
       });
       dependentsByLevel.set(sourceId, dependentsByTask);
 
-      if (isShowDependencyWarnings) {
-        switch (sourceTarget) {
-          case "startOfTask":
-            switch (ownTarget) {
-              case "startOfTask":
-              {
-                const compareResult = compareDates(source.start, task.start);
-                if (compareResult > 0) {
-                  hasWarning = true;
-                  warningsByTask.set(sourceId, source.start.getTime() - task.start.getTime());
-                }
-                break;
-              }
+      if (isCollectMargins) {
+        const taskTime = ownTarget === "startOfTask"
+          ? task.start.getTime()
+          : task.end.getTime();
 
-              case "endOfTask":
-                {
-                  const compareResult = compareDates(source.start, task.end);
-                  if (compareResult > 0) {
-                    hasWarning = true;
-                    warningsByTask.set(sourceId, source.start.getTime() - task.end.getTime());
-                  }
-                  break;
-                }
-  
-              default:
-                console.error(`Warning: unknown target "${ownTarget}"`);
-            }
-            break;
+        const sourceTime = sourceTarget === "startOfTask"
+          ? source.start.getTime()
+          : source.end.getTime();
 
-          case "endOfTask":
-            switch (ownTarget) {
-              case "startOfTask":
-                {
-                  const compareResult = compareDates(source.end, task.start);
-                  if (compareResult > 0) {
-                    hasWarning = true;
-                    warningsByTask.set(sourceId, source.end.getTime() - task.start.getTime());
-                  }
-                  break;
-                }
-
-              case "endOfTask":
-                {
-                  const compareResult = compareDates(source.end, task.end);
-                  if (compareResult > 0) {
-                    hasWarning = true;
-                    warningsByTask.set(sourceId, source.end.getTime() - task.end.getTime());
-                  }
-                  break;
-                }
-
-              default:
-                console.error(`Warning: unknown target "${ownTarget}"`);
-            }
-            break;
-  
-          default:
-            console.error(`Warning: unknown target "${sourceTarget}"`);
-        }
+        warningsByTask.set(sourceId, taskTime - sourceTime);
       }
     });
 
     dependenciesByLevel.set(id, dependenciesByTask);
     dependencyRes.set(comparisonLevel, dependenciesByLevel);
 
-    if (hasWarning) {
-      warningsByLevel.set(id, warningsByTask);
-      warningsRes.set(comparisonLevel, warningsByLevel);
+    if (isCollectMargins) {
+      marginsByLevel.set(id, warningsByTask);
+      marginsRes.set(comparisonLevel, marginsByLevel);
     }
   });
 
-  return [dependencyRes, dependentRes, warningsRes];
+  return [dependencyRes, dependentRes, marginsRes];
 };
