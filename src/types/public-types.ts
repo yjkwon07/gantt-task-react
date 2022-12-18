@@ -314,6 +314,9 @@ export type MapTaskToRowIndex = Map<number, Map<string, number>>;
 // comparisson level -> task id -> array of child tasks
 export type ChildMapByLevel = Map<number, Map<string, Task[]>>;
 
+// comparisson level -> ids of tasks that don't have parent
+export type RootMapByLevel = Map<number, string[]>;
+
 // comparisson level -> task id -> the task
 export type TaskMapByLevel = Map<number, Map<string, TaskOrEmpty>>;
 
@@ -350,6 +353,14 @@ export type DependentMap = Map<number, Map<string, ExpandedDependent[]>>;
 
 // comparisson level -> task id -> dependency id -> difference in milliseconds between edges of dependency
 export type DependencyMargins = Map<number, Map<string, Map<string, number>>>;
+
+export type CriticalPath = {
+  tasks: Set<string>;
+  dependencies: Map<string, Set<string>>;
+};
+
+// comparisson level -> critical path
+export type CriticalPaths = Map<number, CriticalPath>;
 
 export type TaskCoordinates = {
   x1: number;

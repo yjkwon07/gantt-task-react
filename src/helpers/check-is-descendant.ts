@@ -33,14 +33,13 @@ export const checkIsDescendant = (
 
     checkedTasks.add(id);
 
-    const tasksByLevel = tasksMap.get(comparisonLevel);
+    const tasksOnLevel = tasksMap.get(comparisonLevel);
 
-    if (!tasksByLevel) {
-      console.error(`Warning: tasks by level ${comparisonLevel} are not found`);
-      return false;
+    if (!tasksOnLevel) {
+      throw new Error(`Tasks on level ${comparisonLevel} are not found`);
     }
 
-    const parentTask = tasksByLevel.get(parent);
+    const parentTask = tasksOnLevel.get(parent);
 
     if (!parentTask || parentTask.type === "empty") {
       return false;

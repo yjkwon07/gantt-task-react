@@ -9,6 +9,7 @@ import React, {
 import {
   ChangeInProgress,
   ChildOutOfParentWarnings,
+  CriticalPath,
   DateSetup,
   GanttProps,
   Task,
@@ -30,13 +31,14 @@ import { TaskGantt } from "./task-gantt";
 import { GanttRelationEvent } from "../../types/gantt-task-actions";
 import { HorizontalScroll } from "../other/horizontal-scroll";
 import { removeHiddenTasks, sortTasks } from "../../helpers/other-helper";
-import { getChildTasks } from "../../helpers/get-child-tasks";
+import { getChildsAndRoots } from "../../helpers/get-childs-and-roots";
 import { getTasksMap } from "../../helpers/get-tasks-map";
 import { getMapTaskToGlobalIndex } from "../../helpers/get-map-task-to-global-index";
 import { getMapTaskToRowIndex } from "../../helpers/get-map-task-to-row-index";
 import { getChildOutOfParentWarnings } from "../../helpers/get-child-out-of-parent-warnings";
 import { getDependencyMapAndWarnings } from "../../helpers/get-dependency-map-and-warnings";
 import { getMapTaskToCoordinates } from "../../helpers/get-map-task-to-coordinates";
+import { getCriticalPath } from "../../helpers/get-critical-path";
 
 import styles from "./gantt.module.css";
 
@@ -122,8 +124,8 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const [ganttRelationEvent, setGanttRelationEvent] = useState<GanttRelationEvent | null>(null);
 
-  const childTasksMap = useMemo(
-    () => getChildTasks(tasks),
+  const [childTasksMap, rootTasksMap] = useMemo(
+    () => getChildsAndRoots(tasks),
     [tasks],
   );
 
@@ -151,6 +153,27 @@ export const Gantt: React.FC<GanttProps> = ({
       isShowCriticalPath,
     ],
   );
+
+  const cirticalPaths = useMemo(() => {
+    if (isShowCriticalPath) {
+      return getCriticalPath(
+        rootTasksMap,
+        childTasksMap,
+        tasksMap,
+        dependencyMarginsMap,
+        dependencyMap,
+      );
+    }
+
+    return new Map<number, CriticalPath>();
+  }, [
+    isShowCriticalPath,
+    rootTasksMap,
+    childTasksMap,
+    tasksMap,
+    dependencyMarginsMap,
+    dependencyMap,
+  ]);
 
   const childOutOfParentWarnings = useMemo<ChildOutOfParentWarnings>(
     () => {
@@ -557,6 +580,7 @@ export const Gantt: React.FC<GanttProps> = ({
     dependencyMap,
     dependentMap,
     dependencyMarginsMap,
+    cirticalPaths,
     dates: dateSetup.dates,
     ganttRelationEvent,
     selectedTask,

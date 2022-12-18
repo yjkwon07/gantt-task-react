@@ -11,6 +11,7 @@ import {
   ChangeInProgress,
   ChildMapByLevel,
   ChildOutOfParentWarnings,
+  CriticalPaths,
   DependencyMap,
   DependencyMargins,
   DependentMap,
@@ -51,6 +52,7 @@ export type TaskGanttContentProps = {
   dependencyMap: DependencyMap;
   dependentMap: DependentMap;
   dependencyMarginsMap: DependencyMargins;
+  cirticalPaths: CriticalPaths;
   dates: Date[];
   ganttRelationEvent: GanttRelationEvent | null;
   selectedTask: Task | null;
