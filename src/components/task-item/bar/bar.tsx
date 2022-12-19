@@ -33,6 +33,7 @@ export const Bar: React.FC<TaskItemExtendedProps> = ({
   onEventStart,
   onRelationStart,
   isSelected,
+  isCritical,
   colorStyles,
 }) => {
   const hasChildren = useHasChildren(task, childTasksMap);
@@ -105,6 +106,7 @@ export const Bar: React.FC<TaskItemExtendedProps> = ({
         barCornerRadius={barCornerRadius}
         styles={colorStyles}
         isSelected={isSelected}
+        isCritical={isCritical}
         hasChildren={hasChildren}
         onMouseDown={startMoveFullTask}
       />

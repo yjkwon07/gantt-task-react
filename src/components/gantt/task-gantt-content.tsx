@@ -52,6 +52,7 @@ export type TaskGanttContentProps = {
   dependencyMap: DependencyMap;
   dependentMap: DependentMap;
   dependencyMarginsMap: DependencyMargins;
+  isShowDependencyWarnings: boolean;
   cirticalPaths: CriticalPaths;
   dates: Date[];
   ganttRelationEvent: GanttRelationEvent | null;
@@ -68,6 +69,7 @@ export type TaskGanttContentProps = {
   relationCircleRadius: number;
   taskWarningOffset: number;
   arrowColor: string;
+  arrowCriticalColor: string;
   arrowWarningColor: string;
   arrowIndent: number;
   barCornerRadius: number;
@@ -100,6 +102,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   dependencyMap,
   dependentMap,
   dependencyMarginsMap,
+  isShowDependencyWarnings,
+  cirticalPaths,
   dates,
   ganttRelationEvent,
   selectedTask,
@@ -114,6 +118,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   relationCircleRadius,
   taskWarningOffset,
   arrowColor,
+  arrowCriticalColor,
   arrowWarningColor,
   arrowIndent,
   barCornerRadius,
@@ -733,11 +738,21 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             throw new Error(`Row indexes are not found for level ${comparisonLevel}`);
           }
 
+          const criticalPathOnLevel = cirticalPaths.get(comparisonLevel);
+
+          const criticalPathForTask = criticalPathOnLevel
+            ? criticalPathOnLevel.dependencies.get(task.id)
+            : undefined;
+
           return dependenciesByTask.map(({
             ownTarget,
             source,
             sourceTarget,
           }) => {
+            const isCritical = criticalPathForTask
+              ? criticalPathForTask.has(source.id)
+              : false;
+
             return (
               <Arrow
                 key={`Arrow from ${taskId} to ${source.id} on ${comparisonLevel}`}
@@ -756,6 +771,9 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                 dependencyFixIndent={dependencyFixIndent}
                 arrowColor={arrowColor}
                 arrowWarningColor={arrowWarningColor}
+                arrowCriticalColor={arrowCriticalColor}
+                isShowDependencyWarnings={isShowDependencyWarnings}
+                isCritical={isCritical}
                 rtl={rtl}
                 onArrowDoubleClick={onArrowDoubleClick}
                 handleFixDependency={handleFixDependency}
@@ -781,12 +799,19 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             );
           }
 
+          const criticalPathOnLevel = cirticalPaths.get(comparisonLevel);
+
+          const isCritical = criticalPathOnLevel
+            ? criticalPathOnLevel.tasks.has(task.id)
+            : false;
+
           return (
             <TaskItem
               task={task}
               childTasksMap={childTasksMap}
               childOutOfParentWarnings={childOutOfParentWarnings}
               dependencyMarginsMap={dependencyMarginsMap}
+              isShowDependencyWarnings={isShowDependencyWarnings}
               mapTaskToGlobalIndex={mapTaskToGlobalIndex}
               mapTaskToCoordinates={mapTaskToCoordinates}
               arrowIndent={arrowIndent}
@@ -809,6 +834,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               onRelationStart={handleBarRelationStart}
               setSelectedTask={setSelectedTask}
               isSelected={selectedTask === task}
+              isCritical={isCritical}
               rtl={rtl}
               changeInProgress={changeInProgress}
               fixStartPosition={fixStartPosition}

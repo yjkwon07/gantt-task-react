@@ -12,6 +12,7 @@ type BarDisplayProps = {
   width: number;
   height: number;
   isSelected: boolean;
+  isCritical: boolean;
   hasChildren: boolean;
   /* progress start point */
   progressX: number;
@@ -27,6 +28,7 @@ export const BarDisplay: React.FC<BarDisplayProps> = ({
   width,
   height,
   isSelected,
+  isCritical,
   hasChildren,
   progressX,
   progressWidth,
@@ -35,6 +37,22 @@ export const BarDisplay: React.FC<BarDisplayProps> = ({
   onMouseDown,
 }) => {
   const processColor = useMemo(() => {
+    if (isCritical) {
+      if (hasChildren) {
+        if (isSelected) {
+          return styles.groupProgressSelectedCriticalColor;
+        }
+
+        return styles.groupProgressCriticalColor;
+      }
+
+      if (isSelected) {
+        return styles.barProgressSelectedCriticalColor;
+      }
+
+      return styles.barProgressCriticalColor;
+    }
+
     if (hasChildren) {
       if (isSelected) {
         return styles.groupProgressSelectedColor;
@@ -48,9 +66,25 @@ export const BarDisplay: React.FC<BarDisplayProps> = ({
     }
 
     return styles.barProgressColor;
-  }, [isSelected, hasChildren, styles]);
+  }, [isSelected, isCritical, hasChildren, styles]);
 
   const barColor = useMemo(() => {
+    if (isCritical) {
+      if (hasChildren) {
+        if (isSelected) {
+          return styles.groupBackgroundSelectedCriticalColor;
+        }
+
+        return styles.groupBackgroundCriticalColor;
+      }
+
+      if (isSelected) {
+        return styles.barBackgroundSelectedCriticalColor;
+      }
+
+      return styles.barBackgroundCriticalColor;
+    }
+
     if (hasChildren) {
       if (isSelected) {
         return styles.groupBackgroundSelectedColor;
@@ -64,7 +98,7 @@ export const BarDisplay: React.FC<BarDisplayProps> = ({
     }
 
     return styles.barBackgroundColor;
-  }, [isSelected, hasChildren, styles]);
+  }, [isSelected, isCritical, hasChildren, styles]);
 
   return (
     <g onMouseDown={onMouseDown}>

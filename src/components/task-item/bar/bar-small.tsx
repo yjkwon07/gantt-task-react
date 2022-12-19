@@ -21,6 +21,7 @@ export const BarSmall: React.FC<TaskItemExtendedProps> = ({
   onEventStart,
   handleWidth,
   isSelected,
+  isCritical,
   colorStyles,
 }) => {
   const hasChildren = useHasChildren(task, childTasksMap);
@@ -43,6 +44,7 @@ export const BarSmall: React.FC<TaskItemExtendedProps> = ({
         barCornerRadius={barCornerRadius}
         styles={colorStyles}
         isSelected={isSelected}
+        isCritical={isCritical}
         hasChildren={hasChildren}
         onMouseDown={e => {
           isDateChangeable && onEventStart("move", task, e);

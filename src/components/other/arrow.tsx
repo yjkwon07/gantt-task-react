@@ -33,10 +33,13 @@ type ArrowProps = {
   taskHeight: number;
   arrowColor: string;
   arrowWarningColor: string;
+  arrowCriticalColor: string;
+  isShowDependencyWarnings: boolean;
   arrowIndent: number;
   dependencyFixWidth: number;
   dependencyFixHeight: number;
   dependencyFixIndent: number;
+  isCritical: boolean;
   rtl: boolean;
   onArrowDoubleClick?: OnArrowDoubleClick;
   handleFixDependency: (
@@ -57,10 +60,13 @@ const ArrowInner: React.FC<ArrowProps> = ({
   taskHeight,
   arrowColor,
   arrowWarningColor,
+  arrowCriticalColor,
+  isShowDependencyWarnings,
   arrowIndent,
   dependencyFixWidth,
   dependencyFixHeight,
   dependencyFixIndent,
+  isCritical,
   rtl,
   onArrowDoubleClick = undefined,
   handleFixDependency,
@@ -197,11 +203,17 @@ const ArrowInner: React.FC<ArrowProps> = ({
   }, [taskTo, handleFixDependency, marginBetweenTasks]);
 
   const hasWarning = useMemo(
-    () => typeof marginBetweenTasks === 'number' && marginBetweenTasks < 0,
-    [marginBetweenTasks],
+    () => isShowDependencyWarnings
+      && typeof marginBetweenTasks === 'number'
+      && marginBetweenTasks < 0,
+    [marginBetweenTasks, isShowDependencyWarnings],
   );
 
   const color = useMemo(() => {
+    if (isCritical) {
+      return arrowCriticalColor;
+    }
+
     if (hasWarning) {
       return arrowWarningColor;
     }
@@ -209,7 +221,9 @@ const ArrowInner: React.FC<ArrowProps> = ({
     return arrowColor;
   }, [
     hasWarning,
+    isCritical,
     arrowColor,
+    arrowCriticalColor,
     arrowWarningColor,
   ]);
 

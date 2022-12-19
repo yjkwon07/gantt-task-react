@@ -46,20 +46,34 @@ export interface ExpandedDependent {
 };
 
 export interface TaskBarColorStyles {
-  barProgressColor: string,
-  barProgressSelectedColor: string,
-  barBackgroundColor: string,
-  barBackgroundSelectedColor: string,
+  barProgressColor: string;
+  barProgressCriticalColor: string;
+  barProgressSelectedColor: string;
+  barProgressSelectedCriticalColor: string;
+  barBackgroundColor: string;
+  barBackgroundCriticalColor: string;
+  barBackgroundSelectedColor: string;
+  barBackgroundSelectedCriticalColor: string;
   groupProgressColor: string;
+  groupProgressCriticalColor: string;
   groupProgressSelectedColor: string;
+  groupProgressSelectedCriticalColor: string;
   groupBackgroundColor: string;
+  groupBackgroundCriticalColor: string;
   groupBackgroundSelectedColor: string;
-  projectProgressColor: string,
-  projectProgressSelectedColor: string,
-  projectBackgroundColor: string,
-  projectBackgroundSelectedColor: string,
-  milestoneBackgroundColor: string,
-  milestoneBackgroundSelectedColor: string
+  groupBackgroundSelectedCriticalColor: string;
+  projectProgressColor: string;
+  projectProgressCriticalColor: string;
+  projectProgressSelectedColor: string;
+  projectProgressSelectedCriticalColor: string;
+  projectBackgroundColor: string;
+  projectBackgroundCriticalColor: string;
+  projectBackgroundSelectedColor: string;
+  projectBackgroundSelectedCriticalColor: string;
+  milestoneBackgroundColor: string;
+  milestoneBackgroundCriticalColor: string;
+  milestoneBackgroundSelectedColor: string;
+  milestoneBackgroundSelectedCriticalColor: string;
 }
 
 export type TaskType = "task" | "milestone" | "project";
@@ -235,7 +249,8 @@ export interface DisplayOption {
   isShowCriticalPath?: boolean;
 }
 
-export interface StylingOption extends Partial<TaskBarColorStyles> {
+export interface StylingOption {
+  colors?: Partial<TaskBarColorStyles>;
   headerHeight?: number;
   columnWidth?: number;
   listCellWidth?: string;
@@ -254,6 +269,7 @@ export interface StylingOption extends Partial<TaskBarColorStyles> {
    */
   barFill?: number;
   arrowColor?: string;
+  arrowCriticalColor?: string;
   arrowWarningColor?: string;
   arrowIndent?: number;
   dependencyFixWidth?: number;

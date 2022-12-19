@@ -33,6 +33,7 @@ export type TaskItemProps = {
   childTasksMap: ChildMapByLevel;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
   dependencyMarginsMap: DependencyMargins;
+  isShowDependencyWarnings: boolean;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   mapTaskToCoordinates: MapTaskToCoordinates;
   arrowIndent: number;
@@ -48,6 +49,7 @@ export type TaskItemProps = {
   isRelationChangeable: boolean;
   isDelete: boolean;
   isSelected: boolean;
+  isCritical: boolean;
   isRelationDrawMode: boolean;
   rtl: boolean;
   changeInProgress: ChangeInProgress | null;
@@ -86,6 +88,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     childTasksMap,
     childOutOfParentWarnings,
     dependencyMarginsMap,
+    isShowDependencyWarnings,
     mapTaskToGlobalIndex,
     mapTaskToCoordinates,
     taskWarningOffset,
@@ -158,7 +161,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
   }, [task, dependencyMarginsMap]);
 
   const hasDependencyWarning = useMemo(() => {
-    if (!dependencyMarginsForTask) {
+    if (!isShowDependencyWarnings || !dependencyMarginsForTask) {
       return false;
     }
 
@@ -169,7 +172,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     }
 
     return false;
-  }, [dependencyMarginsForTask]);
+  }, [dependencyMarginsForTask, isShowDependencyWarnings]);
 
   const globalIndex = useMemo(() => {
     const {

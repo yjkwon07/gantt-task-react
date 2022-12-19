@@ -144,6 +144,8 @@ const collectCriticalPathForTask = (
         return;
       }
 
+      cirticalPathDependenciesForTask.add(source.id);
+
       collectCriticalPath(
         criticalPathTasks,
         cirticalPathDependencies,
@@ -209,6 +211,17 @@ export const getCriticalPath = (
           });
           return;
         }
+
+        latestTasks.forEach((task) => {
+          collectCriticalPathForTask(
+            criticalPathTasks,
+            cirticalPathDependencies,
+            task,
+            childsOnLevel,
+            dependenciesOnLevel,
+            dependencyMarginsOnLevel,
+          );
+        });
       });
     }
 

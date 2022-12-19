@@ -11,23 +11,40 @@ export const Project: React.FC<TaskItemExtendedProps> = ({
   taskHalfHeight,
   taskHeight,
   isSelected,
+  isCritical,
   colorStyles,
 }) => {
   const barColor = useMemo(() => {
+    if (isCritical) {
+      if (isSelected) {
+        return colorStyles.projectBackgroundSelectedCriticalColor;
+      }
+
+      return colorStyles.projectBackgroundCriticalColor;
+    }
+
     if (isSelected) {
       return colorStyles.projectBackgroundSelectedColor;
     }
 
     return colorStyles.projectBackgroundColor;
-  }, [isSelected, colorStyles]);
+  }, [isSelected, isCritical, colorStyles]);
 
   const processColor = useMemo(() => {
+    if (isCritical) {
+      if (isSelected) {
+        return colorStyles.projectProgressSelectedCriticalColor;
+      }
+
+      return colorStyles.projectProgressCriticalColor;
+    }
+
     if (isSelected) {
       return colorStyles.projectProgressSelectedColor;
     }
 
     return colorStyles.projectProgressColor;
-  }, [isSelected, colorStyles]);
+  }, [isSelected, isCritical, colorStyles]);
 
   const projectWith = coordinates.x2 - coordinates.x1;
 
