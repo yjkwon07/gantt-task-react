@@ -11,6 +11,7 @@ import styles from "./grid.module.css";
 
 export type GridBodyProps = {
   dates: Date[];
+  isUnknownDates: boolean;
   svgWidth: number;
   fullRowHeight: number;
   maxLevelLength: number;
@@ -21,6 +22,7 @@ export type GridBodyProps = {
 
 const GridBodyInner: React.FC<GridBodyProps> = ({
   dates,
+  isUnknownDates,
   fullRowHeight,
   maxLevelLength,
   svgWidth,
@@ -69,7 +71,7 @@ const GridBodyInner: React.FC<GridBodyProps> = ({
   const now = new Date();
   let tickX = 0;
   const ticks: ReactNode[] = [];
-  let today: ReactNode = <rect />;
+  let today: ReactNode | null = null;
   for (let i = 0; i < dates.length; i++) {
     const date = dates[i];
     ticks.push(
@@ -82,45 +84,48 @@ const GridBodyInner: React.FC<GridBodyProps> = ({
         className={styles.gridTick}
       />
     );
-    if (
-      (i + 1 !== dates.length &&
-        date.getTime() < now.getTime() &&
-        dates[i + 1].getTime() >= now.getTime()) ||
-      // if current date is last
-      (i !== 0 &&
-        i + 1 === dates.length &&
-        date.getTime() < now.getTime() &&
-        addMilliseconds(
-          date,
-          date.getTime() - dates[i - 1].getTime(),
-        ).getTime() >= now.getTime())
-    ) {
-      today = (
-        <rect
-          x={tickX}
-          y={0}
-          width={columnWidth}
-          height={y}
-          fill={todayColor}
-        />
-      );
-    }
-    // rtl for today
-    if (
-      rtl &&
-      i + 1 !== dates.length &&
-      date.getTime() >= now.getTime() &&
-      dates[i + 1].getTime() < now.getTime()
-    ) {
-      today = (
-        <rect
-          x={tickX + columnWidth}
-          y={0}
-          width={columnWidth}
-          height={y}
-          fill={todayColor}
-        />
-      );
+
+    if (!isUnknownDates) {
+      if (
+        (i + 1 !== dates.length &&
+          date.getTime() < now.getTime() &&
+          dates[i + 1].getTime() >= now.getTime()) ||
+        // if current date is last
+        (i !== 0 &&
+          i + 1 === dates.length &&
+          date.getTime() < now.getTime() &&
+          addMilliseconds(
+            date,
+            date.getTime() - dates[i - 1].getTime(),
+          ).getTime() >= now.getTime())
+      ) {
+        today = (
+          <rect
+            x={tickX}
+            y={0}
+            width={columnWidth}
+            height={y}
+            fill={todayColor}
+          />
+        );
+      }
+      // rtl for today
+      if (
+        rtl &&
+        i + 1 !== dates.length &&
+        date.getTime() >= now.getTime() &&
+        dates[i + 1].getTime() < now.getTime()
+      ) {
+        today = (
+          <rect
+            x={tickX + columnWidth}
+            y={0}
+            width={columnWidth}
+            height={y}
+            fill={todayColor}
+          />
+        );
+      }
     }
     tickX += columnWidth;
   }

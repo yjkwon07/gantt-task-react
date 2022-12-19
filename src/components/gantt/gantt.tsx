@@ -6,6 +6,8 @@ import React, {
   useMemo,
 } from "react";
 
+import enDateLocale from 'date-fns/locale/en-US';
+
 import {
   ChangeInProgress,
   ChildOutOfParentWarnings,
@@ -84,6 +86,8 @@ export const Gantt: React.FC<GanttProps> = ({
   taskWarningOffset = 35,
   ganttHeight = 0,
   viewMode = ViewMode.Day,
+  dateLocale = enDateLocale,
+  isUnknownDates = false,
   preStepsCount = 1,
   locale = "en-GB",
   monthCalendarFormat = "long",
@@ -342,10 +346,12 @@ export const Gantt: React.FC<GanttProps> = ({
   const dateSetup = useMemo<DateSetup>(() => ({
     dates,
     viewMode,
+    dateLocale,
     monthCalendarFormat,
   }), [
     dates,
     viewMode,
+    dateLocale,
     monthCalendarFormat,
   ]);
 
@@ -545,6 +551,7 @@ export const Gantt: React.FC<GanttProps> = ({
   };
   const gridProps: GridProps = {
     columnWidth,
+    isUnknownDates,
     svgWidth,
     fullRowHeight,
     maxLevelLength,
@@ -554,6 +561,7 @@ export const Gantt: React.FC<GanttProps> = ({
   };
   const calendarProps: CalendarProps = {
     dateSetup,
+    isUnknownDates,
     locale,
     headerHeight,
     columnWidth,

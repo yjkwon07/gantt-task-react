@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import type { Locale as DateLocale } from "date-fns";
+
 import type { BarMoveAction, RelationMoveTarget } from "./gantt-task-actions";
 
 export enum ViewMode {
@@ -17,14 +19,24 @@ export type MonthFormats = "numeric" | "2-digit" | "long" | "short" | "narrow";
 export interface DateSetup {
   dates: Date[];
   viewMode: ViewMode;
+  dateLocale: DateLocale;
   monthCalendarFormat: MonthFormats;
 }
 
-export type RenderHeader = (
+export type RenderTopHeader = (
   date: Date,
   viewMode: ViewMode,
   locale: string,
   dateSetup: DateSetup,
+) => ReactNode;
+
+export type RenderBottomHeader = (
+  date: Date,
+  viewMode: ViewMode,
+  locale: string,
+  dateSetup: DateSetup,
+  index: number,
+  isUnknownDates: boolean,
 ) => ReactNode;
 
 export interface Dependency {
@@ -221,6 +233,14 @@ export interface EventOption {
 
 export interface DisplayOption {
   viewMode?: ViewMode;
+  /**
+   * Display offsets from start on timeline instead of dates
+   */
+  isUnknownDates?: boolean;
+  /**
+   * Locale of date-fns
+   */
+  dateLocale?: DateLocale;
   viewDate?: Date;
   preStepsCount?: number;
   /**
@@ -292,11 +312,11 @@ export interface StylingOption {
   /**
    * Render function of bottom part of header above chart
    */
-  renderBottomHeader?: RenderHeader;
+  renderBottomHeader?: RenderBottomHeader;
   /**
    * Render function of top part of header above chart
    */
-  renderTopHeader?: RenderHeader;
+  renderTopHeader?: RenderTopHeader;
 }
 
 export interface GanttProps extends EventOption, DisplayOption, StylingOption {

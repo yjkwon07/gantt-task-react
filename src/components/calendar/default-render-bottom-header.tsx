@@ -16,7 +16,51 @@ export const defaultRenderBottomHeader = (
   viewMode: ViewMode,
   locale: string,
   dateSetup: DateSetup,
+  index: number,
+  isUnknownDates: boolean,
 ): ReactNode => {
+  if (isUnknownDates) {
+    if (index === 0) {
+      return "";
+    }
+
+    const {
+      dateLocale: {
+        formatDistance,
+      },
+    } = dateSetup;
+
+    if (!formatDistance) {
+      return "";
+    }
+
+    switch (viewMode) {
+      case ViewMode.Year:
+        return `+${formatDistance!('xYears', index)}`;
+
+      case ViewMode.Month:
+        return `+${formatDistance!('xMonths', index)}`;
+
+      case ViewMode.Week:
+        return `+${formatDistance!('xWeeks', index)}`;
+
+      case ViewMode.Day:
+        return `+${formatDistance!('xDays', index)}`;
+
+      case ViewMode.QuarterDay:
+        return `+${formatDistance!('xHours', index * 6)}`;
+
+      case ViewMode.HalfDay:
+        return `+${formatDistance!('xHours', index * 12)}`;
+
+      case ViewMode.Hour:
+        return `+${formatDistance!('xHours', index * 1)}`;
+
+      default:
+        throw new Error('Unknown viewMode');
+    }    
+  }
+
   switch (viewMode) {
     case ViewMode.Year:
       return date.getFullYear();
