@@ -24,7 +24,11 @@ const getMinAndMaxDatesInDescendants = (
   checkedTasks.add(id);
 
   if (task.id === changedTask.id) {
-    return null;
+    if (changedTask.type === "empty") {
+      return null;
+    }
+
+    return [changedTask.start, changedTask.end];
   }
 
   const taskMapByLevel = childTasksMap.get(comparisonLevel);
