@@ -10,6 +10,7 @@ import {
   Task,
   TaskMapByLevel,
 } from "../types/public-types";
+import { collectParents } from "./collect-parents";
 
 const getLatestTasks = (
   task: Task,
@@ -59,6 +60,7 @@ const collectCriticalPath = (
   task: Task,
   target: RelationMoveTarget,
   criticalTs: number,
+  tasksMap: TaskMapByLevel,
   childsOnLevel: Map<string, Task[]>,
   dependenciesOnLevel: Map<string, ExpandedDependency[]>,
   dependencyMarginsOnLevel: Map<string, Map<string, number>>,
@@ -74,6 +76,7 @@ const collectCriticalPath = (
       criticalPathTasks,
       cirticalPathDependencies,
       task,
+      tasksMap,
       childsOnLevel,
       dependenciesOnLevel,
       dependencyMarginsOnLevel,
@@ -91,6 +94,7 @@ const collectCriticalPath = (
         childTask,
         target,
         criticalTs,
+        tasksMap,
         childsOnLevel,
         dependenciesOnLevel,
         dependencyMarginsOnLevel,
@@ -103,12 +107,15 @@ const collectCriticalPathForTask = (
   criticalPathTasks: Set<string>,
   cirticalPathDependencies: Map<string, Set<string>>,
   task: Task,
+  tasksMap: TaskMapByLevel,
   childsOnLevel: Map<string, Task[]>,
   dependenciesOnLevel: Map<string, ExpandedDependency[]>,
   dependencyMarginsOnLevel: Map<string, Map<string, number>>,
 ) => {
   const {
+    end,
     id: taskId,
+    start,
   } = task;
 
   if (criticalPathTasks.has(taskId)) {
@@ -116,6 +123,9 @@ const collectCriticalPathForTask = (
   }
 
   criticalPathTasks.add(taskId);
+
+  const startTs = start.getTime();
+  const endTs = end.getTime();
 
   const cirticalPathDependenciesForTask = cirticalPathDependencies.get(taskId)
     || new Set<string>();
@@ -132,8 +142,8 @@ const collectCriticalPathForTask = (
     }) => {
       const margin = marginsForTask.get(source.id);
 
-      if (typeof margin !== 'number') {
-        throw new Error('Margin for dependency is not defined');
+      if (typeof margin !== "number") {
+        throw new Error("Margin for dependency is not defined");
       }
 
       if (margin > 0) {
@@ -145,13 +155,15 @@ const collectCriticalPathForTask = (
       }
 
       cirticalPathDependenciesForTask.add(source.id);
+      cirticalPathDependencies.set(taskId, cirticalPathDependenciesForTask);
 
       collectCriticalPath(
         criticalPathTasks,
         cirticalPathDependencies,
         source,
         sourceTarget,
-        ownTarget === "startOfTask" ? task.start.getTime() : task.end.getTime(),
+        ownTarget === "startOfTask" ? startTs : endTs,
+        tasksMap,
         childsOnLevel,
         dependenciesOnLevel,
         dependencyMarginsOnLevel,
@@ -159,7 +171,65 @@ const collectCriticalPathForTask = (
     });
   }
 
-  cirticalPathDependencies.set(taskId, cirticalPathDependenciesForTask);
+  const parents = collectParents(
+    task,
+    tasksMap,
+  );
+
+  parents.forEach((parentTask) => {
+    const {
+      id: parentId,
+    } = parentTask;
+
+    const parentDependencies = dependenciesOnLevel.get(parentId);
+
+    if (!parentDependencies || parentDependencies.length === 0) {
+      return;
+    }
+
+    const cirticalPathDependenciesForParent = cirticalPathDependencies.get(parentId)
+      || new Set<string>();
+
+    const isCheckStart = parentTask.start.getTime() >= startTs;
+    const isCheckEnd = parentTask.end.getTime() <= endTs;
+
+    parentDependencies.forEach(({
+      ownTarget,
+      sourceTarget,
+      source,
+    }) => {
+      const isCheck = ownTarget === "startOfTask"
+        ? isCheckStart
+        : isCheckEnd;
+
+      if (!isCheck) {
+        return;
+      }
+
+      if (cirticalPathDependenciesForTask.has(source.id)) {
+        return;
+      }
+
+      cirticalPathDependenciesForTask.add(source.id);
+      cirticalPathDependencies.set(parentId, cirticalPathDependenciesForParent);
+
+      const targetTs = ownTarget === "startOfTask"
+        ? parentTask.start.getTime()
+        : parentTask.end.getTime();
+
+      collectCriticalPath(
+        criticalPathTasks,
+        cirticalPathDependencies,
+        source,
+        sourceTarget,
+        targetTs,
+        tasksMap,
+        childsOnLevel,
+        dependenciesOnLevel,
+        dependencyMarginsOnLevel,
+      );
+    });
+  });
 };
 
 export const getCriticalPath = (
@@ -217,6 +287,7 @@ export const getCriticalPath = (
             criticalPathTasks,
             cirticalPathDependencies,
             task,
+            tasksMap,
             childsOnLevel,
             dependenciesOnLevel,
             dependencyMarginsOnLevel,
