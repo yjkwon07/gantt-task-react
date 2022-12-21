@@ -20,6 +20,7 @@ export interface DateSetup {
   dates: Date[];
   viewMode: ViewMode;
   dateLocale: DateLocale;
+  preStepsCount: number;
   monthCalendarFormat: MonthFormats;
 }
 

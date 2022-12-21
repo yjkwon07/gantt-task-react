@@ -6,6 +6,7 @@ import subYears from "date-fns/subYears";
 import subMonths from "date-fns/subMonths";
 import subDays from "date-fns/subDays";
 import subHours from "date-fns/subHours";
+import subWeeks from "date-fns/subWeeks";
 import startOfYear from "date-fns/startOfYear";
 import startOfMonth from "date-fns/startOfMonth";
 import startOfDay from "date-fns/startOfDay";
@@ -39,7 +40,7 @@ export const getCachedDateTimeFormat = (
 export const ganttDateRange = (
   tasks: readonly TaskOrEmpty[],
   viewMode: ViewMode,
-  preStepsCount: number
+  preStepsCount: number,
 ) => {
   let newStartDate: Date | null = null;
   let newEndDate: Date | null = null;
@@ -61,7 +62,7 @@ export const ganttDateRange = (
 
   switch (viewMode) {
     case ViewMode.Year:
-      newStartDate = subYears(newStartDate, 1);
+      newStartDate = subYears(newStartDate, preStepsCount);
       newStartDate = startOfYear(newStartDate);
       newEndDate = addYears(newEndDate, 1);
       newEndDate = startOfYear(newEndDate);
@@ -74,7 +75,7 @@ export const ganttDateRange = (
       break;
     case ViewMode.Week:
       newStartDate = startOfDay(newStartDate);
-      newStartDate = subDays(getMonday(newStartDate), 7 * preStepsCount);
+      newStartDate = subWeeks(getMonday(newStartDate), preStepsCount);
       newEndDate = startOfDay(newEndDate);
       newEndDate = addMonths(newEndDate, 1.5);
       break;
@@ -86,13 +87,13 @@ export const ganttDateRange = (
       break;
     case ViewMode.QuarterDay:
       newStartDate = startOfDay(newStartDate);
-      newStartDate = subDays(newStartDate, preStepsCount);
+      newStartDate = subHours(newStartDate, preStepsCount * 6);
       newEndDate = startOfDay(newEndDate);
       newEndDate = addHours(newEndDate, 66); // 24(1 day)*3 - 6
       break;
     case ViewMode.HalfDay:
       newStartDate = startOfDay(newStartDate);
-      newStartDate = subDays(newStartDate, preStepsCount);
+      newStartDate = subHours(newStartDate, preStepsCount * 12);
       newEndDate = startOfDay(newEndDate);
       newEndDate = addHours(newEndDate, 108); // 24(1 day)*5 - 12
       break;

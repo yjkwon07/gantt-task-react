@@ -20,45 +20,63 @@ export const defaultRenderBottomHeader = (
   isUnknownDates: boolean,
 ): ReactNode => {
   if (isUnknownDates) {
-    if (index === 0) {
-      return "";
-    }
-
     const {
       dateLocale: {
         formatDistance,
       },
+      preStepsCount,
     } = dateSetup;
 
-    if (!formatDistance) {
-      return "";
+    const offsetFromStart = index - preStepsCount;
+
+    if (offsetFromStart === 0) {
+      return "0";
     }
 
-    switch (viewMode) {
-      case ViewMode.Year:
-        return `+${formatDistance!('xYears', index)}`;
+    let value: string = "";
 
-      case ViewMode.Month:
-        return `+${formatDistance!('xMonths', index)}`;
+    if (!formatDistance) {
+      value = `${offsetFromStart}`;
+    } else {
+      switch (viewMode) {
+        case ViewMode.Year:
+          value = formatDistance!('xYears', offsetFromStart);
+          break;
+  
+        case ViewMode.Month:
+          value = formatDistance!('xMonths', offsetFromStart);
+          break;
+  
+        case ViewMode.Week:
+          value = formatDistance!('xWeeks', offsetFromStart);
+          break;
+  
+        case ViewMode.Day:
+          value = formatDistance!('xDays', offsetFromStart);
+          break;
+  
+        case ViewMode.QuarterDay:
+          value = formatDistance!('xHours', offsetFromStart * 6);
+          break;
+  
+        case ViewMode.HalfDay:
+          value = formatDistance!('xHours', offsetFromStart * 12);
+          break;
+  
+        case ViewMode.Hour:
+          value = formatDistance!('xHours', offsetFromStart);
+          break;
+  
+        default:
+          throw new Error('Unknown viewMode');
+      }
+    }
 
-      case ViewMode.Week:
-        return `+${formatDistance!('xWeeks', index)}`;
+    if (offsetFromStart > 0) {
+      return `+${value}`;
+    }
 
-      case ViewMode.Day:
-        return `+${formatDistance!('xDays', index)}`;
-
-      case ViewMode.QuarterDay:
-        return `+${formatDistance!('xHours', index * 6)}`;
-
-      case ViewMode.HalfDay:
-        return `+${formatDistance!('xHours', index * 12)}`;
-
-      case ViewMode.Hour:
-        return `+${formatDistance!('xHours', index * 1)}`;
-
-      default:
-        throw new Error('Unknown viewMode');
-    }    
+    return value;
   }
 
   switch (viewMode) {

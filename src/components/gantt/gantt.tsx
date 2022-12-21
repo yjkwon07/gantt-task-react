@@ -347,11 +347,13 @@ export const Gantt: React.FC<GanttProps> = ({
     dates,
     viewMode,
     dateLocale,
+    preStepsCount,
     monthCalendarFormat,
   }), [
     dates,
     viewMode,
     dateLocale,
+    preStepsCount,
     monthCalendarFormat,
   ]);
 
