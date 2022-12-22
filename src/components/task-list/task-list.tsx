@@ -1,6 +1,12 @@
 import React, { useEffect, useRef } from "react";
 
-import { MonthFormats, Task, TaskListTableProps, TaskOrEmpty } from "../../types/public-types";
+import {
+  MapTaskToNestedIndex,
+  MonthFormats,
+  Task,
+  TaskListTableProps,
+  TaskOrEmpty,
+} from "../../types/public-types";
 
 export type TaskListProps = {
   headerHeight: number;
@@ -17,6 +23,9 @@ export type TaskListProps = {
   taskListRef: React.RefObject<HTMLDivElement>;
   horizontalContainerClass?: string;
   selectedTask: Task | null;
+  mapTaskToNestedIndex: MapTaskToNestedIndex;
+  nestedTaskNameOffset: number;
+  isShowTaskNumbers: boolean;
   setSelectedTask: (task: Task) => void;
   onExpanderClick: (task: Task) => void;
   TaskListHeader: React.FC<{
@@ -38,6 +47,9 @@ export const TaskList: React.FC<TaskListProps> = ({
   scrollY,
   tasks,
   selectedTask,
+  mapTaskToNestedIndex,
+  nestedTaskNameOffset,
+  isShowTaskNumbers,
   setSelectedTask,
   onExpanderClick,
   locale,
@@ -81,6 +93,9 @@ export const TaskList: React.FC<TaskListProps> = ({
           locale={locale}
           monthFormat={monthFormat}
           selectedTaskId={selectedTaskId}
+          mapTaskToNestedIndex={mapTaskToNestedIndex}
+          nestedTaskNameOffset={nestedTaskNameOffset}
+          isShowTaskNumbers={isShowTaskNumbers}
           setSelectedTask={setSelectedTask}
           onExpanderClick={onExpanderClick}
         />

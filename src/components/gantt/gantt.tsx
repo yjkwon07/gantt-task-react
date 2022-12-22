@@ -41,6 +41,7 @@ import { getChildOutOfParentWarnings } from "../../helpers/get-child-out-of-pare
 import { getDependencyMapAndWarnings } from "../../helpers/get-dependency-map-and-warnings";
 import { getMapTaskToCoordinates } from "../../helpers/get-map-task-to-coordinates";
 import { getCriticalPath } from "../../helpers/get-critical-path";
+import { getMapTaskToNestedIndex } from "../../helpers/get-map-task-to-nested-index";
 
 import styles from "./gantt.module.css";
 
@@ -79,7 +80,7 @@ export const Gantt: React.FC<GanttProps> = ({
   tasks,
   headerHeight = 50,
   columnWidth = 60,
-  listCellWidth = "155px",
+  listCellWidth = "220px",
   rowHeight = 50,
   relationCircleOffset = 10,
   relationCircleRadius = 5,
@@ -105,6 +106,7 @@ export const Gantt: React.FC<GanttProps> = ({
   dependencyFixWidth = 20,
   dependencyFixHeight = 20,
   dependencyFixIndent = 50,
+  nestedTaskNameOffset = 20,
   fontFamily = "Arial, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue",
   fontSize = "14px",
   todayColor = "rgba(252, 248, 227, 0.5)",
@@ -130,6 +132,7 @@ export const Gantt: React.FC<GanttProps> = ({
   isShowChildOutOfParentWarnings = false,
   isShowDependencyWarnings = false,
   isShowCriticalPath = false,
+  isShowTaskNumbers = true,
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
@@ -147,9 +150,17 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const [ganttRelationEvent, setGanttRelationEvent] = useState<GanttRelationEvent | null>(null);
 
+  const barTasks = useMemo<readonly TaskOrEmpty[]>(() => {
+    const filteredTasks = onExpanderClick
+      ? removeHiddenTasks(tasks)
+      : [...tasks];
+
+    return filteredTasks.sort(sortTasks);
+  }, [onExpanderClick, tasks]);
+
   const [childTasksMap, rootTasksMap] = useMemo(
-    () => getChildsAndRoots(tasks),
-    [tasks],
+    () => getChildsAndRoots(barTasks),
+    [barTasks],
   );
 
   const tasksMap = useMemo(
@@ -160,6 +171,17 @@ export const Gantt: React.FC<GanttProps> = ({
   const mapTaskToGlobalIndex = useMemo(
     () => getMapTaskToGlobalIndex(tasks),
     [tasks],
+  );
+
+  const mapTaskToNestedIndex = useMemo(
+    () => getMapTaskToNestedIndex(
+      childTasksMap,
+      rootTasksMap,
+    ),
+    [
+      childTasksMap,
+      rootTasksMap,
+    ],
   );
 
   const [dependencyMap, dependentMap, dependencyMarginsMap] = useMemo(
@@ -293,14 +315,6 @@ export const Gantt: React.FC<GanttProps> = ({
   const [scrollY, setScrollY] = useState(0);
   const [scrollX, setScrollX] = useState(-1);
   const [ignoreScrollEvent, setIgnoreScrollEvent] = useState(false);
-
-  const barTasks = useMemo<readonly TaskOrEmpty[]>(() => {
-    const filteredTasks = onExpanderClick
-      ? removeHiddenTasks(tasks)
-      : [...tasks];
-
-    return filteredTasks.sort(sortTasks);
-  }, [onExpanderClick, tasks]);
 
   const mapTaskToRowIndex = useMemo(
     () => getMapTaskToRowIndex(barTasks),
@@ -645,6 +659,9 @@ export const Gantt: React.FC<GanttProps> = ({
     selectedTask,
     taskListRef,
     setSelectedTask,
+    mapTaskToNestedIndex,
+    nestedTaskNameOffset,
+    isShowTaskNumbers,
     onExpanderClick: handleExpanderClick,
     TaskListHeader,
     TaskListTable,

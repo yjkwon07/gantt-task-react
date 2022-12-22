@@ -44,6 +44,9 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   fontSize,
   locale,
   monthFormat,
+  mapTaskToNestedIndex,
+  nestedTaskNameOffset,
+  isShowTaskNumbers,
   onExpanderClick,
 }) => {
   const dateTimeOptions: Intl.DateTimeFormatOptions = {
@@ -73,6 +76,28 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
         .map(t => {
           const expanderSymbol = getExpanderSymbol(t);
 
+          const {
+            id,
+            name,
+            comparisonLevel = 1,
+          } = t;
+
+          const indexesOnLevel = mapTaskToNestedIndex.get(comparisonLevel);
+
+          if (!indexesOnLevel) {
+            throw new Error(`Indexes are not found for level ${comparisonLevel}`);
+          }
+
+          const taskIndex = indexesOnLevel.get(id);
+
+          if (!taskIndex) {
+            throw new Error(`Index is not found for task ${id}`);
+          }
+
+          const [offset, indexStr] = taskIndex;
+
+          const title = isShowTaskNumbers ? `${indexStr} ${name}` : name;
+
           return (
             <div
               className={styles.taskListTableRow}
@@ -87,7 +112,7 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
                   minWidth: rowWidth,
                   maxWidth: rowWidth,
                 }}
-                title={t.name}
+                title={title}
               >
                 <div className={styles.taskListNameWrapper}>
                   <div
@@ -100,7 +125,18 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
                   >
                     {expanderSymbol}
                   </div>
-                  <div>{t.name}</div>
+
+                  <div
+                    style={{
+                      paddingLeft: offset * nestedTaskNameOffset,
+                    }}
+                  >
+                    {isShowTaskNumbers && (
+                      <b>{indexStr}{' '}</b>
+                    )}
+
+                    {name}
+                  </div>
                 </div>
               </div>
               <div

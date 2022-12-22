@@ -268,6 +268,10 @@ export interface DisplayOption {
    * Show critical path
    */
   isShowCriticalPath?: boolean;
+  /**
+   * Show numbers of tasks next to tasks
+   */
+  isShowTaskNumbers?: boolean;
 }
 
 export interface StylingOption {
@@ -296,6 +300,7 @@ export interface StylingOption {
   dependencyFixWidth?: number;
   dependencyFixHeight?: number;
   dependencyFixIndent?: number;
+  nestedTaskNameOffset?: number;
   todayColor?: string;
   TooltipContent?: React.FC<{
     task: Task;
@@ -338,6 +343,9 @@ export interface TaskListTableProps {
   monthFormat: MonthFormats;
   tasks: readonly TaskOrEmpty[];
   selectedTaskId: string;
+  mapTaskToNestedIndex: MapTaskToNestedIndex;
+  nestedTaskNameOffset: number;
+  isShowTaskNumbers: boolean;
   setSelectedTask: (task: Task) => void;
   onExpanderClick: (task: Task) => void;
 }
@@ -349,13 +357,16 @@ export type MapTaskToGlobalIndex = Map<number, Map<string, number>>;
 export type MapTaskToRowIndex = Map<number, Map<string, number>>;
 
 // comparisson level -> task id -> array of child tasks
-export type ChildMapByLevel = Map<number, Map<string, Task[]>>;
+export type ChildMapByLevel = Map<number, Map<string, TaskOrEmpty[]>>;
 
 // comparisson level -> ids of tasks that don't have parent
 export type RootMapByLevel = Map<number, string[]>;
 
 // comparisson level -> task id -> the task
 export type TaskMapByLevel = Map<number, Map<string, TaskOrEmpty>>;
+
+// comparisson level -> task id -> depth of nesting and task number in format like `1.2.1.1.3`
+export type MapTaskToNestedIndex = Map<number, Map<string, [number, string]>>;
 
 export interface TaskOutOfParentWarning {
   isOutside: boolean;
