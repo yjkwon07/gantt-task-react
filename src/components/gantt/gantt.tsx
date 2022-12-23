@@ -1,9 +1,10 @@
 import React, {
-  useState,
   SyntheticEvent,
-  useRef,
+  useCallback,
   useEffect,
   useMemo,
+  useRef,
+  useState,
 } from "react";
 
 import enDateLocale from 'date-fns/locale/en-US';
@@ -32,7 +33,7 @@ import { TaskListProps, TaskList } from "../task-list/task-list";
 import { TaskGantt } from "./task-gantt";
 import { GanttRelationEvent } from "../../types/gantt-task-actions";
 import { HorizontalScroll } from "../other/horizontal-scroll";
-import { removeHiddenTasks, sortTasks } from "../../helpers/other-helper";
+import { sortTasks } from "../../helpers/sort-tasks";
 import { getChildsAndRoots } from "../../helpers/get-childs-and-roots";
 import { getTasksMap } from "../../helpers/get-tasks-map";
 import { getMapTaskToGlobalIndex } from "../../helpers/get-map-task-to-global-index";
@@ -42,6 +43,8 @@ import { getDependencyMapAndWarnings } from "../../helpers/get-dependency-map-an
 import { getMapTaskToCoordinates } from "../../helpers/get-map-task-to-coordinates";
 import { getCriticalPath } from "../../helpers/get-critical-path";
 import { getMapTaskToNestedIndex } from "../../helpers/get-map-task-to-nested-index";
+import { getInitialClosedTasks } from "../../helpers/get-initial-closed-tasks";
+import { collectVisibleTasks } from "../../helpers/collect-visible-tasks";
 
 import styles from "./gantt.module.css";
 
@@ -122,7 +125,6 @@ export const Gantt: React.FC<GanttProps> = ({
   onClick,
   onDelete = undefined,
   onSelect,
-  onExpanderClick,
   onArrowDoubleClick = undefined,
   fixStartPosition = undefined,
   fixEndPosition = undefined,
@@ -137,6 +139,8 @@ export const Gantt: React.FC<GanttProps> = ({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
 
+  const [closedTasks, setClosedTasks] = useState(() => getInitialClosedTasks(tasks));
+
   const [changeInProgress, setChangeInProgress] = useState<ChangeInProgress | null>(null);
 
   const [currentViewDate, setCurrentViewDate] = useState<Date | undefined>(
@@ -150,17 +154,27 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const [ganttRelationEvent, setGanttRelationEvent] = useState<GanttRelationEvent | null>(null);
 
-  const barTasks = useMemo<readonly TaskOrEmpty[]>(() => {
-    const filteredTasks = onExpanderClick
-      ? removeHiddenTasks(tasks)
-      : [...tasks];
-
-    return filteredTasks.sort(sortTasks);
-  }, [onExpanderClick, tasks]);
+  const sortedTasks = useMemo<readonly TaskOrEmpty[]>(
+    () => [...tasks].sort(sortTasks),
+    [tasks],
+  );
 
   const [childTasksMap, rootTasksMap] = useMemo(
-    () => getChildsAndRoots(barTasks),
-    [barTasks],
+    () => getChildsAndRoots(sortedTasks),
+    [sortedTasks],
+  );
+
+  const [visibleTasks, visibleTasksMirror] = useMemo(
+    () => collectVisibleTasks(
+      childTasksMap,
+      rootTasksMap,
+      closedTasks,
+    ),
+    [
+      childTasksMap,
+      rootTasksMap,
+      closedTasks,
+    ],
   );
 
   const tasksMap = useMemo(
@@ -288,7 +302,7 @@ export const Gantt: React.FC<GanttProps> = ({
     let maxLength = 0;
     const countByLevel: Record<string, number> = {};
 
-    tasks.forEach(({
+    visibleTasks.forEach(({
       comparisonLevel = 1,
     }) => {
       if (!countByLevel[comparisonLevel]) {
@@ -303,7 +317,7 @@ export const Gantt: React.FC<GanttProps> = ({
     });
 
     return maxLength;
-  }, [tasks, comparisonLevels]);
+  }, [visibleTasks, comparisonLevels]);
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
@@ -317,13 +331,13 @@ export const Gantt: React.FC<GanttProps> = ({
   const [ignoreScrollEvent, setIgnoreScrollEvent] = useState(false);
 
   const mapTaskToRowIndex = useMemo(
-    () => getMapTaskToRowIndex(barTasks),
-    [barTasks],
+    () => getMapTaskToRowIndex(visibleTasks),
+    [visibleTasks],
   );
 
   const dates = useMemo(() => {
     const [startDate, endDate] = ganttDateRange(
-      barTasks,
+      visibleTasks,
       viewMode,
       preStepsCount,
     );
@@ -335,7 +349,7 @@ export const Gantt: React.FC<GanttProps> = ({
     }
 
     return res;
-  }, [barTasks, viewMode, preStepsCount, rtl]);
+  }, [visibleTasks, viewMode, preStepsCount, rtl]);
 
   const mapTaskToCoordinates = useMemo(() => getMapTaskToCoordinates(
     tasks,
@@ -560,11 +574,24 @@ export const Gantt: React.FC<GanttProps> = ({
     }
   }, [onSelect, selectedTask]);
 
-  const handleExpanderClick = (task: Task) => {
-    if (onExpanderClick && task.hideChildren !== undefined) {
-      onExpanderClick({ ...task, hideChildren: !task.hideChildren });
-    }
-  };
+  const handleExpanderClick = useCallback((task: Task) => {
+    setClosedTasks((prevClosedTasks) => {
+      const nextClosedTasks = {
+        ...prevClosedTasks,
+      };
+
+      const prevValue = prevClosedTasks[task.id];
+
+      if (prevValue) {
+        delete nextClosedTasks[task.id];
+      } else {
+        nextClosedTasks[task.id] = true;
+      }
+
+      return nextClosedTasks;
+    });
+  }, []);
+
   const gridProps: GridProps = {
     columnWidth,
     isUnknownDates,
@@ -575,6 +602,7 @@ export const Gantt: React.FC<GanttProps> = ({
     todayColor,
     rtl,
   };
+
   const calendarProps: CalendarProps = {
     dateSetup,
     isUnknownDates,
@@ -587,8 +615,10 @@ export const Gantt: React.FC<GanttProps> = ({
     renderBottomHeader,
     renderTopHeader,
   };
+
   const barProps: TaskGanttContentProps = {
-    tasks: barTasks,
+    visibleTasks,
+    visibleTasksMirror,
     childTasksMap,
     tasksMap,
     mapTaskToGlobalIndex,
@@ -649,7 +679,7 @@ export const Gantt: React.FC<GanttProps> = ({
     rowWidth: listCellWidth,
     fontFamily,
     fontSize,
-    tasks: barTasks,
+    tasks: visibleTasks,
     locale,
     monthFormat: monthTaskListFormat,
     headerHeight,
@@ -659,13 +689,16 @@ export const Gantt: React.FC<GanttProps> = ({
     selectedTask,
     taskListRef,
     setSelectedTask,
+    childTasksMap,
     mapTaskToNestedIndex,
     nestedTaskNameOffset,
     isShowTaskNumbers,
+    closedTasks,
     onExpanderClick: handleExpanderClick,
     TaskListHeader,
     TaskListTable,
   };
+
   return (
     <div>
       <div

@@ -10,7 +10,7 @@ import { BarDateHandle } from "./bar-date-handle";
 import { BarRelationHandle } from "./bar-relation-handle";
 import { BarProgressHandle } from "./bar-progress-handle";
 import { TaskItemExtendedProps } from "../task-item";
-import { useHasChildren } from "../use-has-children";
+import { useHasChildren } from "../../../helpers/use-has-children";
 
 import styles from "./bar.module.css";
 import stylesRelationHandle from "./bar-relation-handle.module.css";

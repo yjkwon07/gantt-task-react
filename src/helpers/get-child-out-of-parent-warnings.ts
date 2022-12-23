@@ -3,6 +3,7 @@ import {
   TaskOutOfParentWarnings,
   ChildOutOfParentWarnings,
   ChildMapByLevel,
+  Task,
 } from "../types/public-types";
 import { compareDates } from "./compare-dates";
 
@@ -32,20 +33,26 @@ export const getChildOutOfParentWarnings = (
 
     const childs = childsByLevel.get(id);
 
-    if (!childs || childs.length === 0) {
+    if (!childs) {
+      return;
+    }
+
+    const notEmptyChilds = childs.filter(({ type }) => type !== "empty") as Task[];
+
+    if (notEmptyChilds.length === 0) {
       return;
     }
 
     let {
       start,
       end,
-    } = childs[0];
+    } = notEmptyChilds[0];
 
-    for (let i = 1; i < childs.length; ++i) {
+    for (let i = 1; i < notEmptyChilds.length; ++i) {
       const {
         start: childStart,
         end: childEnd,
-      } = childs[i];
+      } = notEmptyChilds[i];
 
       if (start.getTime() > childStart.getTime()) {
         start = childStart;

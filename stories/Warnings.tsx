@@ -232,28 +232,6 @@ export const Warnings: React.FC<AppProps> = (props) => {
     console.log("On Click event Id:" + task.id);
   };
 
-  const handleExpanderClick = useCallback((task: Task) => {
-    const {
-      id: taskId,
-      comparisonLevel = 1,
-    } = task;
-
-    console.log("On expander click Id:" + task.id);
-
-    setTasks((prevTasks) => prevTasks.map((otherTask) => {
-      const {
-        id: otherId,
-        comparisonLevel: otherComparisonLevel = 1,
-      } = otherTask;
-
-      if (taskId === otherId && comparisonLevel === otherComparisonLevel) {
-        return task;
-      }
-
-      return otherTask;
-    }));
-  }, []);
-
   return (
     <Gantt
       isShowChildOutOfParentWarnings
@@ -267,7 +245,6 @@ export const Warnings: React.FC<AppProps> = (props) => {
       onProgressChange={handleProgressChange}
       onDoubleClick={handleDblClick}
       onClick={handleClick}
-      onExpanderClick={handleExpanderClick}
       onArrowDoubleClick={onArrowDoubleClick}
       fixStartPosition={handleFixStartPosition}
       fixEndPosition={handleFixEndPosition}

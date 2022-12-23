@@ -1,7 +1,9 @@
 import React, { useMemo } from "react";
 
+import { TaskListTableProps } from "../../types/public-types";
+import { TaskListTableRow } from "./task-list-table-row";
+
 import styles from "./task-list-table.module.css";
-import { TaskListTableProps, TaskOrEmpty } from "../../types/public-types";
 
 const localeDateStringCache = {};
 const toLocaleDateStringFactory =
@@ -16,26 +18,6 @@ const toLocaleDateStringFactory =
     return lds;
   };
 
-const getExpanderSymbol = (task: TaskOrEmpty) => {
-  if (task.type === "empty") {
-    return null;
-  }
-
-  const {
-    hideChildren,
-  } = task;
-
-  if (typeof hideChildren === "boolean")  {
-    if (hideChildren) {
-      return "▶";
-    }
-
-    return "▼";
-  }
-
-  return null;
-};
-
 export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   fullRowHeight,
   rowWidth,
@@ -44,9 +26,11 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   fontSize,
   locale,
   monthFormat,
+  childTasksMap,
   mapTaskToNestedIndex,
   nestedTaskNameOffset,
   isShowTaskNumbers,
+  closedTasks,
   onExpanderClick,
 }) => {
   const dateTimeOptions: Intl.DateTimeFormatOptions = {
@@ -73,91 +57,22 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
          * TO DO: maybe consider tasks on other levels?
          */
         .filter((task) => !task.comparisonLevel || task.comparisonLevel === 1)
-        .map(t => {
-          const expanderSymbol = getExpanderSymbol(t);
-
-          const {
-            id,
-            name,
-            comparisonLevel = 1,
-          } = t;
-
-          const indexesOnLevel = mapTaskToNestedIndex.get(comparisonLevel);
-
-          if (!indexesOnLevel) {
-            throw new Error(`Indexes are not found for level ${comparisonLevel}`);
-          }
-
-          const taskIndex = indexesOnLevel.get(id);
-
-          if (!taskIndex) {
-            throw new Error(`Index is not found for task ${id}`);
-          }
-
-          const [offset, indexStr] = taskIndex;
-
-          const title = isShowTaskNumbers ? `${indexStr} ${name}` : name;
-
+        .map((task) => {
           return (
-            <div
-              className={styles.taskListTableRow}
-              style={{
-                height: fullRowHeight,
-              }}
-              key={`${t.id}row`}
-            >
-              <div
-                className={styles.taskListCell}
-                style={{
-                  minWidth: rowWidth,
-                  maxWidth: rowWidth,
-                }}
-                title={title}
-              >
-                <div className={styles.taskListNameWrapper}>
-                  <div
-                    className={
-                      expanderSymbol
-                        ? styles.taskListExpander
-                        : styles.taskListEmptyExpander
-                    }
-                    onClick={t.type === "empty" ? undefined : () => onExpanderClick(t)}
-                  >
-                    {expanderSymbol}
-                  </div>
-
-                  <div
-                    style={{
-                      paddingLeft: offset * nestedTaskNameOffset,
-                    }}
-                  >
-                    {isShowTaskNumbers && (
-                      <b>{indexStr}{' '}</b>
-                    )}
-
-                    {name}
-                  </div>
-                </div>
-              </div>
-              <div
-                className={styles.taskListCell}
-                style={{
-                  minWidth: rowWidth,
-                  maxWidth: rowWidth,
-                }}
-              >
-                &nbsp;{t.type !== "empty" && toLocaleDateString(t.start, dateTimeOptions)}
-              </div>
-              <div
-                className={styles.taskListCell}
-                style={{
-                  minWidth: rowWidth,
-                  maxWidth: rowWidth,
-                }}
-              >
-                &nbsp;{t.type !== "empty" && toLocaleDateString(t.end, dateTimeOptions)}
-              </div>
-            </div>
+            <TaskListTableRow
+              task={task}
+              fullRowHeight={fullRowHeight}
+              rowWidth={rowWidth}
+              childTasksMap={childTasksMap}
+              mapTaskToNestedIndex={mapTaskToNestedIndex}
+              nestedTaskNameOffset={nestedTaskNameOffset}
+              isShowTaskNumbers={isShowTaskNumbers}
+              closedTasks={closedTasks}
+              onExpanderClick={onExpanderClick}
+              dateTimeOptions={dateTimeOptions}
+              toLocaleDateString={toLocaleDateString}
+              key={task.id}
+            />
           );
         })}
     </div>

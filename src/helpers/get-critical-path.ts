@@ -9,12 +9,13 @@ import {
   RootMapByLevel,
   Task,
   TaskMapByLevel,
+  TaskOrEmpty,
 } from "../types/public-types";
 import { collectParents } from "./collect-parents";
 
 const getLatestTasks = (
   task: Task,
-  childsOnLevel: Map<string, Task[]>,
+  childsOnLevel: Map<string, TaskOrEmpty[]>,
   endTs: number,
   /**
  * Avoid the circle of dependencies
@@ -43,6 +44,10 @@ const getLatestTasks = (
   }
 
   return childs.reduce<Task[]>((res, child) => {
+    if (child.type === "empty") {
+      return res;
+    }
+
     const childRes = getLatestTasks(
       child,
       childsOnLevel,
@@ -61,7 +66,7 @@ const collectCriticalPath = (
   target: RelationMoveTarget,
   criticalTs: number,
   tasksMap: TaskMapByLevel,
-  childsOnLevel: Map<string, Task[]>,
+  childsOnLevel: Map<string, TaskOrEmpty[]>,
   dependenciesOnLevel: Map<string, ExpandedDependency[]>,
   dependencyMarginsOnLevel: Map<string, Map<string, number>>,
 ) => {
@@ -85,6 +90,10 @@ const collectCriticalPath = (
   }
 
   taskChilds.forEach((childTask) => {
+    if (childTask.type === "empty") {
+      return;
+    }
+
     const taskTs = target === "startOfTask" ? childTask.start.getTime() : childTask.end.getTime();
 
     if (taskTs >= criticalTs) {
@@ -108,7 +117,7 @@ const collectCriticalPathForTask = (
   cirticalPathDependencies: Map<string, Set<string>>,
   task: Task,
   tasksMap: TaskMapByLevel,
-  childsOnLevel: Map<string, Task[]>,
+  childsOnLevel: Map<string, TaskOrEmpty[]>,
   dependenciesOnLevel: Map<string, ExpandedDependency[]>,
   dependencyMarginsOnLevel: Map<string, Map<string, number>>,
 ) => {
@@ -241,27 +250,16 @@ export const getCriticalPath = (
 ): CriticalPaths => {
   const res = new Map<number, CriticalPath>();
 
-  for (const [comparisonLevel, taskIds] of rootTasksMap.entries()) {
+  for (const [comparisonLevel, rootTasks] of rootTasksMap.entries()) {
     const criticalPathTasks = new Set<string>();
     const cirticalPathDependencies = new Map<string, Set<string>>();
-
-    const tasksOnLevel = tasksMap.get(comparisonLevel);
-    if (!tasksOnLevel) {
-      throw new Error(`Tasks on level ${comparisonLevel} are not found`);
-    }
 
     const childsOnLevel = childTasksMap.get(comparisonLevel);
     if (childsOnLevel) {
       const dependenciesOnLevel = dependencyMap.get(comparisonLevel);
       const dependencyMarginsOnLevel = dependencyMarginsMap.get(comparisonLevel);
 
-      taskIds.forEach((taskId) => {
-        const task = tasksOnLevel.get(taskId);
-
-        if (!task) {
-          throw new Error(`Task ${taskId} is not found`);
-        }
-
+      rootTasks.forEach((task) => {
         if (task.type === "empty") {
           return;
         }

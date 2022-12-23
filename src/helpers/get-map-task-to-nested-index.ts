@@ -38,11 +38,11 @@ export const getMapTaskToNestedIndex = (
 ): MapTaskToNestedIndex => {
   const res = new Map<number, Map<string, [number, string]>>();
 
-  for (const [comparisonLevel, rootIds] of rootTasksMap.entries()) {
+  for (const [comparisonLevel, rootTasks] of rootTasksMap.entries()) {
     const indexesOnLevel = new Map<string, [number, string]>();
     const childTasksOnLevel = childTasksMap.get(comparisonLevel) || new Map<string, TaskOrEmpty[]>();
     
-    rootIds.forEach((rootId, index) => {
+    rootTasks.forEach(({ id: rootId }, index) => {
       const rootIndex = `${index + 1}`;
       indexesOnLevel.set(rootId, [0, rootIndex]);
 

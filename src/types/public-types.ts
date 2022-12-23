@@ -215,10 +215,6 @@ export interface EventOption {
    */
   onDelete?: OnDateChange;
   /**
-   * Invokes on expander on task list
-   */
-  onExpanderClick?: (task: Task) => void;
-  /**
    * Invokes on double click on the relation arrow between tasks
    */
   onArrowDoubleClick?: OnArrowDoubleClick;
@@ -343,10 +339,12 @@ export interface TaskListTableProps {
   monthFormat: MonthFormats;
   tasks: readonly TaskOrEmpty[];
   selectedTaskId: string;
+  childTasksMap: ChildMapByLevel;
   mapTaskToNestedIndex: MapTaskToNestedIndex;
   nestedTaskNameOffset: number;
   isShowTaskNumbers: boolean;
   setSelectedTask: (task: Task) => void;
+  closedTasks: Readonly<Record<string, true>>;
   onExpanderClick: (task: Task) => void;
 }
 
@@ -359,8 +357,8 @@ export type MapTaskToRowIndex = Map<number, Map<string, number>>;
 // comparisson level -> task id -> array of child tasks
 export type ChildMapByLevel = Map<number, Map<string, TaskOrEmpty[]>>;
 
-// comparisson level -> ids of tasks that don't have parent
-export type RootMapByLevel = Map<number, string[]>;
+// comparisson level -> tasks that don't have parent
+export type RootMapByLevel = Map<number, TaskOrEmpty[]>;
 
 // comparisson level -> task id -> the task
 export type TaskMapByLevel = Map<number, Map<string, TaskOrEmpty>>;

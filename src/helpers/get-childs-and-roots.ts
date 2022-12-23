@@ -11,18 +11,17 @@ export const getChildsAndRoots = (
   tasks: readonly TaskOrEmpty[],
 ): [ChildMapByLevel, RootMapByLevel] => {
   const childRes = new Map<number, Map<string, TaskOrEmpty[]>>();
-  const rootRes = new Map<number, string[]>();
+  const rootRes = new Map<number, TaskOrEmpty[]>();
 
   tasks.forEach((task) => {
     const {
-      id,
       parent,
       comparisonLevel = 1,
     } = task;
 
     if (!parent) {
       const rootOnLevel = rootRes.get(comparisonLevel) || [];
-      rootRes.set(comparisonLevel, [...rootOnLevel, id]);
+      rootRes.set(comparisonLevel, [...rootOnLevel, task]);
 
       return;
     }

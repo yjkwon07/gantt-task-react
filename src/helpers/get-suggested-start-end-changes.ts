@@ -47,6 +47,10 @@ const getMinAndMaxDatesInDescendants = (
   let end: Date | null = null;
 
   childTasks.forEach((childTask) => {
+    if (childTask.type === "empty") {
+      return;
+    }
+
     const descendantsResult = getMinAndMaxDatesInDescendants(
       childTask,
       changedTask,

@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 
-import { ChildMapByLevel, Task } from "../../types/public-types";
+import { ChildMapByLevel, TaskOrEmpty } from "../types/public-types";
 
 export const useHasChildren = (
-  task: Task,
+  task: TaskOrEmpty,
   childTasksMap: ChildMapByLevel,
 ) => {
   const {

@@ -6,7 +6,7 @@ import { getProgressPoint } from "../../../helpers/bar-helper";
 import { BarDisplay } from "./bar-display";
 import { BarProgressHandle } from "./bar-progress-handle";
 import { TaskItemExtendedProps } from "../task-item";
-import { useHasChildren } from "../use-has-children";
+import { useHasChildren } from "../../../helpers/use-has-children";
 
 import styles from "./bar.module.css";
 

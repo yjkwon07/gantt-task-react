@@ -42,7 +42,8 @@ import { getMapTaskToCoordinatesOnLevel, getTaskCoordinates } from "../../helper
 import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
 
 export type TaskGanttContentProps = {
-  tasks: readonly TaskOrEmpty[];
+  visibleTasks: readonly TaskOrEmpty[];
+  visibleTasksMirror: Readonly<Record<string, true>>;
   childTasksMap: ChildMapByLevel;
   tasksMap: TaskMapByLevel;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
@@ -92,7 +93,8 @@ export type TaskGanttContentProps = {
 } & EventOption;
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
-  tasks,
+  visibleTasks,
+  visibleTasksMirror,
   childTasksMap,
   tasksMap,
   mapTaskToGlobalIndex,
@@ -478,7 +480,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
 
       const endTargetRelationCircle = getRelationCircleByCoordinates(
         svgP,
-        tasks,
+        visibleTasks,
         taskHalfHeight,
         relationCircleOffset,
         relationCircleRadius,
@@ -534,7 +536,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     startRelationTask,
     setGanttRelationEvent,
     mapTaskToCoordinates,
-    tasks,
+    visibleTasks,
     tasksMap,
     taskHalfHeight,
     relationCircleOffset,
@@ -692,7 +694,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   return (
     <g className="content">
       <g className="arrows" fill={arrowColor} stroke={arrowColor}>
-        {tasks.map(task => {
+        {visibleTasks.map(task => {
           const {
             id: taskId,
             comparisonLevel = 1,
@@ -744,47 +746,49 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             ? criticalPathOnLevel.dependencies.get(task.id)
             : undefined;
 
-          return dependenciesByTask.map(({
-            ownTarget,
-            source,
-            sourceTarget,
-          }) => {
-            const isCritical = criticalPathForTask
-              ? criticalPathForTask.has(source.id)
-              : false;
+          return dependenciesByTask
+            .filter(({ source }) => visibleTasksMirror[source.id])
+            .map(({
+              ownTarget,
+              source,
+              sourceTarget,
+            }) => {
+              const isCritical = criticalPathForTask
+                ? criticalPathForTask.has(source.id)
+                : false;
 
-            return (
-              <Arrow
-                key={`Arrow from ${taskId} to ${source.id} on ${comparisonLevel}`}
-                taskFrom={source}
-                targetFrom={sourceTarget}
-                taskTo={task}
-                targetTo={ownTarget}
-                marginsByTask={marginsByLevel ? marginsByLevel.get(task.id) : undefined}
-                mapTaskToCoordinatesOnLevel={mapTaskToCoordinatesOnLevel}
-                mapTaskRowIndexByLevel={mapTaskRowIndexByLevel}
-                fullRowHeight={fullRowHeight}
-                taskHeight={taskHeight}
-                arrowIndent={arrowIndent}
-                dependencyFixWidth={dependencyFixWidth}
-                dependencyFixHeight={dependencyFixHeight}
-                dependencyFixIndent={dependencyFixIndent}
-                arrowColor={arrowColor}
-                arrowWarningColor={arrowWarningColor}
-                arrowCriticalColor={arrowCriticalColor}
-                isShowDependencyWarnings={isShowDependencyWarnings}
-                isCritical={isCritical}
-                rtl={rtl}
-                onArrowDoubleClick={onArrowDoubleClick}
-                handleFixDependency={handleFixDependency}
-              />
-            );
+              return (
+                <Arrow
+                  key={`Arrow from ${taskId} to ${source.id} on ${comparisonLevel}`}
+                  taskFrom={source}
+                  targetFrom={sourceTarget}
+                  taskTo={task}
+                  targetTo={ownTarget}
+                  marginsByTask={marginsByLevel ? marginsByLevel.get(task.id) : undefined}
+                  mapTaskToCoordinatesOnLevel={mapTaskToCoordinatesOnLevel}
+                  mapTaskRowIndexByLevel={mapTaskRowIndexByLevel}
+                  fullRowHeight={fullRowHeight}
+                  taskHeight={taskHeight}
+                  arrowIndent={arrowIndent}
+                  dependencyFixWidth={dependencyFixWidth}
+                  dependencyFixHeight={dependencyFixHeight}
+                  dependencyFixIndent={dependencyFixIndent}
+                  arrowColor={arrowColor}
+                  arrowWarningColor={arrowWarningColor}
+                  arrowCriticalColor={arrowCriticalColor}
+                  isShowDependencyWarnings={isShowDependencyWarnings}
+                  isCritical={isCritical}
+                  rtl={rtl}
+                  onArrowDoubleClick={onArrowDoubleClick}
+                  handleFixDependency={handleFixDependency}
+                />
+              );
           });
         })}
       </g>
 
       <g className="bar" fontFamily={fontFamily} fontSize={fontSize}>
-        {tasks.map(task => {
+        {visibleTasks.map(task => {
           const {
             comparisonLevel = 1,
           } = task;
