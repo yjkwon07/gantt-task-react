@@ -11,7 +11,8 @@ import {
 
 export type TaskListProps = {
   headerHeight: number;
-  rowWidth: string;
+  titleCellWidth: string | number;
+  dateCellWidth: string | number;
   fontFamily: string;
   fontSize: string;
   rowHeight: number;
@@ -33,7 +34,8 @@ export type TaskListProps = {
   onExpanderClick: (task: Task) => void;
   TaskListHeader: React.FC<{
     headerHeight: number;
-    rowWidth: string;
+    titleCellWidth: string | number;
+    dateCellWidth: string | number;
     fontFamily: string;
     fontSize: string;
   }>;
@@ -44,7 +46,8 @@ export const TaskList: React.FC<TaskListProps> = ({
   headerHeight,
   fontFamily,
   fontSize,
-  rowWidth,
+  titleCellWidth,
+  dateCellWidth,
   rowHeight,
   fullRowHeight,
   scrollY,
@@ -72,17 +75,18 @@ export const TaskList: React.FC<TaskListProps> = ({
     }
   }, [scrollY]);
 
-  const headerProps = {
-    headerHeight,
-    fontFamily,
-    fontSize,
-    rowWidth,
-  };
   const selectedTaskId = selectedTask ? selectedTask.id : "";
 
   return (
     <div ref={taskListRef}>
-      <TaskListHeader {...headerProps} />
+      <TaskListHeader
+        headerHeight={headerHeight}
+        fontFamily={fontFamily}
+        fontSize={fontSize}
+        titleCellWidth={titleCellWidth}
+        dateCellWidth={dateCellWidth}
+      />
+
       <div
         ref={horizontalContainerRef}
         className={horizontalContainerClass}
@@ -91,7 +95,8 @@ export const TaskList: React.FC<TaskListProps> = ({
         <TaskListTable
           rowHeight={rowHeight}
           fullRowHeight={fullRowHeight}
-          rowWidth={rowWidth}
+          titleCellWidth={titleCellWidth}
+          dateCellWidth={dateCellWidth}
           fontFamily={fontFamily}
           fontSize={fontSize}
           tasks={tasks}

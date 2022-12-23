@@ -8,11 +8,13 @@
 }
 
 .taskListCell {
+  box-sizing: border-box;
   display: table-cell;
   vertical-align: middle;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-left: 5px;
 }
 
 .taskListNameWrapper {

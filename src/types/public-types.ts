@@ -274,7 +274,8 @@ export interface StylingOption {
   colors?: Partial<TaskBarColorStyles>;
   headerHeight?: number;
   columnWidth?: number;
-  listCellWidth?: string;
+  titleCellWidth?: string | number;
+  dateCellWidth?: string | number;
   rowHeight?: number;
   relationCircleOffset?: number;
   relationCircleRadius?: number;
@@ -305,7 +306,8 @@ export interface StylingOption {
   }>;
   TaskListHeader?: React.FC<{
     headerHeight: number;
-    rowWidth: string;
+    titleCellWidth: string | number;
+    dateCellWidth: string | number;
     fontFamily: string;
     fontSize: string;
   }>;
@@ -332,7 +334,8 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
 export interface TaskListTableProps {
   rowHeight: number;
   fullRowHeight: number;
-  rowWidth: string;
+  titleCellWidth: string | number;
+  dateCellWidth: string | number;
   fontFamily: string;
   fontSize: string;
   locale: string;

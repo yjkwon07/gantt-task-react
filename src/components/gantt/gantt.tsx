@@ -83,7 +83,8 @@ export const Gantt: React.FC<GanttProps> = ({
   tasks,
   headerHeight = 50,
   columnWidth = 60,
-  listCellWidth = "220px",
+  titleCellWidth = 220,
+  dateCellWidth = 220,
   rowHeight = 50,
   relationCircleOffset = 10,
   relationCircleRadius = 5,
@@ -423,13 +424,13 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   useEffect(() => {
-    if (!listCellWidth) {
+    if (!titleCellWidth && !dateCellWidth) {
       setTaskListWidth(0);
     }
     if (taskListRef.current) {
       setTaskListWidth(taskListRef.current.offsetWidth);
     }
-  }, [taskListRef, listCellWidth]);
+  }, [taskListRef, titleCellWidth, dateCellWidth]);
 
   useEffect(() => {
     if (wrapperRef.current) {
@@ -676,7 +677,8 @@ export const Gantt: React.FC<GanttProps> = ({
   const tableProps: TaskListProps = {
     rowHeight,
     fullRowHeight,
-    rowWidth: listCellWidth,
+    titleCellWidth,
+    dateCellWidth,
     fontFamily,
     fontSize,
     tasks: visibleTasks,
@@ -707,7 +709,7 @@ export const Gantt: React.FC<GanttProps> = ({
         tabIndex={0}
         ref={wrapperRef}
       >
-        {listCellWidth && <TaskList {...tableProps} />}
+        {(titleCellWidth || dateCellWidth) && <TaskList {...tableProps} />}
         <TaskGantt
           gridProps={gridProps}
           calendarProps={calendarProps}

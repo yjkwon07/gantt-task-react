@@ -32,7 +32,8 @@ const getExpanderSymbol = (
 type TaskListTableRowProps = {
   task: TaskOrEmpty;
   fullRowHeight: number;
-  rowWidth: string;
+  titleCellWidth: string | number;
+  dateCellWidth: string | number;
   childTasksMap: ChildMapByLevel;
   mapTaskToNestedIndex: MapTaskToNestedIndex;
   nestedTaskNameOffset: number;
@@ -46,7 +47,8 @@ type TaskListTableRowProps = {
 const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   task,
   fullRowHeight,
-  rowWidth,
+  titleCellWidth,
+  dateCellWidth,
   childTasksMap,
   mapTaskToNestedIndex,
   nestedTaskNameOffset,
@@ -100,8 +102,8 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
       <div
         className={styles.taskListCell}
         style={{
-          minWidth: rowWidth,
-          maxWidth: rowWidth,
+          minWidth: titleCellWidth,
+          maxWidth: titleCellWidth,
         }}
         title={title}
       >
@@ -131,23 +133,25 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
           </div>
         </div>
       </div>
+
       <div
         className={styles.taskListCell}
         style={{
-          minWidth: rowWidth,
-          maxWidth: rowWidth,
+          minWidth: dateCellWidth,
+          maxWidth: dateCellWidth,
         }}
       >
-        &nbsp;{task.type !== "empty" && toLocaleDateString(task.start, dateTimeOptions)}
+        {task.type !== "empty" && toLocaleDateString(task.start, dateTimeOptions)}
       </div>
+
       <div
         className={styles.taskListCell}
         style={{
-          minWidth: rowWidth,
-          maxWidth: rowWidth,
+          minWidth: dateCellWidth,
+          maxWidth: dateCellWidth,
         }}
       >
-        &nbsp;{task.type !== "empty" && toLocaleDateString(task.end, dateTimeOptions)}
+        {task.type !== "empty" && toLocaleDateString(task.end, dateTimeOptions)}
       </div>
     </div>
   );
