@@ -274,9 +274,10 @@ export interface StylingOption {
   colors?: Partial<TaskBarColorStyles>;
   headerHeight?: number;
   columnWidth?: number;
-  columns?: Column[];
-  titleCellWidth?: string | number;
-  dateCellWidth?: string | number;
+  columns?: readonly Column[];
+  onResizeColumn?: OnResizeColumn;
+  titleCellWidth?: number;
+  dateCellWidth?: number;
   rowHeight?: number;
   relationCircleOffset?: number;
   relationCircleRadius?: number;
@@ -329,7 +330,8 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
 export interface TaskListTableProps {
   rowHeight: number;
   fullRowHeight: number;
-  columns: Column[];
+  columns: readonly Column[];
+  columnResizeEvent: ColumnResizeEvent | null;
   fontFamily: string;
   fontSize: string;
   locale: string;
@@ -347,9 +349,12 @@ export interface TaskListTableProps {
 
 export interface TaskListHeaderProps {
   headerHeight: number;
-  columns: Column[];
+  columns: readonly Column[];
+  columnResizeEvent: ColumnResizeEvent | null;
   fontFamily: string;
   fontSize: string;
+  canResizeColumn: boolean;
+  onResizeStart: (columnIndex: number, event: React.MouseEvent) => void;
 }
 
 // comparisson level -> task id -> index in array of tasks
@@ -456,6 +461,17 @@ export type ColumnProps = {
 
 export type Column = {
   component: ComponentType<ColumnProps>;
-  width: string | number;
+  width: number;
   title?: ReactNode;
 };
+
+export type ColumnResizeEvent = {
+  columnIndex: number;
+  startX: number;
+  endX: number;
+};
+
+export type OnResizeColumn = (
+  columnIndex: number,
+  nextWidth: number,
+) => void;

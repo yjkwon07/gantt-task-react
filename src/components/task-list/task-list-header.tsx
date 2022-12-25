@@ -3,22 +3,18 @@ import React, {
   memo,
 } from "react";
 
-import { Column } from "../../types/public-types";
+import { TaskListHeaderProps } from "../../types/public-types";
 
 import styles from "./task-list-header.module.css";
 
-type TaskListHeaderDefaultProps = {
-  headerHeight: number;
-  columns: Column[];
-  fontFamily: string;
-  fontSize: string;
-};
-
-const TaskListHeaderDefaultInner: React.FC<TaskListHeaderDefaultProps> = ({
+const TaskListHeaderDefaultInner: React.FC<TaskListHeaderProps> = ({
   headerHeight,
   fontFamily,
   fontSize,
   columns,
+  columnResizeEvent,
+  canResizeColumn,
+  onResizeStart,
 }) => {
   return (
     <div
@@ -37,28 +33,44 @@ const TaskListHeaderDefaultInner: React.FC<TaskListHeaderDefaultProps> = ({
         {columns.map(({
           title,
           width,
-        }, index) => (
-          <Fragment key={index}>
-            {index > 0 && (
-              <div
-                className={styles.ganttTable_HeaderSeparator}
-                style={{
-                  height: headerHeight * 0.5,
-                  marginTop: headerHeight * 0.2,
-                }}
-              />
-            )}
+        }, index) => {
+          const columnWidth = columnResizeEvent && columnResizeEvent.columnIndex === index
+            ? Math.max(5, width + columnResizeEvent.endX - columnResizeEvent.startX)
+            : width;
 
-            <div
-              className={styles.ganttTable_HeaderItem}
-              style={{
-                minWidth: width,
-              }}
-            >
-              {title}
-            </div>
-          </Fragment>
-        ))}
+          return (
+            <Fragment key={index}>
+              {index > 0 && (
+                <div
+                  className={styles.ganttTable_HeaderSeparator}
+                  style={{
+                    height: headerHeight * 0.5,
+                    marginTop: headerHeight * 0.2,
+                  }}
+                />
+              )}
+
+              <div
+                className={styles.ganttTable_HeaderItem}
+                style={{
+                  minWidth: columnWidth,
+                  maxWidth: columnWidth,
+                }}
+              >
+                {title}
+
+                {canResizeColumn && (
+                  <div
+                    className={styles.resizer}
+                    onMouseDown={(event) => {
+                      onResizeStart(index, event);
+                    }}
+                  />
+                )}
+              </div>
+            </Fragment>
+          );
+        })}
       </div>
     </div>
   );

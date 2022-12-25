@@ -51,6 +51,7 @@ import styles from "./gantt.module.css";
 import { TitleColumn } from "../task-list/columns/title-column";
 import { DateStartColumn } from "../task-list/columns/date-start-column";
 import { DateEndColumn } from "../task-list/columns/date-end-column";
+import { useColumnResize } from "./use-column-resize";
 
 const defaultColors: TaskBarColorStyles = {
   barProgressColor: "#a3a3ff",
@@ -88,6 +89,7 @@ export const Gantt: React.FC<GanttProps> = ({
   headerHeight = 50,
   columnWidth = 60,
   columns: columnsProp = undefined,
+  onResizeColumn = undefined,
   titleCellWidth = 220,
   dateCellWidth = 220,
   rowHeight = 50,
@@ -598,7 +600,7 @@ export const Gantt: React.FC<GanttProps> = ({
     });
   }, []);
 
-  const columns = useMemo<Column[]>(() => {
+  const columns = useMemo<readonly Column[]>(() => {
     if (columnsProp) {
       return columnsProp;
     }
@@ -623,6 +625,18 @@ export const Gantt: React.FC<GanttProps> = ({
       },
     ];
   }, [titleCellWidth, dateCellWidth, columnsProp]);
+
+  const onResizeColumnWithDelta = useCallback((columnIndex: number, delta: number) => {
+    if (onResizeColumn) {
+      const {
+        width,
+      } = columns[columnIndex];
+
+      onResizeColumn(columnIndex, Math.max(10, width + delta));
+    }
+  }, [columns, onResizeColumn]);
+
+  const [columnResizeEvent, onResizeStart] = useColumnResize(onResizeColumnWithDelta);
 
   const gridProps: GridProps = {
     columnWidth,
@@ -709,6 +723,9 @@ export const Gantt: React.FC<GanttProps> = ({
     rowHeight,
     fullRowHeight,
     columns,
+    columnResizeEvent,
+    onResizeStart,
+    canResizeColumn: Boolean(onResizeColumn),
     fontFamily,
     fontSize,
     tasks: visibleTasks,

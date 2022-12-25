@@ -7,16 +7,21 @@ import React, {
 import {
   ChildMapByLevel,
   Column,
+  ColumnResizeEvent,
   MapTaskToNestedIndex,
   MonthFormats,
   Task,
+  TaskListHeaderProps,
   TaskListTableProps,
   TaskOrEmpty,
 } from "../../types/public-types";
 
 export type TaskListProps = {
   headerHeight: number;
-  columns: Column[];
+  columns: readonly Column[];
+  columnResizeEvent: ColumnResizeEvent | null;
+  onResizeStart: (columnIndex: number, event: React.MouseEvent) => void;
+  canResizeColumn: boolean;
   fontFamily: string;
   fontSize: string;
   rowHeight: number;
@@ -36,12 +41,7 @@ export type TaskListProps = {
   setSelectedTask: (task: Task) => void;
   closedTasks: Readonly<Record<string, true>>;
   onExpanderClick: (task: Task) => void;
-  TaskListHeader: ComponentType<{
-    headerHeight: number;
-    columns: Column[];
-    fontFamily: string;
-    fontSize: string;
-  }>;
+  TaskListHeader: ComponentType<TaskListHeaderProps>;
   TaskListTable: ComponentType<TaskListTableProps>;
 };
 
@@ -50,6 +50,9 @@ export const TaskList: React.FC<TaskListProps> = ({
   fontFamily,
   fontSize,
   columns,
+  columnResizeEvent,
+  onResizeStart,
+  canResizeColumn,
   rowHeight,
   fullRowHeight,
   scrollY,
@@ -86,6 +89,9 @@ export const TaskList: React.FC<TaskListProps> = ({
         fontFamily={fontFamily}
         fontSize={fontSize}
         columns={columns}
+        columnResizeEvent={columnResizeEvent}
+        onResizeStart={onResizeStart}
+        canResizeColumn={canResizeColumn}
       />
 
       <div
@@ -97,6 +103,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           rowHeight={rowHeight}
           fullRowHeight={fullRowHeight}
           columns={columns}
+          columnResizeEvent={columnResizeEvent}
           fontFamily={fontFamily}
           fontSize={fontSize}
           tasks={tasks}

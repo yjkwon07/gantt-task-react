@@ -7,6 +7,7 @@ import {
   ChildMapByLevel,
   Column,
   ColumnData,
+  ColumnResizeEvent,
   MapTaskToNestedIndex,
   Task,
   TaskOrEmpty,
@@ -18,7 +19,8 @@ import styles from "./task-list-table-row.module.css";
 type TaskListTableRowProps = {
   task: TaskOrEmpty;
   fullRowHeight: number;
-  columns: Column[];
+  columns: readonly Column[];
+  columnResizeEvent: ColumnResizeEvent | null;
   childTasksMap: ChildMapByLevel;
   mapTaskToNestedIndex: MapTaskToNestedIndex;
   nestedTaskNameOffset: number;
@@ -33,6 +35,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   task,
   fullRowHeight,
   columns,
+  columnResizeEvent,
   childTasksMap,
   mapTaskToNestedIndex,
   nestedTaskNameOffset,
@@ -90,20 +93,26 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
       {columns.map(({
         component: Component,
         width,
-      }, index) => (
-        <div
-          className={styles.taskListCell}
-          style={{
-            minWidth: width,
-            maxWidth: width,
-          }}
-          key={index}
-        >
-          <Component
-            data={columnData}
-          />
-        </div>
-      ))}
+      }, index) => {
+        const columnWidth = columnResizeEvent && columnResizeEvent.columnIndex === index
+          ? Math.max(5, width + columnResizeEvent.endX - columnResizeEvent.startX)
+          : width;
+
+        return (
+          <div
+            className={styles.taskListCell}
+            style={{
+              minWidth: columnWidth,
+              maxWidth: columnWidth,
+            }}
+            key={index}
+          >
+            <Component
+              data={columnData}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 };
