@@ -1,11 +1,15 @@
-import React, { memo } from "react";
+import React, {
+  Fragment,
+  memo,
+} from "react";
+
+import { Column } from "../../types/public-types";
 
 import styles from "./task-list-header.module.css";
 
 type TaskListHeaderDefaultProps = {
   headerHeight: number;
-  titleCellWidth: string | number;
-  dateCellWidth: string | number;
+  columns: Column[];
   fontFamily: string;
   fontSize: string;
 };
@@ -14,8 +18,7 @@ const TaskListHeaderDefaultInner: React.FC<TaskListHeaderDefaultProps> = ({
   headerHeight,
   fontFamily,
   fontSize,
-  titleCellWidth,
-  dateCellWidth,
+  columns,
 }) => {
   return (
     <div
@@ -31,44 +34,31 @@ const TaskListHeaderDefaultInner: React.FC<TaskListHeaderDefaultProps> = ({
           height: headerHeight - 2,
         }}
       >
-        <div
-          className={styles.ganttTable_HeaderItem}
-          style={{
-            minWidth: titleCellWidth,
-          }}
-        >
-          &nbsp;Name
-        </div>
-        <div
-          className={styles.ganttTable_HeaderSeparator}
-          style={{
-            height: headerHeight * 0.5,
-            marginTop: headerHeight * 0.2,
-          }}
-        />
-        <div
-          className={styles.ganttTable_HeaderItem}
-          style={{
-            minWidth: dateCellWidth,
-          }}
-        >
-          &nbsp;From
-        </div>
-        <div
-          className={styles.ganttTable_HeaderSeparator}
-          style={{
-            height: headerHeight * 0.5,
-            marginTop: headerHeight * 0.25,
-          }}
-        />
-        <div
-          className={styles.ganttTable_HeaderItem}
-          style={{
-            minWidth: dateCellWidth,
-          }}
-        >
-          &nbsp;To
-        </div>
+        {columns.map(({
+          title,
+          width,
+        }, index) => (
+          <Fragment key={index}>
+            {index > 0 && (
+              <div
+                className={styles.ganttTable_HeaderSeparator}
+                style={{
+                  height: headerHeight * 0.5,
+                  marginTop: headerHeight * 0.2,
+                }}
+              />
+            )}
+
+            <div
+              className={styles.ganttTable_HeaderItem}
+              style={{
+                minWidth: width,
+              }}
+            >
+              {title}
+            </div>
+          </Fragment>
+        ))}
       </div>
     </div>
   );

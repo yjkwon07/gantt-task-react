@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 import type { Locale as DateLocale } from "date-fns";
 
 import type { BarMoveAction, RelationMoveTarget } from "./gantt-task-actions";
@@ -274,6 +274,7 @@ export interface StylingOption {
   colors?: Partial<TaskBarColorStyles>;
   headerHeight?: number;
   columnWidth?: number;
+  columns?: Column[];
   titleCellWidth?: string | number;
   dateCellWidth?: string | number;
   rowHeight?: number;
@@ -299,19 +300,13 @@ export interface StylingOption {
   dependencyFixIndent?: number;
   nestedTaskNameOffset?: number;
   todayColor?: string;
-  TooltipContent?: React.FC<{
+  TooltipContent?: ComponentType<{
     task: Task;
     fontSize: string;
     fontFamily: string;
   }>;
-  TaskListHeader?: React.FC<{
-    headerHeight: number;
-    titleCellWidth: string | number;
-    dateCellWidth: string | number;
-    fontFamily: string;
-    fontSize: string;
-  }>;
-  TaskListTable?: React.FC<TaskListTableProps>;
+  TaskListHeader?: ComponentType<TaskListHeaderProps>;
+  TaskListTable?: ComponentType<TaskListTableProps>;
 
   /**
    * Render function of bottom part of header above chart
@@ -334,8 +329,7 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
 export interface TaskListTableProps {
   rowHeight: number;
   fullRowHeight: number;
-  titleCellWidth: string | number;
-  dateCellWidth: string | number;
+  columns: Column[];
   fontFamily: string;
   fontSize: string;
   locale: string;
@@ -349,6 +343,13 @@ export interface TaskListTableProps {
   setSelectedTask: (task: Task) => void;
   closedTasks: Readonly<Record<string, true>>;
   onExpanderClick: (task: Task) => void;
+}
+
+export interface TaskListHeaderProps {
+  headerHeight: number;
+  columns: Column[];
+  fontFamily: string;
+  fontSize: string;
 }
 
 // comparisson level -> task id -> index in array of tasks
@@ -434,4 +435,27 @@ export type ChangeInProgress = {
   startX: number;
   initialCoordinates: TaskCoordinates;
   coordinates: TaskCoordinates;
+};
+
+export type ColumnData = {
+  isShowTaskNumbers: boolean;
+  hasChildren: boolean;
+  isClosed: boolean;
+  depth: number;
+  indexStr: string;
+  task: TaskOrEmpty;
+  nestedTaskNameOffset: number;
+  dateTimeOptions: Intl.DateTimeFormatOptions;
+  toLocaleDateString: (date: Date, dateTimeOptions: Intl.DateTimeFormatOptions) => string;
+  onExpanderClick: (task: Task) => void;
+};
+
+export type ColumnProps = {
+  data: ColumnData;
+};
+
+export type Column = {
+  component: ComponentType<ColumnProps>;
+  width: string | number;
+  title?: ReactNode;
 };

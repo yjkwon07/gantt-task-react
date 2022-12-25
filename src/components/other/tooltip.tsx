@@ -1,4 +1,9 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, {
+  ComponentType,
+  useRef,
+  useEffect,
+  useState,
+} from "react";
 
 import { MapTaskToCoordinates, MapTaskToRowIndex, Task } from "../../types/public-types";
 import styles from "./tooltip.module.css";
@@ -22,12 +27,13 @@ export type TooltipProps = {
   fullRowHeight: number;
   fontSize: string;
   fontFamily: string;
-  TooltipContent: React.FC<{
+  TooltipContent: ComponentType<{
     task: Task;
     fontSize: string;
     fontFamily: string;
   }>;
 };
+
 export const Tooltip: React.FC<TooltipProps> = ({
   task,
   mapTaskToCoordinates,

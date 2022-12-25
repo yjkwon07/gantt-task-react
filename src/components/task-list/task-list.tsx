@@ -1,7 +1,12 @@
-import React, { useEffect, useRef } from "react";
+import React, {
+  ComponentType,
+  useEffect,
+  useRef,
+} from "react";
 
 import {
   ChildMapByLevel,
+  Column,
   MapTaskToNestedIndex,
   MonthFormats,
   Task,
@@ -11,8 +16,7 @@ import {
 
 export type TaskListProps = {
   headerHeight: number;
-  titleCellWidth: string | number;
-  dateCellWidth: string | number;
+  columns: Column[];
   fontFamily: string;
   fontSize: string;
   rowHeight: number;
@@ -32,22 +36,20 @@ export type TaskListProps = {
   setSelectedTask: (task: Task) => void;
   closedTasks: Readonly<Record<string, true>>;
   onExpanderClick: (task: Task) => void;
-  TaskListHeader: React.FC<{
+  TaskListHeader: ComponentType<{
     headerHeight: number;
-    titleCellWidth: string | number;
-    dateCellWidth: string | number;
+    columns: Column[];
     fontFamily: string;
     fontSize: string;
   }>;
-  TaskListTable: React.FC<TaskListTableProps>;
+  TaskListTable: ComponentType<TaskListTableProps>;
 };
 
 export const TaskList: React.FC<TaskListProps> = ({
   headerHeight,
   fontFamily,
   fontSize,
-  titleCellWidth,
-  dateCellWidth,
+  columns,
   rowHeight,
   fullRowHeight,
   scrollY,
@@ -83,8 +85,7 @@ export const TaskList: React.FC<TaskListProps> = ({
         headerHeight={headerHeight}
         fontFamily={fontFamily}
         fontSize={fontSize}
-        titleCellWidth={titleCellWidth}
-        dateCellWidth={dateCellWidth}
+        columns={columns}
       />
 
       <div
@@ -95,8 +96,7 @@ export const TaskList: React.FC<TaskListProps> = ({
         <TaskListTable
           rowHeight={rowHeight}
           fullRowHeight={fullRowHeight}
-          titleCellWidth={titleCellWidth}
-          dateCellWidth={dateCellWidth}
+          columns={columns}
           fontFamily={fontFamily}
           fontSize={fontSize}
           tasks={tasks}

@@ -12,6 +12,7 @@ import enDateLocale from 'date-fns/locale/en-US';
 import {
   ChangeInProgress,
   ChildOutOfParentWarnings,
+  Column,
   CriticalPath,
   DateSetup,
   GanttProps,
@@ -47,6 +48,9 @@ import { getInitialClosedTasks } from "../../helpers/get-initial-closed-tasks";
 import { collectVisibleTasks } from "../../helpers/collect-visible-tasks";
 
 import styles from "./gantt.module.css";
+import { TitleColumn } from "../task-list/columns/title-column";
+import { DateStartColumn } from "../task-list/columns/date-start-column";
+import { DateEndColumn } from "../task-list/columns/date-end-column";
 
 const defaultColors: TaskBarColorStyles = {
   barProgressColor: "#a3a3ff",
@@ -83,6 +87,7 @@ export const Gantt: React.FC<GanttProps> = ({
   tasks,
   headerHeight = 50,
   columnWidth = 60,
+  columns: columnsProp = undefined,
   titleCellWidth = 220,
   dateCellWidth = 220,
   rowHeight = 50,
@@ -593,6 +598,32 @@ export const Gantt: React.FC<GanttProps> = ({
     });
   }, []);
 
+  const columns = useMemo<Column[]>(() => {
+    if (columnsProp) {
+      return columnsProp;
+    }
+
+    return [
+      {
+        component: TitleColumn,
+        width: titleCellWidth,
+        title: "Name",
+      },
+
+      {
+        component: DateStartColumn,
+        width: dateCellWidth,
+        title: "From",
+      },
+
+      {
+        component: DateEndColumn,
+        width: dateCellWidth,
+        title: "From",
+      },
+    ];
+  }, [titleCellWidth, dateCellWidth, columnsProp]);
+
   const gridProps: GridProps = {
     columnWidth,
     isUnknownDates,
@@ -677,8 +708,7 @@ export const Gantt: React.FC<GanttProps> = ({
   const tableProps: TaskListProps = {
     rowHeight,
     fullRowHeight,
-    titleCellWidth,
-    dateCellWidth,
+    columns,
     fontFamily,
     fontSize,
     tasks: visibleTasks,
@@ -709,7 +739,8 @@ export const Gantt: React.FC<GanttProps> = ({
         tabIndex={0}
         ref={wrapperRef}
       >
-        {(titleCellWidth || dateCellWidth) && <TaskList {...tableProps} />}
+        {(columns.length > 0) && <TaskList {...tableProps} />}
+
         <TaskGantt
           gridProps={gridProps}
           calendarProps={calendarProps}
@@ -719,6 +750,7 @@ export const Gantt: React.FC<GanttProps> = ({
           scrollY={scrollY}
           scrollX={scrollX}
         />
+
         {tooltipTaskFromMap && (
           <Tooltip
             arrowIndent={arrowIndent}
@@ -740,6 +772,7 @@ export const Gantt: React.FC<GanttProps> = ({
             svgWidth={svgWidth}
           />
         )}
+
         <VerticalScroll
           ganttFullHeight={ganttFullHeight}
           ganttHeight={ganttHeight}
@@ -749,6 +782,7 @@ export const Gantt: React.FC<GanttProps> = ({
           rtl={rtl}
         />
       </div>
+
       <HorizontalScroll
         svgWidth={svgWidth}
         taskListWidth={taskListWidth}

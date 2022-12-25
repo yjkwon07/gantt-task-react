@@ -20,8 +20,7 @@ const toLocaleDateStringFactory =
 
 export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   fullRowHeight,
-  titleCellWidth,
-  dateCellWidth,
+  columns,
   tasks,
   fontFamily,
   fontSize,
@@ -62,9 +61,8 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
           return (
             <TaskListTableRow
               task={task}
+              columns={columns}
               fullRowHeight={fullRowHeight}
-              titleCellWidth={titleCellWidth}
-              dateCellWidth={dateCellWidth}
               childTasksMap={childTasksMap}
               mapTaskToNestedIndex={mapTaskToNestedIndex}
               nestedTaskNameOffset={nestedTaskNameOffset}

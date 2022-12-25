@@ -1,11 +1,12 @@
 import React, {
   memo,
-  useCallback,
   useMemo,
 } from "react";
 
 import {
   ChildMapByLevel,
+  Column,
+  ColumnData,
   MapTaskToNestedIndex,
   Task,
   TaskOrEmpty,
@@ -14,26 +15,10 @@ import { useHasChildren } from "../../helpers/use-has-children";
 
 import styles from "./task-list-table-row.module.css";
 
-const getExpanderSymbol = (
-  hasChildren: boolean,
-  isClosed: boolean,
-) => {
-  if (!hasChildren) {
-    return null;
-  }
-
-  if (isClosed) {
-    return "▶";
-  }
-
-  return "▼";
-};
-
 type TaskListTableRowProps = {
   task: TaskOrEmpty;
   fullRowHeight: number;
-  titleCellWidth: string | number;
-  dateCellWidth: string | number;
+  columns: Column[];
   childTasksMap: ChildMapByLevel;
   mapTaskToNestedIndex: MapTaskToNestedIndex;
   nestedTaskNameOffset: number;
@@ -47,8 +32,7 @@ type TaskListTableRowProps = {
 const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   task,
   fullRowHeight,
-  titleCellWidth,
-  dateCellWidth,
+  columns,
   childTasksMap,
   mapTaskToNestedIndex,
   nestedTaskNameOffset,
@@ -62,13 +46,12 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
 
   const {
     id,
-    name,
     comparisonLevel = 1,
   } = task;
 
-  const expanderSymbol = getExpanderSymbol(hasChildren, Boolean(closedTasks[id]));
+  const isClosed = Boolean(closedTasks[id]);
 
-  const [offset, indexStr] = useMemo(() => {
+  const [depth, indexStr] = useMemo(() => {
     const indexesOnLevel = mapTaskToNestedIndex.get(comparisonLevel);
   
     if (!indexesOnLevel) {
@@ -84,13 +67,18 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     return taskIndex;
   }, [mapTaskToNestedIndex, comparisonLevel, id]);
 
-  const onClick = useCallback(() => {
-    if (task.type !== "empty") {
-      onExpanderClick(task);
-    }
-  }, [onExpanderClick, task]);
-
-  const title = isShowTaskNumbers ? `${indexStr} ${name}` : name;
+  const columnData: ColumnData = {
+    isShowTaskNumbers,
+    hasChildren,
+    isClosed,
+    depth,
+    indexStr,
+    task,
+    nestedTaskNameOffset,
+    dateTimeOptions,
+    toLocaleDateString,
+    onExpanderClick,
+  };
 
   return (
     <div
@@ -99,60 +87,23 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
         height: fullRowHeight,
       }}
     >
-      <div
-        className={styles.taskListCell}
-        style={{
-          minWidth: titleCellWidth,
-          maxWidth: titleCellWidth,
-        }}
-        title={title}
-      >
+      {columns.map(({
+        component: Component,
+        width,
+      }, index) => (
         <div
-          className={styles.taskListNameWrapper}
+          className={styles.taskListCell}
           style={{
-            paddingLeft: offset * nestedTaskNameOffset,
+            minWidth: width,
+            maxWidth: width,
           }}
+          key={index}
         >
-          <div
-            className={
-              expanderSymbol
-                ? styles.taskListExpander
-                : styles.taskListEmptyExpander
-            }
-            onClick={onClick}
-          >
-            {expanderSymbol}
-          </div>
-
-          <div>
-            {isShowTaskNumbers && (
-              <b>{indexStr}{' '}</b>
-            )}
-
-            {name}
-          </div>
+          <Component
+            data={columnData}
+          />
         </div>
-      </div>
-
-      <div
-        className={styles.taskListCell}
-        style={{
-          minWidth: dateCellWidth,
-          maxWidth: dateCellWidth,
-        }}
-      >
-        {task.type !== "empty" && toLocaleDateString(task.start, dateTimeOptions)}
-      </div>
-
-      <div
-        className={styles.taskListCell}
-        style={{
-          minWidth: dateCellWidth,
-          maxWidth: dateCellWidth,
-        }}
-      >
-        {task.type !== "empty" && toLocaleDateString(task.end, dateTimeOptions)}
-      </div>
+      ))}
     </div>
   );
 };
