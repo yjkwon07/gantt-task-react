@@ -15,7 +15,6 @@ import {
   DependencyMap,
   DependencyMargins,
   DependentMap,
-  EmptyTask,
   EventOption,
   FixPosition,
   MapTaskToCoordinates,
@@ -85,6 +84,7 @@ export type TaskGanttContentProps = {
   setTooltipTask: (task: Task | null) => void;
   setGanttRelationEvent: React.Dispatch<React.SetStateAction<GanttRelationEvent | null>>;
   setSelectedTask: (task: Task | null) => void;
+  handleDeteleTask: (task: TaskOrEmpty) => void;
   onArrowDoubleClick?: OnArrowDoubleClick;
   comparisonLevels: number;
   fixStartPosition?: FixPosition;
@@ -135,13 +135,13 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   setTooltipTask,
   setGanttRelationEvent,
   setSelectedTask,
+  handleDeteleTask,
   onDateChange = undefined,
   onFixDependencyPosition = undefined,
   onRelationChange,
   onProgressChange,
   onDoubleClick,
   onClick,
-  onDelete = undefined,
   onArrowDoubleClick = undefined,
   comparisonLevels,
   fixStartPosition = undefined,
@@ -644,51 +644,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     childTasksMap,
     mapTaskToGlobalIndex,
     dependentMap,
-  ]);
-
-  const handleDeteleTask = useCallback((task: Task) => {
-    if (!onDelete) {
-      return;
-    }
-
-    setTooltipTask(null);
-
-    const newChangedTask: EmptyTask = {
-      type: "empty",
-      id: task.id,
-      comparisonLevel: task.comparisonLevel || 1,
-      name: task.name,
-      displayOrder: task.displayOrder,
-      parent: task.parent,
-    };
-
-    const [
-      dependentTasks,
-      taskIndex,
-      parents,
-      suggestions,
-    ] = getChangeTaskMetadata(
-      newChangedTask,
-      tasksMap,
-      childTasksMap,
-      mapTaskToGlobalIndex,
-      dependentMap,
-    );
-
-    onDelete(
-      task,
-      dependentTasks,
-      taskIndex,
-      parents,
-      suggestions,
-    );
-  }, [
-    onDelete,
-    tasksMap,
-    childTasksMap,
-    mapTaskToGlobalIndex,
-    dependentMap,
-    setTooltipTask,
   ]);
 
   return (

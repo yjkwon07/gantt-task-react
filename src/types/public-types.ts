@@ -158,7 +158,7 @@ export type OnDateChangeSuggestionType = [
 ];
 
 export type OnDateChange = (
-  task: Task,
+  task: TaskOrEmpty,
   dependentTasks: Task[],
   index: number,
   parents: Task[],
@@ -345,6 +345,7 @@ export interface TaskListTableProps {
   setSelectedTask: (task: Task) => void;
   closedTasks: Readonly<Record<string, true>>;
   onExpanderClick: (task: Task) => void;
+  handleDeteleTask: (task: TaskOrEmpty) => void;
 }
 
 export interface TaskListHeaderProps {
@@ -453,6 +454,7 @@ export type ColumnData = {
   dateTimeOptions: Intl.DateTimeFormatOptions;
   toLocaleDateString: (date: Date, dateTimeOptions: Intl.DateTimeFormatOptions) => string;
   onExpanderClick: (task: Task) => void;
+  handleDeteleTask: (task: TaskOrEmpty) => void;
 };
 
 export type ColumnProps = {

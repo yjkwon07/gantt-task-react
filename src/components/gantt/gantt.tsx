@@ -15,6 +15,7 @@ import {
   Column,
   CriticalPath,
   DateSetup,
+  EmptyTask,
   GanttProps,
   Task,
   TaskBarColorStyles,
@@ -52,6 +53,8 @@ import { TitleColumn } from "../task-list/columns/title-column";
 import { DateStartColumn } from "../task-list/columns/date-start-column";
 import { DateEndColumn } from "../task-list/columns/date-end-column";
 import { useColumnResize } from "./use-column-resize";
+import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
+import { DeleteColumn } from "../task-list/columns/delete-column";
 
 const defaultColors: TaskBarColorStyles = {
   barProgressColor: "#a3a3ff",
@@ -623,6 +626,11 @@ export const Gantt: React.FC<GanttProps> = ({
         width: dateCellWidth,
         title: "From",
       },
+
+      {
+        component: DeleteColumn,
+        width: 40,
+      },
     ];
   }, [titleCellWidth, dateCellWidth, columnsProp]);
 
@@ -637,6 +645,51 @@ export const Gantt: React.FC<GanttProps> = ({
   }, [columns, onResizeColumn]);
 
   const [columnResizeEvent, onResizeStart] = useColumnResize(onResizeColumnWithDelta);
+
+  const handleDeteleTask = useCallback((task: TaskOrEmpty) => {
+    if (!onDelete) {
+      return;
+    }
+
+    setTooltipTask(null);
+
+    const newChangedTask: EmptyTask = {
+      type: "empty",
+      id: task.id,
+      comparisonLevel: task.comparisonLevel || 1,
+      name: task.name,
+      displayOrder: task.displayOrder,
+      parent: task.parent,
+    };
+
+    const [
+      dependentTasks,
+      taskIndex,
+      parents,
+      suggestions,
+    ] = getChangeTaskMetadata(
+      newChangedTask,
+      tasksMap,
+      childTasksMap,
+      mapTaskToGlobalIndex,
+      dependentMap,
+    );
+
+    onDelete(
+      task,
+      dependentTasks,
+      taskIndex,
+      parents,
+      suggestions,
+    );
+  }, [
+    onDelete,
+    tasksMap,
+    childTasksMap,
+    mapTaskToGlobalIndex,
+    dependentMap,
+    setTooltipTask,
+  ]);
 
   const gridProps: GridProps = {
     columnWidth,
@@ -705,13 +758,13 @@ export const Gantt: React.FC<GanttProps> = ({
     setTooltipTask,
     setGanttRelationEvent,
     setSelectedTask,
+    handleDeteleTask,
     onDateChange,
     onFixDependencyPosition,
     onRelationChange,
     onProgressChange,
     onDoubleClick,
     onClick,
-    onDelete,
     onArrowDoubleClick,
     fixStartPosition,
     fixEndPosition,
@@ -744,6 +797,7 @@ export const Gantt: React.FC<GanttProps> = ({
     isShowTaskNumbers,
     closedTasks,
     onExpanderClick: handleExpanderClick,
+    handleDeteleTask,
     TaskListHeader,
     TaskListTable,
   };

@@ -27,6 +27,7 @@ type TaskListTableRowProps = {
   isShowTaskNumbers: boolean;
   closedTasks: Readonly<Record<string, true>>;
   onExpanderClick: (task: Task) => void;
+  handleDeteleTask: (task: TaskOrEmpty) => void;
   dateTimeOptions: Intl.DateTimeFormatOptions;
   toLocaleDateString: (date: Date, dateTimeOptions: Intl.DateTimeFormatOptions) => string;
 };
@@ -42,6 +43,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   isShowTaskNumbers,
   closedTasks,
   onExpanderClick,
+  handleDeteleTask,
   dateTimeOptions,
   toLocaleDateString,
 }) => {
@@ -80,6 +82,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     nestedTaskNameOffset,
     dateTimeOptions,
     toLocaleDateString,
+    handleDeteleTask,
     onExpanderClick,
   };
 

@@ -18,6 +18,7 @@ import {
   Task,
   TaskBarColorStyles,
   TaskCoordinates,
+  TaskOrEmpty,
 } from "../../types/public-types";
 import { Bar } from "./bar/bar";
 import { BarSmall } from "./bar/bar-small";
@@ -70,7 +71,7 @@ export type TaskItemProps = {
   ) => void;
   fixStartPosition?: FixPosition;
   fixEndPosition?: FixPosition;
-  handleDeteleTask: (task: Task) => void;
+  handleDeteleTask: (task: TaskOrEmpty) => void;
   colorStyles: TaskBarColorStyles;
 };
 

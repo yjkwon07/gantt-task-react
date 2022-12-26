@@ -11,8 +11,15 @@ const collectChildren = (
   childTasksOnLevel: Map<string, TaskOrEmpty[]>,
   closedTasks: Readonly<Record<string, true>>,
 ) => {
+  const {
+    comparisonLevel = 1,
+  } = task;
+
   arrayRes.push(task);
-  mirrorRes[task.id] = true;
+
+  if (comparisonLevel === 1) {
+    mirrorRes[task.id] = true;
+  }
 
   if (closedTasks[task.id]) {
     return;

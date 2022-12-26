@@ -41,6 +41,7 @@ export type TaskListProps = {
   setSelectedTask: (task: Task) => void;
   closedTasks: Readonly<Record<string, true>>;
   onExpanderClick: (task: Task) => void;
+  handleDeteleTask: (task: TaskOrEmpty) => void;
   TaskListHeader: ComponentType<TaskListHeaderProps>;
   TaskListTable: ComponentType<TaskListTableProps>;
 };
@@ -65,6 +66,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   setSelectedTask,
   closedTasks,
   onExpanderClick,
+  handleDeteleTask,
   locale,
   monthFormat,
   ganttHeight,
@@ -117,6 +119,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           isShowTaskNumbers={isShowTaskNumbers}
           setSelectedTask={setSelectedTask}
           onExpanderClick={onExpanderClick}
+          handleDeteleTask={handleDeteleTask}
         />
       </div>
     </div>

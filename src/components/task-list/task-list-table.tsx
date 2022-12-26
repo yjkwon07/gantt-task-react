@@ -33,6 +33,7 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   isShowTaskNumbers,
   closedTasks,
   onExpanderClick,
+  handleDeteleTask,
 }) => {
   const dateTimeOptions: Intl.DateTimeFormatOptions = {
     weekday: "short",
@@ -71,6 +72,7 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
               isShowTaskNumbers={isShowTaskNumbers}
               closedTasks={closedTasks}
               onExpanderClick={onExpanderClick}
+              handleDeteleTask={handleDeteleTask}
               dateTimeOptions={dateTimeOptions}
               toLocaleDateString={toLocaleDateString}
               key={task.id}

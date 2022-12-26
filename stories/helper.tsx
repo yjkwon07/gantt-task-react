@@ -23,7 +23,7 @@ export function initTasks() {
         28
       ),
       name: "Idea",
-      id: "Task 0",
+      id: "Idea",
       progress: 45,
       type: "task",
       parent: "ProjectSample",
@@ -33,11 +33,11 @@ export function initTasks() {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 2),
       end: new Date(currentDate.getFullYear(), currentDate.getMonth(), 4, 0, 0),
       name: "Research",
-      id: "Task 1",
+      id: "Research",
       progress: 25,
       dependencies: [
         {
-          sourceId: "Task 0",
+          sourceId: "Idea",
           sourceTarget: "endOfTask",
           ownTarget: "startOfTask",
         },
@@ -50,11 +50,11 @@ export function initTasks() {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 4),
       end: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8, 0, 0),
       name: "Discussion with team",
-      id: "Task 2",
+      id: "Discussion",
       progress: 10,
       dependencies: [
         {
-          sourceId: "Task 1",
+          sourceId: "Research",
           sourceTarget: "endOfTask",
           ownTarget: "startOfTask",
         },
@@ -71,7 +71,7 @@ export function initTasks() {
       progress: 50,
       dependencies: [
         {
-          sourceId: "Task 2",
+          sourceId: "Discussion",
           sourceTarget: "endOfTask",
           ownTarget: "startOfTask",
         },
@@ -114,7 +114,7 @@ export function initTasks() {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8),
       end: new Date(currentDate.getFullYear(), currentDate.getMonth(), 10),
       name: "Review",
-      id: "Task 4",
+      id: "review",
       type: "task",
       progress: 70,
       parent: "developing",
@@ -124,12 +124,12 @@ export function initTasks() {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 15),
       end: new Date(currentDate.getFullYear(), currentDate.getMonth(), 15),
       name: "Release",
-      id: "Task 6",
+      id: "release",
       progress: currentDate.getMonth(),
       type: "milestone",
       dependencies: [
         {
-          sourceId: "Task 4",
+          sourceId: "review",
           sourceTarget: "endOfTask",
           ownTarget: "startOfTask",
         },
@@ -141,7 +141,7 @@ export function initTasks() {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 18),
       end: new Date(currentDate.getFullYear(), currentDate.getMonth(), 19),
       name: "Party Time",
-      id: "Task 9",
+      id: "party",
       progress: 0,
       isDisabled: true,
       type: "task",
