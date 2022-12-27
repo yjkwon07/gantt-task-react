@@ -1,4 +1,8 @@
 import React, { useRef, useEffect } from "react";
+import type {
+  RefObject,
+} from "react";
+
 import { GridProps, Grid } from "../grid/grid";
 import { CalendarProps, Calendar } from "../calendar/calendar";
 import { TaskGanttContentProps, TaskGanttContent } from "./task-gantt-content";
@@ -12,6 +16,7 @@ export type TaskGanttProps = {
   ganttFullHeight: number;
   scrollY: number;
   scrollX: number;
+  ganttSVGRef: RefObject<SVGSVGElement>;
 };
 
 export const TaskGantt: React.FC<TaskGanttProps> = ({
@@ -22,8 +27,8 @@ export const TaskGantt: React.FC<TaskGanttProps> = ({
   ganttFullHeight,
   scrollY,
   scrollX,
+  ganttSVGRef,
 }) => {
-  const ganttSVGRef = useRef<SVGSVGElement>(null);
   const horizontalContainerRef = useRef<HTMLDivElement>(null);
   const verticalGanttContainerRef = useRef<HTMLDivElement>(null);
   const newBarProps = { ...barProps, svg: ganttSVGRef };

@@ -1,11 +1,7 @@
 import React, {
   Fragment,
   useCallback,
-  useEffect,
-  useState,
 } from "react";
-
-import useLatest from "use-latest";
 
 import {
   ChangeInProgress,
@@ -28,16 +24,13 @@ import {
 } from "../../types/public-types";
 import { Arrow } from "../other/arrow";
 import { RelationLine } from "../other/relation-line";
-import { handleTaskBySVGMouseEvent } from "../../helpers/bar-helper";
-import { getRelationCircleByCoordinates } from "../../helpers/get-relation-circle-by-coordinates";
-import { checkIsDescendant } from "../../helpers/check-is-descendant";
 import { TaskItem } from "../task-item/task-item";
 import {
   BarMoveAction,
   GanttRelationEvent,
   RelationMoveTarget,
 } from "../../types/gantt-task-actions";
-import { getMapTaskToCoordinatesOnLevel, getTaskCoordinates } from "../../helpers/get-task-coordinates";
+import { getMapTaskToCoordinatesOnLevel } from "../../helpers/get-task-coordinates";
 import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
 
 export type TaskGanttContentProps = {
@@ -54,14 +47,10 @@ export type TaskGanttContentProps = {
   dependencyMarginsMap: DependencyMargins;
   isShowDependencyWarnings: boolean;
   cirticalPaths: CriticalPaths;
-  dates: Date[];
   ganttRelationEvent: GanttRelationEvent | null;
   selectedTask: Task | null;
   fullRowHeight: number;
   handleWidth: number;
-  columnWidth: number;
-  timeStep: number;
-  svg?: React.RefObject<SVGSVGElement>;
   svgWidth: number;
   taskHeight: number;
   taskHalfHeight: number;
@@ -80,9 +69,12 @@ export type TaskGanttContentProps = {
   fontFamily: string;
   rtl: boolean;
   changeInProgress: ChangeInProgress | null;
-  setChangeInProgress: React.Dispatch<React.SetStateAction<ChangeInProgress | null>>;
+  handleTaskDragStart: (
+    action: BarMoveAction,
+    task: Task, event: React.MouseEvent<Element, MouseEvent>,
+  ) => void;
   setTooltipTask: (task: Task | null) => void;
-  setGanttRelationEvent: React.Dispatch<React.SetStateAction<GanttRelationEvent | null>>;
+  handleBarRelationStart: (target: RelationMoveTarget, task: Task) => void;
   setSelectedTask: (task: Task | null) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;
   onArrowDoubleClick?: OnArrowDoubleClick;
@@ -106,14 +98,10 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   dependencyMarginsMap,
   isShowDependencyWarnings,
   cirticalPaths,
-  dates,
   ganttRelationEvent,
   selectedTask,
   fullRowHeight,
   handleWidth,
-  columnWidth,
-  timeStep,
-  svg,
   taskHeight,
   taskHalfHeight,
   relationCircleOffset,
@@ -131,9 +119,9 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   fontSize,
   rtl,
   changeInProgress,
-  setChangeInProgress,
+  handleTaskDragStart,
   setTooltipTask,
-  setGanttRelationEvent,
+  handleBarRelationStart,
   setSelectedTask,
   handleDeteleTask,
   onDateChange = undefined,
@@ -148,457 +136,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   fixEndPosition = undefined,
   colorStyles,
 }) => {
-  const point = svg?.current?.createSVGPoint();
-  const [xStep, setXStep] = useState(0);
-
-  // create xStep
-  useEffect(() => {
-    const dateDelta =
-      dates[1].getTime() -
-      dates[0].getTime() -
-      dates[1].getTimezoneOffset() * 60 * 1000 +
-      dates[0].getTimezoneOffset() * 60 * 1000;
-    const newXStep = (timeStep * columnWidth) / dateDelta;
-    setXStep(newXStep);
-  }, [columnWidth, dates, timeStep]);
-
-  const changeInProgressTask = changeInProgress?.task;
-  const changeInProgressLatestRef = useLatest(changeInProgress);
-
-  useEffect(() => {
-    const svgNode = svg?.current;
-
-    if (
-      !svgNode
-      || !changeInProgressTask
-    ) {
-      return;
-    }
-
-    const handleMouseMove = (event: MouseEvent) => {
-      const changeInProgressLatest = changeInProgressLatestRef.current;
-
-      if (!point || !changeInProgressLatest) {
-        return;
-      }
-
-      const {
-        task,
-      } = changeInProgressLatest;
-
-      event.preventDefault();
-
-      point.x = event.clientX;
-      const cursor = point.matrixTransform(
-        svgNode.getScreenCTM()?.inverse()
-      );
-
-      const nextX = cursor.x;
-
-      setChangeInProgress((prevValue) => {
-        if (!prevValue) {
-          return null;
-        }
-
-        const {
-          action,
-          initialCoordinates,
-          startX,
-        } = prevValue;
-
-        switch (action) {
-          case "end":
-          {
-            const nextX2 = Math.max(nextX, initialCoordinates.x1);
-            const progressWidth = (nextX2 - initialCoordinates.x1) * task.progress * 0.01;
-
-            if (rtl) {
-
-              return {
-                ...prevValue,
-                coordinates: {
-                  ...prevValue.coordinates,
-                  progressWidth,
-                  progressX: nextX2 - progressWidth,
-                  x2: nextX2,
-                },
-              };
-            }
-
-            return {
-              ...prevValue,
-              coordinates: {
-                ...prevValue.coordinates,
-                progressWidth,
-                x2: nextX2,
-              },
-            };
-          }
-
-          case "start":
-          {
-            const nextX1 = Math.min(nextX, initialCoordinates.x2);
-            const progressWidth = (initialCoordinates.x2 - nextX1) * task.progress * 0.01;
-
-            if (rtl) {
-
-              return {
-                ...prevValue,
-                coordinates: {
-                  ...prevValue.coordinates,
-                  progressWidth,
-                  progressX: initialCoordinates.x2 - progressWidth,
-                  x1: Math.min(nextX, initialCoordinates.x2),
-                },
-              };
-            }
-
-            return {
-              ...prevValue,
-              coordinates: {
-                ...prevValue.coordinates,
-                progressX: nextX1,
-                progressWidth,
-                x1: Math.min(nextX, initialCoordinates.x2),
-              },
-            };
-          }
-
-          case "progress":
-          {
-            const nextProgressEndX = Math.min(
-              Math.max(
-                nextX,
-                initialCoordinates.x1,
-              ),
-              initialCoordinates.x2,
-            );
-
-            if (rtl) {
-              return {
-                ...prevValue,
-                coordinates: {
-                  ...prevValue.coordinates,
-                  progressX: nextProgressEndX,
-                  progressWidth: initialCoordinates.x2 - nextProgressEndX,
-                },
-              };
-            }
-
-            return {
-              ...prevValue,
-              coordinates: {
-                ...prevValue.coordinates,
-                progressWidth: nextProgressEndX - initialCoordinates.x1,
-              },
-            };
-          }
-
-          case "move":
-          {
-            const diff = nextX - startX;
-
-            return {
-              ...prevValue,
-              coordinates: {
-                ...prevValue.coordinates,
-                x1: initialCoordinates.x1 + diff,
-                x2: initialCoordinates.x2 + diff,
-                progressX: initialCoordinates.progressX + diff,
-              },
-            };
-          }
-
-          default:
-            return null;
-        }
-      });
-    };
-
-    const handleMouseUp = async (event: MouseEvent) => {
-      const changeInProgressLatest = changeInProgressLatestRef.current;
-
-      if (!changeInProgressLatest || !point) {
-        return;
-      }
-
-      event.preventDefault();
-
-      const {
-        action,
-        task,
-      } = changeInProgressLatest;
-
-      const { isChanged, changedTask: newChangedTask } = handleTaskBySVGMouseEvent(
-        action,
-        task,
-        changeInProgressLatest.initialCoordinates,
-        changeInProgressLatest.coordinates,
-        xStep,
-        timeStep,
-        rtl,
-      );
-
-      setChangeInProgress(null);
-
-      if (!isChanged) {
-        return;
-      }
-
-      const [
-        dependentTasks,
-        taskIndex,
-        parents,
-        suggestions,
-      ] = getChangeTaskMetadata(
-        newChangedTask,
-        tasksMap,
-        childTasksMap,
-        mapTaskToGlobalIndex,
-        dependentMap,
-      );
-
-      if (action === "progress") {
-        if (onProgressChange) {
-          onProgressChange(
-            newChangedTask,
-            dependentTasks,
-          );
-        }
-
-        return;
-      }
-
-      if (!onDateChange) {
-        return;
-      }
-
-      onDateChange(
-        newChangedTask,
-        dependentTasks,
-        typeof taskIndex === 'number' ? taskIndex : -1,
-        parents,
-        suggestions,
-      );
-    };
-
-    svgNode.addEventListener("mousemove", handleMouseMove);
-    svgNode.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      svgNode.removeEventListener("mousemove", handleMouseMove);
-      svgNode.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [
-    childTasksMap,
-    mapTaskToGlobalIndex,
-    dependentMap,
-    xStep,
-    onProgressChange,
-    timeStep,
-    onDateChange,
-    svg,
-    changeInProgressTask,
-    point,
-    rtl,
-    tasksMap,
-    setChangeInProgress,
-    changeInProgressLatestRef,
-  ]);
-
-  const startRelationTarget = ganttRelationEvent?.target;
-  const startRelationTask = ganttRelationEvent?.task;
-
-  /**
-   * Drag arrow
-   */
-  useEffect(() => {
-    if (
-      !onRelationChange
-      || !startRelationTarget
-      || !startRelationTask
-    ) {
-      return undefined;
-    }
-
-    const svgNode = svg?.current;
-
-    if (!svgNode) {
-      return undefined;
-    }
-
-    if (!point) {
-      return undefined;
-    }
-
-    const handleMouseMove = (event: MouseEvent) => {
-      const {
-        clientX,
-        clientY,
-      } = event;
-
-      point.x = clientX;
-      point.y = clientY;
-
-      const ctm = svgNode.getScreenCTM();
-
-      if (!ctm) {
-        return;
-      }
-
-      const svgP = point.matrixTransform(ctm.inverse());
-
-      setGanttRelationEvent((prevValue) => {
-        if (!prevValue) {
-          return null;
-        }
-
-        return {
-          ...prevValue,
-          endX: svgP.x,
-          endY: svgP.y,
-        };
-      });
-    };
-
-    const handleMouseUp = (event: MouseEvent) => {
-      const {
-        clientX,
-        clientY,
-      } = event;
-
-      point.x = clientX;
-      point.y = clientY;
-
-      const ctm = svgNode.getScreenCTM();
-
-      if (!ctm) {
-        return;
-      }
-
-      const svgP = point.matrixTransform(ctm.inverse());
-
-      const endTargetRelationCircle = getRelationCircleByCoordinates(
-        svgP,
-        visibleTasks,
-        taskHalfHeight,
-        relationCircleOffset,
-        relationCircleRadius,
-        rtl,
-        getMapTaskToCoordinatesOnLevel(startRelationTask, mapTaskToCoordinates),
-      );
-
-      if (endTargetRelationCircle) {
-        const [endRelationTask] = endTargetRelationCircle;
-
-        const {
-          comparisonLevel: startComparisonLevel = 1,
-        } = startRelationTask;
-
-        const {
-          comparisonLevel: endComparisonLevel = 1,
-        } = endRelationTask;
-
-        if (startComparisonLevel === endComparisonLevel) {
-          const isOneDescendant = checkIsDescendant(
-            startRelationTask,
-            endRelationTask,
-            tasksMap,
-          ) || checkIsDescendant(
-            endRelationTask,
-            startRelationTask,
-            tasksMap,
-          );
-
-          onRelationChange(
-            [startRelationTask, startRelationTarget],
-            endTargetRelationCircle,
-            isOneDescendant,
-          );
-        }
-      }
-
-      setGanttRelationEvent(null);
-    };
-
-    svgNode.addEventListener("mousemove", handleMouseMove);
-    svgNode.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      svgNode.removeEventListener("mousemove", handleMouseMove);
-      svgNode.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [
-    svg,
-    rtl,
-    point,
-    startRelationTarget,
-    startRelationTask,
-    setGanttRelationEvent,
-    mapTaskToCoordinates,
-    visibleTasks,
-    tasksMap,
-    taskHalfHeight,
-    relationCircleOffset,
-    relationCircleRadius,
-    onRelationChange,
-  ]);
-
-  /**
-   * Method is Start point of task change
-   */
-  const handleBarEventStart = async (
-    action: BarMoveAction,
-    task: Task,
-    event: React.MouseEvent,
-  ) => {
-    if (!svg?.current || !point) {
-      return;
-    }
-
-    point.x = event.clientX;
-    const cursor = point.matrixTransform(
-      svg.current.getScreenCTM()?.inverse()
-    );
-
-    const coordinates = getTaskCoordinates(task, mapTaskToCoordinates);
-
-    setChangeInProgress({
-      action: action as BarMoveAction,
-      task,
-      startX: cursor.x,
-      coordinates,
-      initialCoordinates: coordinates,
-    });
-  };
-
-  /**
-   * Method is Start point of start draw relation
-   */
-  const handleBarRelationStart = useCallback((
-    target: RelationMoveTarget,
-    task: Task,
-  ) => {
-    const coordinates = getTaskCoordinates(task, mapTaskToCoordinates);
-
-    const startX = ((target === 'startOfTask') !== rtl) ? coordinates.x1 - 10 : coordinates.x2 + 10;
-    const startY = coordinates.y + taskHalfHeight;
-
-    setGanttRelationEvent({
-      target,
-      task,
-      startX,
-      startY,
-      endX: startX,
-      endY: startY,
-    });
-  }, [
-    taskHalfHeight,
-    setGanttRelationEvent,
-    mapTaskToCoordinates,
-    rtl,
-  ]);
-
   const handleFixDependency = useCallback((task: Task, delta: number) => {
     if (!onFixDependencyPosition) {
       return;
@@ -788,7 +325,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               isDelete={!task.isDisabled}
               onDoubleClick={onDoubleClick}
               onClick={onClick}
-              onEventStart={handleBarEventStart}
+              onEventStart={handleTaskDragStart}
               setTooltipTask={setTooltipTask}
               onRelationStart={handleBarRelationStart}
               setSelectedTask={setSelectedTask}

@@ -10,7 +10,6 @@ import React, {
 import enDateLocale from 'date-fns/locale/en-US';
 
 import {
-  ChangeInProgress,
   ChildOutOfParentWarnings,
   Column,
   CriticalPath,
@@ -33,7 +32,6 @@ import { StandardTooltipContent, Tooltip } from "../other/tooltip";
 import { VerticalScroll } from "../other/vertical-scroll";
 import { TaskListProps, TaskList } from "../task-list/task-list";
 import { TaskGantt } from "./task-gantt";
-import { GanttRelationEvent } from "../../types/gantt-task-actions";
 import { HorizontalScroll } from "../other/horizontal-scroll";
 import { sortTasks } from "../../helpers/sort-tasks";
 import { getChildsAndRoots } from "../../helpers/get-childs-and-roots";
@@ -55,6 +53,9 @@ import { DateEndColumn } from "../task-list/columns/date-end-column";
 import { useColumnResize } from "./use-column-resize";
 import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
 import { DeleteColumn } from "../task-list/columns/delete-column";
+import { EditColumn } from "../task-list/columns/edit-column";
+import { useCreateRelation } from "./use-create-relation";
+import { useTaskDrag } from "./use-task-drag";
 
 const defaultColors: TaskBarColorStyles = {
   barProgressColor: "#a3a3ff",
@@ -147,12 +148,11 @@ export const Gantt: React.FC<GanttProps> = ({
   isShowCriticalPath = false,
   isShowTaskNumbers = true,
 }) => {
+  const ganttSVGRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
 
   const [closedTasks, setClosedTasks] = useState(() => getInitialClosedTasks(tasks));
-
-  const [changeInProgress, setChangeInProgress] = useState<ChangeInProgress | null>(null);
 
   const [currentViewDate, setCurrentViewDate] = useState<Date | undefined>(
     undefined
@@ -162,8 +162,6 @@ export const Gantt: React.FC<GanttProps> = ({
   const [svgContainerWidth, setSvgContainerWidth] = useState(0);
 
   const [tooltipTask, setTooltipTask] = useState<Task | null>(null);
-
-  const [ganttRelationEvent, setGanttRelationEvent] = useState<GanttRelationEvent | null>(null);
 
   const sortedTasks = useMemo<readonly TaskOrEmpty[]>(
     () => [...tasks].sort(sortTasks),
@@ -631,6 +629,11 @@ export const Gantt: React.FC<GanttProps> = ({
         component: DeleteColumn,
         width: 40,
       },
+
+      {
+        component: EditColumn,
+        width: 40,
+      },
     ];
   }, [titleCellWidth, dateCellWidth, columnsProp]);
 
@@ -691,6 +694,44 @@ export const Gantt: React.FC<GanttProps> = ({
     setTooltipTask,
   ]);
 
+  const xStep = useMemo(() => {
+    const dateDelta =
+      dates[1].getTime() -
+      dates[0].getTime() -
+      dates[1].getTimezoneOffset() * 60 * 1000 +
+      dates[0].getTimezoneOffset() * 60 * 1000;
+
+    const newXStep = (timeStep * columnWidth) / dateDelta;
+
+    return newXStep;
+  }, [columnWidth, dates, timeStep]);
+
+  const [changeInProgress, handleTaskDragStart] = useTaskDrag({
+    childTasksMap,
+    dependentMap,
+    ganttSVGRef,
+    mapTaskToCoordinates,
+    mapTaskToGlobalIndex,
+    onDateChange,
+    onProgressChange,
+    rtl,
+    tasksMap,
+    timeStep,
+    xStep,
+  });
+
+  const [ganttRelationEvent, handleBarRelationStart] = useCreateRelation({
+    mapTaskToCoordinates,
+    onRelationChange,
+    relationCircleOffset,
+    relationCircleRadius,
+    rtl,
+    ganttSVGRef,
+    taskHalfHeight,
+    tasksMap,
+    visibleTasks,
+  });
+
   const gridProps: GridProps = {
     columnWidth,
     isUnknownDates,
@@ -729,7 +770,6 @@ export const Gantt: React.FC<GanttProps> = ({
     dependencyMarginsMap,
     isShowDependencyWarnings,
     cirticalPaths,
-    dates: dateSetup.dates,
     ganttRelationEvent,
     selectedTask,
     fullRowHeight,
@@ -739,7 +779,6 @@ export const Gantt: React.FC<GanttProps> = ({
     relationCircleOffset,
     relationCircleRadius,
     taskWarningOffset,
-    columnWidth,
     arrowColor,
     arrowCriticalColor,
     arrowWarningColor,
@@ -754,9 +793,9 @@ export const Gantt: React.FC<GanttProps> = ({
     svgWidth,
     rtl,
     changeInProgress,
-    setChangeInProgress,
+    handleTaskDragStart,
     setTooltipTask,
-    setGanttRelationEvent,
+    handleBarRelationStart,
     setSelectedTask,
     handleDeteleTask,
     onDateChange,
@@ -820,6 +859,7 @@ export const Gantt: React.FC<GanttProps> = ({
           ganttFullHeight={ganttFullHeight}
           scrollY={scrollY}
           scrollX={scrollX}
+          ganttSVGRef={ganttSVGRef}
         />
 
         {tooltipTaskFromMap && (
