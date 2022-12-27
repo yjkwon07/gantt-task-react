@@ -1,4 +1,5 @@
 import {
+  ChangeAction,
   ChildMapByLevel,
   MapTaskToGlobalIndex,
   OnDateChangeSuggestionType,
@@ -9,6 +10,7 @@ import {
 const getMinAndMaxDatesInDescendants = (
   task: Task,
   changedTask: TaskOrEmpty,
+  changeAction: ChangeAction,
   childTasksMap: ChildMapByLevel,
   checkedTasks: Set<string>,
 ): [Date, Date] | null => {
@@ -24,11 +26,20 @@ const getMinAndMaxDatesInDescendants = (
   checkedTasks.add(id);
 
   if (task.id === changedTask.id) {
-    if (changedTask.type === "empty") {
-      return null;
-    }
+    switch (changeAction.type) {
+      case "change":
+        if (changedTask.type === "empty") {
+          return null;
+        }
+    
+        return [changedTask.start, changedTask.end];
 
-    return [changedTask.start, changedTask.end];
+      case "delete":
+        return null;
+
+      default:
+        break;
+    }
   }
 
   const taskMapByLevel = childTasksMap.get(comparisonLevel);
@@ -39,14 +50,20 @@ const getMinAndMaxDatesInDescendants = (
 
   const childTasks = taskMapByLevel.get(id);
 
-  if (!childTasks || childTasks.length === 0) {
+  const allChildTasks = changeAction.type === "add-child"
+    ? childTasks
+      ? [...childTasks, changeAction.child]
+      : [changeAction.child]
+    : childTasks;
+
+  if (!allChildTasks || allChildTasks.length === 0) {
     return [task.start, task.end];
   }
 
   let start: Date | null = null;
   let end: Date | null = null;
 
-  childTasks.forEach((childTask) => {
+  allChildTasks.forEach((childTask) => {
     if (childTask.type === "empty") {
       return;
     }
@@ -54,6 +71,7 @@ const getMinAndMaxDatesInDescendants = (
     const descendantsResult = getMinAndMaxDatesInDescendants(
       childTask,
       changedTask,
+      changeAction,
       childTasksMap,
       checkedTasks,
     );
@@ -83,6 +101,7 @@ const getMinAndMaxDatesInDescendants = (
 export const getSuggestedStartEndChanges = (
   task: Task,
   changedTask: TaskOrEmpty,
+  changeAction: ChangeAction,
   childTasksMap: ChildMapByLevel,
   mapTaskToGlobalIndex: MapTaskToGlobalIndex,
 ): OnDateChangeSuggestionType => {
@@ -104,6 +123,7 @@ export const getSuggestedStartEndChanges = (
   const descendantsResult = getMinAndMaxDatesInDescendants(
     task,
     changedTask,
+    changeAction,
     childTasksMap,
     checkedTasks,
   );

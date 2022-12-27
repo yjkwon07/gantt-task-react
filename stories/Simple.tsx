@@ -3,14 +3,10 @@ import React, {
   useState,
 } from "react";
 
-import format from "date-fns/format";
-import isValid from "date-fns/isValid";
-import parse from "date-fns/parse";
-import startOfMinute from "date-fns/startOfMinute";
-
 import {
   Dependency,
   Gantt,
+  OnAddTask,
   OnArrowDoubleClick,
   OnDateChange,
   OnEditTask,
@@ -19,11 +15,9 @@ import {
   TaskOrEmpty,
 } from "../src";
 
-import { initTasks } from "./helper";
+import { getTaskFields, initTasks } from "./helper";
 
 import "../dist/index.css";
-
-const dateFormat = "dd/MM/yyyy HH:mm";
 
 type AppProps = {
   ganttHeight?: number;
@@ -178,44 +172,46 @@ export const Simple: React.FC<AppProps> = (props) => {
   }, []);
 
   const handleTaskEdit = useCallback<OnEditTask>((task, index, getMetadata) => {
-    const name = prompt("Name", task.name);
+    const taskFields = getTaskFields({
+      name: task.name,
+      start: task.type === "empty" ? null : task.start,
+      end: task.type === "empty" ? null : task.end,
+    });
 
-    if (task.type === "empty") {
-      if (name) {
-        setTasks((prevTasks) => {
-          const nextTasks = [...prevTasks];
-          nextTasks[index] = {
-            ...task,
-            name,
-          };
-  
-          return nextTasks;
-        });
-      }
-
-      return;
-    }
-
-    const startDateStr = prompt(
-      "Start date",
-      format(task.start, dateFormat),
-    ) || "";
-
-    const startDate = startOfMinute(parse(startDateStr, dateFormat, new Date()));
-
-    const endDateStr = prompt(
-      "End date",
-      format(task.end, dateFormat),
-    ) || "";
-
-    const endDate = startOfMinute(parse(endDateStr, dateFormat, new Date()));
-
-    const nextTask = {
-      ...task,
-      name: name || task.name,
-      start: isValid(startDate) ? startDate : task.start,
-      end: isValid(endDate) ? endDate : task.end,
-    };
+    const nextTask: TaskOrEmpty = (task.type === "task" || task.type === "empty")
+      ? (taskFields.start && taskFields.end)
+        ? {
+          type: "task",
+          start: taskFields.start,
+          end: taskFields.end,
+          comparisonLevel: task.comparisonLevel,
+          id: task.id,
+          name: taskFields.name || task.name,
+          progress: task.type === "empty"
+            ? 0
+            : task.progress,
+          dependencies: task.type === "empty"
+            ? undefined
+            : task.dependencies,
+          parent: task.parent,
+          styles: task.styles,
+          isDisabled: task.isDisabled,
+        }
+        : {
+          type: "empty",
+          comparisonLevel: task.comparisonLevel,
+          id: task.id,
+          name: taskFields.name || task.name,
+          parent: task.parent,
+          styles: task.styles,
+          isDisabled: task.isDisabled,
+        }
+      : {
+        ...task,
+        name: taskFields.name || task.name,
+        start: taskFields.start || task.start,
+        end: taskFields.end || task.end,
+      };
 
     const [
       dependentTasks,
@@ -235,6 +231,57 @@ export const Simple: React.FC<AppProps> = (props) => {
           end,
         };
       });
+
+      return nextTasks;
+    });
+  }, []);
+
+  const handleTaskAdd = useCallback<OnAddTask>((task, getMetadata) => {
+    const taskFields = getTaskFields({
+      start: task.start,
+      end: task.end,
+    });
+
+    const nextTask: TaskOrEmpty = (taskFields.start && taskFields.end)
+      ? {
+        type: "task",
+        start: taskFields.start,
+        end: taskFields.end,
+        comparisonLevel: task.comparisonLevel,
+        id: String(Date.now()),
+        name: taskFields.name || "",
+        progress: 0,
+        parent: task.id,
+        styles: task.styles,
+      }
+      : {
+        type: "empty",
+        comparisonLevel: task.comparisonLevel,
+        id: String(Date.now()),
+        name: taskFields.name || "",
+        parent: task.id,
+        styles: task.styles,
+      };
+
+    const [
+      dependentTasks,
+      taskIndex,
+      parents,
+      suggestions,
+    ] = getMetadata(nextTask);
+
+    setTasks((prevTasks) => {
+      const nextTasks = [...prevTasks];
+
+      suggestions.forEach(([start, end, task, index]) => {
+        nextTasks[index] = {
+          ...task,
+          start,
+          end,
+        };
+      });
+
+      nextTasks.splice(taskIndex + 1, 0, nextTask);
 
       return nextTasks;
     });
@@ -307,6 +354,7 @@ export const Simple: React.FC<AppProps> = (props) => {
       tasks={tasks}
       onDateChange={handleTaskChange}
       onEditTask={handleTaskEdit}
+      onAddTask={handleTaskAdd}
       onRelationChange={handleRelationChange}
       onDelete={handleTaskDelete}
       onProgressChange={handleProgressChange}

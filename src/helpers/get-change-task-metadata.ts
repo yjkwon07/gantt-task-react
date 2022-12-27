@@ -1,30 +1,38 @@
 import {
+  ChangeAction,
   ChangeMetadata,
   ChildMapByLevel,
   DependentMap,
   MapTaskToGlobalIndex,
   TaskMapByLevel,
-  TaskOrEmpty,
 } from "../types/public-types";
 import { collectParents } from "./collect-parents";
 import { getSuggestedStartEndChanges } from "./get-suggested-start-end-changes";
 
 export const getChangeTaskMetadata = (
-  changedTask: TaskOrEmpty,
+  changeAction: ChangeAction,
   tasksMap: TaskMapByLevel,
   childTasksMap: ChildMapByLevel,
   mapTaskToGlobalIndex: MapTaskToGlobalIndex,
   dependentMap: DependentMap,
 ): ChangeMetadata => {
+  const changedTask = changeAction.type === "add-child"
+    ? changeAction.parent
+    : changeAction.task;
+
   const {
     id: taskId,
     comparisonLevel = 1,
   } = changedTask;
 
-  const parents = collectParents(changedTask, tasksMap);
+  const parents = changeAction.type === "add-child"
+    ? [changeAction.parent, ...collectParents(changeAction.parent, tasksMap)]
+    : collectParents(changeAction.task, tasksMap);
+
   const suggestions = parents.map((parentTask) => getSuggestedStartEndChanges(
     parentTask,
     changedTask,
+    changeAction,
     childTasksMap,
     mapTaskToGlobalIndex,
   ));

@@ -15,10 +15,11 @@ import { getTaskCoordinates } from "../../helpers/get-task-coordinates";
 import { BarMoveAction } from "../../types/gantt-task-actions";
 
 import {
+  ChangeAction,
   ChangeInProgress,
+  ChangeMetadata,
   ChildMapByLevel,
   DependentMap,
-  GetMetadata,
   MapTaskToCoordinates,
   MapTaskToGlobalIndex,
   OnDateChange,
@@ -30,7 +31,7 @@ type UseTaskDragParams = {
   childTasksMap: ChildMapByLevel;
   dependentMap: DependentMap;
   ganttSVGRef: RefObject<SVGSVGElement>;
-  getMetadata: GetMetadata;
+  getMetadata: (changeAction: ChangeAction) => ChangeMetadata;
   mapTaskToCoordinates: MapTaskToCoordinates;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   onDateChange?: OnDateChange;
@@ -282,7 +283,10 @@ export const useTaskDrag = ({
         taskIndex,
         parents,
         suggestions,
-      ] = getMetadata(newChangedTask);
+      ] = getMetadata({
+        type: "change",
+        task: newChangedTask,
+      });
 
       if (action === "progress") {
         if (onProgressChange) {

@@ -120,6 +120,8 @@ export interface EmptyTask {
   parent?: string;
   comparisonLevel?: number;
   displayOrder?: number;
+  isDisabled?: boolean;
+  styles?: Partial<TaskBarColorStyles>;
 }
 
 export type TaskOrEmpty = Task | EmptyTask;
@@ -171,6 +173,11 @@ export type OnEditTask = (
   getMetadata: GetMetadata,
 ) => void;
 
+export type OnAddTask = (
+  parentTask: Task,
+  getMetadata: GetMetadata,
+) => void;
+
 export type FixPosition = (
   task: Task,
   date: Date,
@@ -216,6 +223,10 @@ export interface EventOption {
     task: Task,
     children: Task[]
   ) => void;
+  /**
+   * Invokes on edit button click
+   */
+  onAddTask?: OnAddTask;
   /**
    * Invokes on delete selected task
    */
@@ -340,6 +351,7 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
 export interface TaskListTableProps {
   rowHeight: number;
   fullRowHeight: number;
+  handleAddTask: (task: Task) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
@@ -467,6 +479,7 @@ export type ColumnData = {
   dateTimeOptions: Intl.DateTimeFormatOptions;
   toLocaleDateString: (date: Date, dateTimeOptions: Intl.DateTimeFormatOptions) => string;
   onExpanderClick: (task: Task) => void;
+  handleAddTask: (task: Task) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
 };
@@ -491,6 +504,21 @@ export type OnResizeColumn = (
   columnIndex: number,
   nextWidth: number,
 ) => void;
+
+export type ChangeAction =
+  | {
+    type: "change";
+    task: TaskOrEmpty;
+  }
+  | {
+    type: "delete";
+    task: TaskOrEmpty;
+  }
+  | {
+    type: "add-child";
+    parent: Task;
+    child: TaskOrEmpty;
+  };
 
 export type ChangeMetadata = [
   /**

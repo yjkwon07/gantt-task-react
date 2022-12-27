@@ -1,4 +1,11 @@
+import format from "date-fns/format";
+import isValid from "date-fns/isValid";
+import parse from "date-fns/parse";
+import startOfMinute from "date-fns/startOfMinute";
+
 import { Task } from "../src";
+
+const dateFormat = "dd/MM/yyyy HH:mm";
 
 export function initTasks() {
   const currentDate = new Date();
@@ -155,3 +162,31 @@ export function initTasks() {
 
   return [...tasks, ...secondLevelTasks];
 }
+
+export const getTaskFields = (initialValues: {
+  name?: string;
+  start?: Date | null;
+  end?: Date | null;
+}) => {
+  const name = prompt("Name", initialValues.name);
+
+  const startDateStr = prompt(
+    "Start date",
+    initialValues.start ? format(initialValues.start, dateFormat) : "",
+  ) || "";
+
+  const startDate = startOfMinute(parse(startDateStr, dateFormat, new Date()));
+
+  const endDateStr = prompt(
+    "End date",
+    initialValues.end ? format(initialValues.end, dateFormat) : "",
+  ) || "";
+
+  const endDate = startOfMinute(parse(endDateStr, dateFormat, new Date()));
+
+  return {
+    name,
+    start: isValid(startDate) ? startDate : null,
+    end: isValid(endDate) ? endDate : null,
+  };
+};

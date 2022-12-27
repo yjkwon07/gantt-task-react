@@ -161,7 +161,10 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       parents,
       suggestions,
     ] = getChangeTaskMetadata(
-      newChangedTask,
+      {
+        type: "change",
+        task: newChangedTask,
+      },
       tasksMap,
       childTasksMap,
       mapTaskToGlobalIndex,

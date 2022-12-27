@@ -10,11 +10,11 @@ import React, {
 import enDateLocale from 'date-fns/locale/en-US';
 
 import {
+  ChangeAction,
   ChildOutOfParentWarnings,
   Column,
   CriticalPath,
   DateSetup,
-  EmptyTask,
   GanttProps,
   Task,
   TaskBarColorStyles,
@@ -54,6 +54,7 @@ import { useColumnResize } from "./use-column-resize";
 import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
 import { DeleteColumn } from "../task-list/columns/delete-column";
 import { EditColumn } from "../task-list/columns/edit-column";
+import { AddColumn } from "../task-list/columns/add-column";
 import { useCreateRelation } from "./use-create-relation";
 import { useTaskDrag } from "./use-task-drag";
 
@@ -137,6 +138,7 @@ export const Gantt: React.FC<GanttProps> = ({
   onClick,
   onDelete = undefined,
   onEditTask = undefined,
+  onAddTask = undefined,
   onSelect,
   onArrowDoubleClick = undefined,
   fixStartPosition = undefined,
@@ -635,6 +637,11 @@ export const Gantt: React.FC<GanttProps> = ({
         component: EditColumn,
         width: 40,
       },
+
+      {
+        component: AddColumn,
+        width: 40,
+      },
     ];
   }, [titleCellWidth, dateCellWidth, columnsProp]);
 
@@ -651,8 +658,8 @@ export const Gantt: React.FC<GanttProps> = ({
   const [columnResizeEvent, onResizeStart] = useColumnResize(onResizeColumnWithDelta);
 
   const getMetadata = useCallback(
-    (task: TaskOrEmpty) => getChangeTaskMetadata(
-      task,
+    (changeAction: ChangeAction) => getChangeTaskMetadata(
+      changeAction,
       tasksMap,
       childTasksMap,
       mapTaskToGlobalIndex,
@@ -685,9 +692,22 @@ export const Gantt: React.FC<GanttProps> = ({
         throw new Error(`Index is not found for task ${id}`);
       }
 
-      onEditTask(task, taskIndex, getMetadata);
+      onEditTask(task, taskIndex, (changedTask: TaskOrEmpty) => getMetadata({
+        type: "change",
+        task: changedTask,
+      }));
     }
   }, [onEditTask, getMetadata, mapTaskToGlobalIndex]);
+
+  const handleAddTask = useCallback((task: Task) => {
+    if (onAddTask) {
+      onAddTask(task, (newTask: TaskOrEmpty) => getMetadata({
+        type: "add-child",
+        parent: task,
+        child: newTask,
+      }));
+    }
+  }, [onAddTask, getMetadata]);
 
   const handleDeteleTask = useCallback((task: TaskOrEmpty) => {
     if (!onDelete) {
@@ -696,21 +716,15 @@ export const Gantt: React.FC<GanttProps> = ({
 
     setTooltipTask(null);
 
-    const newChangedTask: EmptyTask = {
-      type: "empty",
-      id: task.id,
-      comparisonLevel: task.comparisonLevel || 1,
-      name: task.name,
-      displayOrder: task.displayOrder,
-      parent: task.parent,
-    };
-
     const [
       dependentTasks,
       taskIndex,
       parents,
       suggestions,
-    ] = getMetadata(newChangedTask);
+    ] = getMetadata({
+      type: "delete",
+      task,
+    });
 
     onDelete(
       task,
@@ -844,6 +858,7 @@ export const Gantt: React.FC<GanttProps> = ({
   };
 
   const tableProps: TaskListProps = {
+    handleAddTask,
     handleEditTask,
     rowHeight,
     fullRowHeight,

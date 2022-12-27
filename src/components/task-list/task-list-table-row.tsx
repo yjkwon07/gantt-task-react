@@ -19,6 +19,7 @@ import styles from "./task-list-table-row.module.css";
 type TaskListTableRowProps = {
   task: TaskOrEmpty;
   fullRowHeight: number;
+  handleAddTask: (task: Task) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
@@ -36,6 +37,7 @@ type TaskListTableRowProps = {
 const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   task,
   fullRowHeight,
+  handleAddTask,
   handleEditTask,
   columns,
   columnResizeEvent,
@@ -78,6 +80,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     dateTimeOptions,
     depth,
     handleDeteleTask,
+    handleAddTask,
     handleEditTask,
     hasChildren,
     indexStr,
