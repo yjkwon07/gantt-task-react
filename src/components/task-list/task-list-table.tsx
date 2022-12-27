@@ -20,6 +20,7 @@ const toLocaleDateStringFactory =
 
 export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   fullRowHeight,
+  handleEditTask,
   columns,
   columnResizeEvent,
   tasks,
@@ -63,6 +64,7 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
           return (
             <TaskListTableRow
               task={task}
+              handleEditTask={handleEditTask}
               columns={columns}
               columnResizeEvent={columnResizeEvent}
               fullRowHeight={fullRowHeight}

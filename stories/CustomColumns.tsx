@@ -3,6 +3,11 @@ import React, {
   useState,
 } from "react";
 
+import format from "date-fns/format";
+import isValid from "date-fns/isValid";
+import parse from "date-fns/parse";
+import startOfMinute from "date-fns/startOfMinute";
+
 import {
   Column,
   ColumnProps,
@@ -11,14 +16,18 @@ import {
   Gantt,
   OnArrowDoubleClick,
   OnDateChange,
+  OnEditTask,
   OnRelationChange,
   Task,
+  TaskOrEmpty,
   TitleColumn,
 } from "../src";
 
 import { initTasks } from "./helper";
 
 import "../dist/index.css";
+
+const dateFormat = "dd/MM/yyyy HH:mm";
 
 const ProgressColumn: React.FC<ColumnProps> = ({
   data: {
@@ -42,7 +51,7 @@ type AppProps = {
 };
 
 export const CustomColumns: React.FC<AppProps> = (props) => {
-  const [tasks, setTasks] = useState<readonly Task[]>(initTasks());
+  const [tasks, setTasks] = useState<readonly TaskOrEmpty[]>(initTasks());
   const [columns, setColumns] = useState<readonly Column[]>(() => [
     {
       component: DateStartColumn,
@@ -143,7 +152,7 @@ export const CustomColumns: React.FC<AppProps> = (props) => {
       };
 
       if (t.id === taskTo.id) {
-        if (!t.dependencies) {
+        if (t.type === "empty" || !t.dependencies) {
           return {
             ...t,
             dependencies: [newDependency],
@@ -160,7 +169,7 @@ export const CustomColumns: React.FC<AppProps> = (props) => {
       }
 
       if (t.id === taskFrom.id) {
-        if (t.dependencies) {
+        if (t.type !== "empty" && t.dependencies) {
           return {
             ...t,
             dependencies: t.dependencies.filter(({ sourceId }) => sourceId !== taskTo.id),
@@ -182,6 +191,10 @@ export const CustomColumns: React.FC<AppProps> = (props) => {
       } = taskFrom;
 
       setTasks((prevTasks) => prevTasks.map((otherTask) => {
+        if (otherTask.type === "empty") {
+          return otherTask;
+        }
+
         const {
           dependencies,
           id: otherId,
@@ -213,6 +226,69 @@ export const CustomColumns: React.FC<AppProps> = (props) => {
         return otherTask;
       }));
     }
+  }, []);
+
+  const handleTaskEdit = useCallback<OnEditTask>((task, index, getMetadata) => {
+    const name = prompt("Name", task.name);
+
+    if (task.type === "empty") {
+      if (name) {
+        setTasks((prevTasks) => {
+          const nextTasks = [...prevTasks];
+          nextTasks[index] = {
+            ...task,
+            name,
+          };
+
+          return nextTasks;
+        });
+      }
+
+      return;
+    }
+
+    const startDateStr = prompt(
+      "Start date",
+      format(task.start, dateFormat),
+    ) || "";
+
+    const startDate = startOfMinute(parse(startDateStr, dateFormat, new Date()));
+
+    const endDateStr = prompt(
+      "End date",
+      format(task.end, dateFormat),
+    ) || "";
+
+    const endDate = startOfMinute(parse(endDateStr, dateFormat, new Date()));
+
+    const nextTask = {
+      ...task,
+      name: name || task.name,
+      start: isValid(startDate) ? startDate : task.start,
+      end: isValid(endDate) ? endDate : task.end,
+    };
+
+    const [
+      dependentTasks,
+      taskIndex,
+      parents,
+      suggestions,
+    ] = getMetadata(nextTask);
+
+    setTasks((prevTasks) => {
+      const nextTasks = [...prevTasks];
+      nextTasks[index] = nextTask;
+
+      suggestions.forEach(([start, end, task, index]) => {
+        nextTasks[index] = {
+          ...task,
+          start,
+          end,
+        };
+      });
+
+      return nextTasks;
+    });
   }, []);
 
   const handleTaskDelete = useCallback<OnDateChange>((
@@ -281,6 +357,7 @@ export const CustomColumns: React.FC<AppProps> = (props) => {
       {...props}
       tasks={tasks}
       onDateChange={handleTaskChange}
+      onEditTask={handleTaskEdit}
       onRelationChange={handleRelationChange}
       onDelete={handleTaskDelete}
       onProgressChange={handleProgressChange}

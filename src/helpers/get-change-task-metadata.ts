@@ -1,9 +1,8 @@
 import {
+  ChangeMetadata,
   ChildMapByLevel,
   DependentMap,
   MapTaskToGlobalIndex,
-  OnDateChangeSuggestionType,
-  Task,
   TaskMapByLevel,
   TaskOrEmpty,
 } from "../types/public-types";
@@ -16,7 +15,7 @@ export const getChangeTaskMetadata = (
   childTasksMap: ChildMapByLevel,
   mapTaskToGlobalIndex: MapTaskToGlobalIndex,
   dependentMap: DependentMap,
-): [Task[], number, Task[], OnDateChangeSuggestionType[]] => {
+): ChangeMetadata => {
   const {
     id: taskId,
     comparisonLevel = 1,

@@ -17,6 +17,7 @@ import {
 } from "../../types/public-types";
 
 export type TaskListProps = {
+  handleEditTask: (task: TaskOrEmpty) => void;
   headerHeight: number;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
@@ -47,6 +48,7 @@ export type TaskListProps = {
 };
 
 export const TaskList: React.FC<TaskListProps> = ({
+  handleEditTask,
   headerHeight,
   fontFamily,
   fontSize,
@@ -102,6 +104,7 @@ export const TaskList: React.FC<TaskListProps> = ({
         style={ganttHeight ? { height: ganttHeight } : {}}
       >
         <TaskListTable
+          handleEditTask={handleEditTask}
           rowHeight={rowHeight}
           fullRowHeight={fullRowHeight}
           columns={columns}

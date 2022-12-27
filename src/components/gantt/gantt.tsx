@@ -136,6 +136,7 @@ export const Gantt: React.FC<GanttProps> = ({
   onDoubleClick,
   onClick,
   onDelete = undefined,
+  onEditTask = undefined,
   onSelect,
   onArrowDoubleClick = undefined,
   fixStartPosition = undefined,
@@ -649,6 +650,45 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const [columnResizeEvent, onResizeStart] = useColumnResize(onResizeColumnWithDelta);
 
+  const getMetadata = useCallback(
+    (task: TaskOrEmpty) => getChangeTaskMetadata(
+      task,
+      tasksMap,
+      childTasksMap,
+      mapTaskToGlobalIndex,
+      dependentMap,
+    ),
+    [
+      tasksMap,
+      childTasksMap,
+      mapTaskToGlobalIndex,
+      dependentMap,
+    ],
+  );
+
+  const handleEditTask = useCallback((task: TaskOrEmpty) => {
+    if (onEditTask) {
+      const {
+        id,
+        comparisonLevel = 1,
+      } = task;
+
+      const indexesOnLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+
+      if (!indexesOnLevel) {
+        throw new Error(`Indexes are not found for level ${comparisonLevel}`);
+      }
+
+      const taskIndex = indexesOnLevel.get(id);
+
+      if (typeof taskIndex !== "number") {
+        throw new Error(`Index is not found for task ${id}`);
+      }
+
+      onEditTask(task, taskIndex, getMetadata);
+    }
+  }, [onEditTask, getMetadata, mapTaskToGlobalIndex]);
+
   const handleDeteleTask = useCallback((task: TaskOrEmpty) => {
     if (!onDelete) {
       return;
@@ -670,13 +710,7 @@ export const Gantt: React.FC<GanttProps> = ({
       taskIndex,
       parents,
       suggestions,
-    ] = getChangeTaskMetadata(
-      newChangedTask,
-      tasksMap,
-      childTasksMap,
-      mapTaskToGlobalIndex,
-      dependentMap,
-    );
+    ] = getMetadata(newChangedTask);
 
     onDelete(
       task,
@@ -686,11 +720,8 @@ export const Gantt: React.FC<GanttProps> = ({
       suggestions,
     );
   }, [
+    getMetadata,
     onDelete,
-    tasksMap,
-    childTasksMap,
-    mapTaskToGlobalIndex,
-    dependentMap,
     setTooltipTask,
   ]);
 
@@ -710,6 +741,7 @@ export const Gantt: React.FC<GanttProps> = ({
     childTasksMap,
     dependentMap,
     ganttSVGRef,
+    getMetadata,
     mapTaskToCoordinates,
     mapTaskToGlobalIndex,
     onDateChange,
@@ -812,6 +844,7 @@ export const Gantt: React.FC<GanttProps> = ({
   };
 
   const tableProps: TaskListProps = {
+    handleEditTask,
     rowHeight,
     fullRowHeight,
     columns,

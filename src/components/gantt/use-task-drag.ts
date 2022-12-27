@@ -10,17 +10,27 @@ import {
 
 import useLatest from "use-latest";
 import { handleTaskBySVGMouseEvent } from "../../helpers/bar-helper";
-import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
 
 import { getTaskCoordinates } from "../../helpers/get-task-coordinates";
 import { BarMoveAction } from "../../types/gantt-task-actions";
 
-import { ChangeInProgress, ChildMapByLevel, DependentMap, MapTaskToCoordinates, MapTaskToGlobalIndex, OnDateChange, Task, TaskMapByLevel } from "../../types/public-types";
+import {
+  ChangeInProgress,
+  ChildMapByLevel,
+  DependentMap,
+  GetMetadata,
+  MapTaskToCoordinates,
+  MapTaskToGlobalIndex,
+  OnDateChange,
+  Task,
+  TaskMapByLevel,
+} from "../../types/public-types";
 
 type UseTaskDragParams = {
   childTasksMap: ChildMapByLevel;
   dependentMap: DependentMap;
   ganttSVGRef: RefObject<SVGSVGElement>;
+  getMetadata: GetMetadata;
   mapTaskToCoordinates: MapTaskToCoordinates;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   onDateChange?: OnDateChange;
@@ -35,6 +45,7 @@ export const useTaskDrag = ({
   childTasksMap,
   dependentMap,
   ganttSVGRef,
+  getMetadata,
   mapTaskToCoordinates,
   mapTaskToGlobalIndex,
   onDateChange,
@@ -271,13 +282,7 @@ export const useTaskDrag = ({
         taskIndex,
         parents,
         suggestions,
-      ] = getChangeTaskMetadata(
-        newChangedTask,
-        tasksMap,
-        childTasksMap,
-        mapTaskToGlobalIndex,
-        dependentMap,
-      );
+      ] = getMetadata(newChangedTask);
 
       if (action === "progress") {
         if (onProgressChange) {
@@ -319,6 +324,7 @@ export const useTaskDrag = ({
     timeStep,
     onDateChange,
     ganttSVGRef,
+    getMetadata,
     changeInProgressTask,
     rtl,
     tasksMap,

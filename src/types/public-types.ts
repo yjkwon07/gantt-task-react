@@ -165,6 +165,12 @@ export type OnDateChange = (
   suggestions: OnDateChangeSuggestionType[],
 ) => void;
 
+export type OnEditTask = (
+  task: TaskOrEmpty,
+  index: number,
+  getMetadata: GetMetadata,
+) => void;
+
 export type FixPosition = (
   task: Task,
   date: Date,
@@ -214,6 +220,10 @@ export interface EventOption {
    * Invokes on delete selected task
    */
   onDelete?: OnDateChange;
+  /**
+   * Invokes on edit button click
+   */
+  onEditTask?: OnEditTask;
   /**
    * Invokes on double click on the relation arrow between tasks
    */
@@ -330,6 +340,7 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
 export interface TaskListTableProps {
   rowHeight: number;
   fullRowHeight: number;
+  handleEditTask: (task: TaskOrEmpty) => void;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
   fontFamily: string;
@@ -443,6 +454,8 @@ export type ChangeInProgress = {
   coordinates: TaskCoordinates;
 };
 
+export type GetMetadata = (task: TaskOrEmpty) => ChangeMetadata;
+
 export type ColumnData = {
   isShowTaskNumbers: boolean;
   hasChildren: boolean;
@@ -455,6 +468,7 @@ export type ColumnData = {
   toLocaleDateString: (date: Date, dateTimeOptions: Intl.DateTimeFormatOptions) => string;
   onExpanderClick: (task: Task) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;
+  handleEditTask: (task: TaskOrEmpty) => void;
 };
 
 export type ColumnProps = {
@@ -477,3 +491,22 @@ export type OnResizeColumn = (
   columnIndex: number,
   nextWidth: number,
 ) => void;
+
+export type ChangeMetadata = [
+  /**
+   * dependent tasks
+   */
+  Task[],
+  /**
+   * index in list of tasks
+   */
+  number,
+  /**
+   * array of parents of the task
+   */
+  Task[],
+  /**
+   * array of suggesgions for change parent
+   */
+  OnDateChangeSuggestionType[],
+];

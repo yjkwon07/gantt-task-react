@@ -8,13 +8,13 @@ import styles from "./edit-column.module.css";
 
 export const EditColumn: React.FC<ColumnProps> = ({
   data: {
+    handleEditTask,
     task,
-    handleDeteleTask,
   },
 }) => {
   const onClick = useCallback(() => {
-    handleDeteleTask(task);
-  }, [task, handleDeteleTask]);
+    handleEditTask(task);
+  }, [task, handleEditTask]);
 
   return (
     <button

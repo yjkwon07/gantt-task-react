@@ -19,6 +19,7 @@ import styles from "./task-list-table-row.module.css";
 type TaskListTableRowProps = {
   task: TaskOrEmpty;
   fullRowHeight: number;
+  handleEditTask: (task: TaskOrEmpty) => void;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
   childTasksMap: ChildMapByLevel;
@@ -35,6 +36,7 @@ type TaskListTableRowProps = {
 const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   task,
   fullRowHeight,
+  handleEditTask,
   columns,
   columnResizeEvent,
   childTasksMap,
@@ -73,17 +75,18 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   }, [mapTaskToNestedIndex, comparisonLevel, id]);
 
   const columnData: ColumnData = {
-    isShowTaskNumbers,
-    hasChildren,
-    isClosed,
-    depth,
-    indexStr,
-    task,
-    nestedTaskNameOffset,
     dateTimeOptions,
-    toLocaleDateString,
+    depth,
     handleDeteleTask,
+    handleEditTask,
+    hasChildren,
+    indexStr,
+    isClosed,
+    isShowTaskNumbers,
+    nestedTaskNameOffset,
     onExpanderClick,
+    task,
+    toLocaleDateString,
   };
 
   return (
