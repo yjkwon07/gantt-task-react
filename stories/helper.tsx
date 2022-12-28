@@ -18,7 +18,6 @@ export function initTasks() {
       progress: 25,
       type: "project",
       hideChildren: false,
-      displayOrder: 1,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
@@ -34,7 +33,6 @@ export function initTasks() {
       progress: 45,
       type: "task",
       parent: "ProjectSample",
-      displayOrder: 2,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 2),
@@ -51,7 +49,6 @@ export function initTasks() {
       ],
       type: "task",
       parent: "ProjectSample",
-      displayOrder: 3,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 4),
@@ -68,7 +65,6 @@ export function initTasks() {
       ],
       type: "task",
       parent: "ProjectSample",
-      displayOrder: 4,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8),
@@ -85,7 +81,6 @@ export function initTasks() {
       ],
       type: "task",
       parent: "ProjectSample",
-      displayOrder: 5,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8),
@@ -95,7 +90,6 @@ export function initTasks() {
       type: "task",
       progress: 40,
       parent: "developing",
-      displayOrder: 6,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8),
@@ -105,7 +99,6 @@ export function initTasks() {
       type: "task",
       progress: 40,
       parent: "code",
-      displayOrder: 7,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8),
@@ -115,7 +108,6 @@ export function initTasks() {
       type: "task",
       progress: 40,
       parent: "code",
-      displayOrder: 8,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8),
@@ -125,7 +117,6 @@ export function initTasks() {
       type: "task",
       progress: 70,
       parent: "developing",
-      displayOrder: 9,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 15),
@@ -142,7 +133,6 @@ export function initTasks() {
         },
       ],
       parent: "ProjectSample",
-      displayOrder: 10,
     },
     {
       start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 18),

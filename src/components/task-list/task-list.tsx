@@ -19,6 +19,8 @@ import {
 export type TaskListProps = {
   handleAddTask: (task: Task) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
+  handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
+  handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
   headerHeight: number;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
@@ -51,6 +53,8 @@ export type TaskListProps = {
 export const TaskList: React.FC<TaskListProps> = ({
   handleAddTask,
   handleEditTask,
+  handleMoveTaskAfter,
+  handleMoveTaskInside,
   headerHeight,
   fontFamily,
   fontSize,
@@ -108,6 +112,8 @@ export const TaskList: React.FC<TaskListProps> = ({
         <TaskListTable
           handleAddTask={handleAddTask}
           handleEditTask={handleEditTask}
+          handleMoveTaskAfter={handleMoveTaskAfter}
+          handleMoveTaskInside={handleMoveTaskInside}
           rowHeight={rowHeight}
           fullRowHeight={fullRowHeight}
           columns={columns}

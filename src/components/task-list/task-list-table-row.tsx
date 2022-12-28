@@ -3,6 +3,10 @@ import React, {
   useMemo,
 } from "react";
 
+import { useDrop } from "react-dnd";
+
+import cx from "classnames";
+
 import {
   ChildMapByLevel,
   Column,
@@ -15,12 +19,15 @@ import {
 import { useHasChildren } from "../../helpers/use-has-children";
 
 import styles from "./task-list-table-row.module.css";
+import { ROW_DRAG_TYPE } from "../../constants";
 
 type TaskListTableRowProps = {
   task: TaskOrEmpty;
   fullRowHeight: number;
   handleAddTask: (task: Task) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
+  handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
+  handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
   childTasksMap: ChildMapByLevel;
@@ -39,6 +46,8 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   fullRowHeight,
   handleAddTask,
   handleEditTask,
+  handleMoveTaskAfter,
+  handleMoveTaskInside,
   columns,
   columnResizeEvent,
   childTasksMap,
@@ -57,6 +66,41 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     id,
     comparisonLevel = 1,
   } = task;
+
+  const [dropInsideProps, dropInside] = useDrop({
+    accept: ROW_DRAG_TYPE,
+    
+    drop: (item: TaskOrEmpty, monitor) => {
+      if (
+        monitor.didDrop()
+        || task.type === "empty"
+        || task.type === "milestone"
+      ) {
+        return;
+      }
+
+      handleMoveTaskInside(task, item);
+    },
+
+    canDrop: (item: TaskOrEmpty) => item.id !== id
+      || (item.comparisonLevel || 1) !== comparisonLevel,
+
+    collect: (monitor) => ({
+      isLighten: monitor.canDrop() && monitor.isOver(),
+    }),
+  }, [id, comparisonLevel, handleMoveTaskInside]);
+
+  const [dropAfterProps, dropAfter] = useDrop({
+    accept: ROW_DRAG_TYPE,
+    
+    drop: (item: TaskOrEmpty) => {
+      handleMoveTaskAfter(task, item);
+    },
+
+    collect: (monitor) => ({
+      isLighten: monitor.isOver(),
+    }),
+  }, [id, comparisonLevel, handleMoveTaskAfter]);
 
   const isClosed = Boolean(closedTasks[id]);
 
@@ -94,10 +138,14 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
 
   return (
     <div
-      className={styles.taskListTableRow}
+      className={cx(styles.taskListTableRow, {
+        [styles.taskListTableRowLighten]: dropInsideProps.isLighten
+          && !dropAfterProps.isLighten,
+      })}
       style={{
         height: fullRowHeight,
       }}
+      ref={dropInside}
     >
       {columns.map(({
         component: Component,
@@ -122,6 +170,15 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
           </div>
         );
       })}
+
+      {dropInsideProps.isLighten && (
+        <div
+          className={cx(styles.dropAfter, {
+            [styles.dropAfterLighten]: dropAfterProps.isLighten,
+          })}
+          ref={dropAfter}
+        />
+      )}
     </div>
   );
 };

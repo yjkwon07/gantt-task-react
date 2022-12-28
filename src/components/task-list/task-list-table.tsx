@@ -22,6 +22,8 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   fullRowHeight,
   handleAddTask,
   handleEditTask,
+  handleMoveTaskAfter,
+  handleMoveTaskInside,
   columns,
   columnResizeEvent,
   tasks,
@@ -67,6 +69,8 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
               task={task}
               handleAddTask={handleAddTask}
               handleEditTask={handleEditTask}
+              handleMoveTaskAfter={handleMoveTaskAfter}
+              handleMoveTaskInside={handleMoveTaskInside}
               columns={columns}
               columnResizeEvent={columnResizeEvent}
               fullRowHeight={fullRowHeight}

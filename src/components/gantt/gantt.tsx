@@ -139,6 +139,8 @@ export const Gantt: React.FC<GanttProps> = ({
   onDelete = undefined,
   onEditTask = undefined,
   onAddTask = undefined,
+  onMoveTaskAfter = undefined,
+  onMoveTaskInside = undefined,
   onSelect,
   onArrowDoubleClick = undefined,
   fixStartPosition = undefined,
@@ -739,6 +741,108 @@ export const Gantt: React.FC<GanttProps> = ({
     setTooltipTask,
   ]);
 
+  const handleMoveTaskAfter = useCallback((target: TaskOrEmpty, taskForMove: TaskOrEmpty) => {
+    if (!onMoveTaskAfter) {
+      return;
+    }
+
+    setTooltipTask(null);
+
+    const [
+      dependentTasks,
+      taskIndex,
+      parents,
+      suggestions,
+    ] = getMetadata({
+      type: "move-after",
+      target,
+      taskForMove,
+    });
+
+    const {
+      id,
+      comparisonLevel = 1,
+    } = taskForMove;
+
+    const indexesOnLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+
+    if (!indexesOnLevel) {
+      throw new Error(`Indexes are not found for level ${comparisonLevel}`);
+    }
+
+    const taskForMoveIndex = indexesOnLevel.get(id);
+
+    if (typeof taskForMoveIndex !== "number") {
+      throw new Error(`Index is not found for task ${id}`);
+    }
+
+    onMoveTaskAfter(
+      target,
+      taskForMove,
+      dependentTasks,
+      taskIndex,
+      taskForMoveIndex,
+      parents,
+      suggestions,
+    );
+  }, [
+    getMetadata,
+    onMoveTaskAfter,
+    mapTaskToGlobalIndex,
+    setTooltipTask,
+  ]);
+
+  const handleMoveTaskInside = useCallback((parent: Task, child: TaskOrEmpty) => {
+    if (!onMoveTaskInside) {
+      return;
+    }
+
+    setTooltipTask(null);
+
+    const [
+      dependentTasks,
+      parentIndex,
+      parents,
+      suggestions,
+    ] = getMetadata({
+      type: "move-inside",
+      parent,
+      child,
+    });
+
+    const {
+      id,
+      comparisonLevel = 1,
+    } = child;
+
+    const indexesOnLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+
+    if (!indexesOnLevel) {
+      throw new Error(`Indexes are not found for level ${comparisonLevel}`);
+    }
+
+    const childIndex = indexesOnLevel.get(id);
+
+    if (typeof childIndex !== "number") {
+      throw new Error(`Index is not found for task ${id}`);
+    }
+
+    onMoveTaskInside(
+      parent,
+      child,
+      dependentTasks,
+      parentIndex,
+      childIndex,
+      parents,
+      suggestions,
+    );
+  }, [
+    getMetadata,
+    onMoveTaskInside,
+    mapTaskToGlobalIndex,
+    setTooltipTask,
+  ]);
+
   const xStep = useMemo(() => {
     const dateDelta =
       dates[1].getTime() -
@@ -860,6 +964,8 @@ export const Gantt: React.FC<GanttProps> = ({
   const tableProps: TaskListProps = {
     handleAddTask,
     handleEditTask,
+    handleMoveTaskAfter,
+    handleMoveTaskInside,
     rowHeight,
     fullRowHeight,
     columns,

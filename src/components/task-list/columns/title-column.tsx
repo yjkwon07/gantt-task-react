@@ -2,6 +2,12 @@ import React, {
   useCallback,
 } from "react";
 
+import { useDrag } from "react-dnd";
+
+import cx from "classnames";
+
+import { ROW_DRAG_TYPE } from "../../../constants";
+
 import { ColumnProps } from "../../../types/public-types";
 
 import styles from './title-column.module.css';
@@ -34,6 +40,20 @@ export const TitleColumn: React.FC<ColumnProps> = ({
   },
 }) => {
   const {
+    id,
+    comparisonLevel = 1,
+  } = task;
+
+  const [collected, drag] = useDrag({
+    type: ROW_DRAG_TYPE,
+    item: task,
+
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  }, [id, comparisonLevel]);
+
+  const {
     name,
   } = task;
 
@@ -49,11 +69,14 @@ export const TitleColumn: React.FC<ColumnProps> = ({
 
   return (
     <div
-      className={styles.taskListNameWrapper}
+      className={cx(styles.taskListNameWrapper, {
+        [styles.dragging]: collected.isDragging,
+      })}
       style={{
         paddingLeft: depth * nestedTaskNameOffset,
       }}
       title={title}
+      ref={drag}
     >
       <div
         className={

@@ -3,6 +3,9 @@ import React, {
   useState,
 } from "react";
 
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+
 import {
   Dependency,
   Gantt,
@@ -14,6 +17,8 @@ import {
   TaskOrEmpty,
   OnEditTask,
   OnAddTask,
+  OnMoveTaskAfter,
+  OnMoveTaskInside,
 } from "../src";
 
 import { getTaskFields, initTasks } from "./helper";
@@ -219,7 +224,6 @@ export const Warnings: React.FC<AppProps> = (props) => {
           parent: task.parent,
           styles: task.styles,
           isDisabled: task.isDisabled,
-          displayOrder: task.displayOrder,
         }
         : {
           type: "empty",
@@ -229,7 +233,6 @@ export const Warnings: React.FC<AppProps> = (props) => {
           parent: task.parent,
           styles: task.styles,
           isDisabled: task.isDisabled,
-          displayOrder: task.displayOrder,
         }
       : {
         ...task,
@@ -340,6 +343,66 @@ export const Warnings: React.FC<AppProps> = (props) => {
     }));
   }, []);
 
+  const handleMoveTaskAfter = useCallback<OnMoveTaskAfter>((
+    task,
+    taskForMove,
+    dependentTasks,
+    taskIndex,
+    taskForMoveIndex,
+    parents,
+    suggestions,
+  ) => {
+    setTasks((prevTasks) => {
+      const nextTasks = [...prevTasks];
+
+      suggestions.forEach(([start, end, task, index]) => {
+        nextTasks[index] = {
+          ...task,
+          start,
+          end,
+        };
+      });
+
+      nextTasks.splice(taskForMoveIndex, 1);
+      nextTasks.splice(taskIndex + 1, 0, {
+        ...taskForMove,
+        parent: task.parent,
+      });
+
+      return nextTasks;
+    });
+  }, []);
+
+  const handleMoveTaskInside = useCallback<OnMoveTaskInside>((
+    parent,
+    child,
+    dependentTasks,
+    parentIndex,
+    childIndex,
+    parents,
+    suggestions,
+  ) => {
+    setTasks((prevTasks) => {
+      const nextTasks = [...prevTasks];
+
+      suggestions.forEach(([start, end, task, index]) => {
+        nextTasks[index] = {
+          ...task,
+          start,
+          end,
+        };
+      });
+
+      nextTasks.splice(childIndex, 1);
+      nextTasks.splice(parentIndex + 1, 0, {
+        ...child,
+        parent: parent.id,
+      });
+
+      return nextTasks;
+    });
+  }, []);
+
   const handleDblClick = (task: Task) => {
     alert("On Double Click event Id:" + task.id);
   };
@@ -349,23 +412,27 @@ export const Warnings: React.FC<AppProps> = (props) => {
   };
 
   return (
-    <Gantt
-      isShowChildOutOfParentWarnings
-      isShowDependencyWarnings
-      {...props}
-      tasks={[...tasks]}
-      onDateChange={handleTaskChange}
-      onEditTask={handleTaskEdit}
-      onAddTask={handleTaskAdd}
-      onFixDependencyPosition={handleTaskChange}
-      onRelationChange={handleRelationChange}
-      onDelete={handleTaskDelete}
-      onProgressChange={handleProgressChange}
-      onDoubleClick={handleDblClick}
-      onClick={handleClick}
-      onArrowDoubleClick={onArrowDoubleClick}
-      fixStartPosition={handleFixStartPosition}
-      fixEndPosition={handleFixEndPosition}
-    />
+    <DndProvider backend={HTML5Backend}>
+      <Gantt
+        isShowChildOutOfParentWarnings
+        isShowDependencyWarnings
+        {...props}
+        tasks={[...tasks]}
+        onDateChange={handleTaskChange}
+        onEditTask={handleTaskEdit}
+        onAddTask={handleTaskAdd}
+        onMoveTaskAfter={handleMoveTaskAfter}
+        onMoveTaskInside={handleMoveTaskInside}
+        onFixDependencyPosition={handleTaskChange}
+        onRelationChange={handleRelationChange}
+        onDelete={handleTaskDelete}
+        onProgressChange={handleProgressChange}
+        onDoubleClick={handleDblClick}
+        onClick={handleClick}
+        onArrowDoubleClick={onArrowDoubleClick}
+        fixStartPosition={handleFixStartPosition}
+        fixEndPosition={handleFixEndPosition}
+      />
+    </DndProvider>
   );
 };

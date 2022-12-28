@@ -9,6 +9,56 @@ import {
 import { collectParents } from "./collect-parents";
 import { getSuggestedStartEndChanges } from "./get-suggested-start-end-changes";
 
+const getTargetTask = (changeAction: ChangeAction) => {
+  switch (changeAction.type) {
+    case "add-child":
+      return changeAction.parent;
+
+    case "change":
+    case "delete":
+      return changeAction.task;
+
+    case "move-after":
+      return changeAction.target;
+
+    case "move-inside":
+      return changeAction.parent;
+
+    default:
+      throw new Error("Unknown change action");
+  }
+};
+
+const collectSuggestedTasks = (
+  changeAction: ChangeAction,
+  tasksMap: TaskMapByLevel,
+) => {
+  switch (changeAction.type) {
+    case "add-child":
+      return [changeAction.parent, ...collectParents(changeAction.parent, tasksMap)];
+
+    case "change":
+    case "delete":
+      return collectParents(changeAction.task, tasksMap);
+
+    case "move-after":
+      return [
+        ...collectParents(changeAction.target, tasksMap),
+        ...collectParents(changeAction.taskForMove, tasksMap),
+      ];
+
+    case "move-inside":
+      return [
+        changeAction.parent,
+        ...collectParents(changeAction.parent, tasksMap),
+        ...collectParents(changeAction.child, tasksMap),
+      ];
+
+    default:
+      throw new Error("Unknown change action");
+  }
+};
+
 export const getChangeTaskMetadata = (
   changeAction: ChangeAction,
   tasksMap: TaskMapByLevel,
@@ -16,22 +66,17 @@ export const getChangeTaskMetadata = (
   mapTaskToGlobalIndex: MapTaskToGlobalIndex,
   dependentMap: DependentMap,
 ): ChangeMetadata => {
-  const changedTask = changeAction.type === "add-child"
-    ? changeAction.parent
-    : changeAction.task;
+  const changedTask = getTargetTask(changeAction);
 
   const {
     id: taskId,
     comparisonLevel = 1,
   } = changedTask;
 
-  const parents = changeAction.type === "add-child"
-    ? [changeAction.parent, ...collectParents(changeAction.parent, tasksMap)]
-    : collectParents(changeAction.task, tasksMap);
+  const suggestedTasks = collectSuggestedTasks(changeAction, tasksMap);
 
-  const suggestions = parents.map((parentTask) => getSuggestedStartEndChanges(
-    parentTask,
-    changedTask,
+  const suggestions = suggestedTasks.map((suggestedTask) => getSuggestedStartEndChanges(
+    suggestedTask,
     changeAction,
     childTasksMap,
     mapTaskToGlobalIndex,
@@ -61,7 +106,7 @@ export const getChangeTaskMetadata = (
   return [
     dependentTasks,
     typeof taskIndex === 'number' ? taskIndex : -1,
-    parents,
+    suggestedTasks,
     suggestions,
   ];
 };

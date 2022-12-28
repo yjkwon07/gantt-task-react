@@ -173,6 +173,26 @@ export type OnEditTask = (
   getMetadata: GetMetadata,
 ) => void;
 
+export type OnMoveTaskAfter = (
+  task: TaskOrEmpty,
+  taskForMove: TaskOrEmpty,
+  dependentTasks: Task[],
+  taskIndex: number,
+  taskForMoveIndex: number,
+  parents: Task[],
+  suggestions: OnDateChangeSuggestionType[],
+) => void;
+
+export type OnMoveTaskInside = (
+  parent: Task,
+  child: TaskOrEmpty,
+  dependentTasks: Task[],
+  parentIndex: number,
+  childIndex: number,
+  parents: Task[],
+  suggestions: OnDateChangeSuggestionType[],
+) => void;
+
 export type OnAddTask = (
   parentTask: Task,
   getMetadata: GetMetadata,
@@ -235,6 +255,14 @@ export interface EventOption {
    * Invokes on edit button click
    */
   onEditTask?: OnEditTask;
+  /**
+   * Invokes on move task after other task
+   */
+  onMoveTaskAfter?: OnMoveTaskAfter;
+  /**
+   * Invokes on move task inside other task
+   */
+  onMoveTaskInside?: OnMoveTaskInside;
   /**
    * Invokes on double click on the relation arrow between tasks
    */
@@ -353,6 +381,8 @@ export interface TaskListTableProps {
   fullRowHeight: number;
   handleAddTask: (task: Task) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
+  handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
+  handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
   fontFamily: string;
@@ -516,6 +546,16 @@ export type ChangeAction =
   }
   | {
     type: "add-child";
+    parent: Task;
+    child: TaskOrEmpty;
+  }
+  | {
+    type: "move-after";
+    target: TaskOrEmpty;
+    taskForMove: TaskOrEmpty;
+  }
+  | {
+    type: "move-inside";
     parent: Task;
     child: TaskOrEmpty;
   };

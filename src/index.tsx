@@ -8,6 +8,8 @@ export { DeleteColumn } from "./components/task-list/columns/delete-column";
 export { EditColumn } from "./components/task-list/columns/edit-column";
 export { AddColumn } from "./components/task-list/columns/add-column";
 
+export * from "./constants";
+
 export { ViewMode } from "./types/public-types";
 export * from "./types/public-types";
 export type {
