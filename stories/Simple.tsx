@@ -196,6 +196,7 @@ export const Simple: React.FC<AppProps> = (props) => {
           parent: task.parent,
           styles: task.styles,
           isDisabled: task.isDisabled,
+          displayOrder: task.displayOrder,
         }
         : {
           type: "empty",
@@ -205,6 +206,7 @@ export const Simple: React.FC<AppProps> = (props) => {
           parent: task.parent,
           styles: task.styles,
           isDisabled: task.isDisabled,
+          displayOrder: task.displayOrder,
         }
       : {
         ...task,
