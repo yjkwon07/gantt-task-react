@@ -416,8 +416,10 @@ export const CustomColumns: React.FC<AppProps> = (props) => {
         };
       });
 
+      const isMovedTaskBefore = taskForMoveIndex < taskIndex;
+
       nextTasks.splice(taskForMoveIndex, 1);
-      nextTasks.splice(taskIndex + 1, 0, {
+      nextTasks.splice(isMovedTaskBefore ? taskIndex : (taskIndex + 1), 0, {
         ...taskForMove,
         parent: task.parent,
       });
@@ -446,8 +448,10 @@ export const CustomColumns: React.FC<AppProps> = (props) => {
         };
       });
 
+      const isMovedTaskBefore = childIndex < parentIndex;
+
       nextTasks.splice(childIndex, 1);
-      nextTasks.splice(parentIndex + 1, 0, {
+      nextTasks.splice(isMovedTaskBefore ? parentIndex : (parentIndex + 1), 0, {
         ...child,
         parent: parent.id,
       });

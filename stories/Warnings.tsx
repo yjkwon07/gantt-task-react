@@ -349,22 +349,14 @@ export const Warnings: React.FC<AppProps> = (props) => {
     dependentTasks,
     taskIndex,
     taskForMoveIndex,
-    parents,
-    suggestions,
   ) => {
     setTasks((prevTasks) => {
       const nextTasks = [...prevTasks];
 
-      suggestions.forEach(([start, end, task, index]) => {
-        nextTasks[index] = {
-          ...task,
-          start,
-          end,
-        };
-      });
+      const isMovedTaskBefore = taskForMoveIndex < taskIndex;
 
       nextTasks.splice(taskForMoveIndex, 1);
-      nextTasks.splice(taskIndex + 1, 0, {
+      nextTasks.splice(isMovedTaskBefore ? taskIndex : (taskIndex + 1), 0, {
         ...taskForMove,
         parent: task.parent,
       });
@@ -379,22 +371,14 @@ export const Warnings: React.FC<AppProps> = (props) => {
     dependentTasks,
     parentIndex,
     childIndex,
-    parents,
-    suggestions,
   ) => {
     setTasks((prevTasks) => {
       const nextTasks = [...prevTasks];
 
-      suggestions.forEach(([start, end, task, index]) => {
-        nextTasks[index] = {
-          ...task,
-          start,
-          end,
-        };
-      });
+      const isMovedTaskBefore = childIndex < parentIndex;
 
       nextTasks.splice(childIndex, 1);
-      nextTasks.splice(parentIndex + 1, 0, {
+      nextTasks.splice(isMovedTaskBefore ? parentIndex : (parentIndex + 1), 0, {
         ...child,
         parent: parent.id,
       });
