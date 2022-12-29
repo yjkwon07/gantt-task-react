@@ -13,7 +13,7 @@ const TaskListHeaderDefaultInner: React.FC<TaskListHeaderProps> = ({
   fontSize,
   columns,
   columnResizeEvent,
-  canResizeColumn,
+  canResizeColumns,
   onResizeStart,
 }) => {
   return (
@@ -33,6 +33,7 @@ const TaskListHeaderDefaultInner: React.FC<TaskListHeaderProps> = ({
         {columns.map(({
           title,
           width,
+          canResize,
         }, index) => {
           const columnWidth = columnResizeEvent && columnResizeEvent.columnIndex === index
             ? Math.max(5, width + columnResizeEvent.endX - columnResizeEvent.startX)
@@ -59,7 +60,7 @@ const TaskListHeaderDefaultInner: React.FC<TaskListHeaderProps> = ({
               >
                 {title}
 
-                {canResizeColumn && (
+                {canResizeColumns && canResize !== false &&  (
                   <div
                     className={styles.resizer}
                     onMouseDown={(event) => {

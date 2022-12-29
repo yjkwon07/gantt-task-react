@@ -329,6 +329,8 @@ export interface Icons {
 }
 
 export interface StylingOption {
+  actionColumnWidth?: number;
+  canResizeColumns?: boolean;
   colors?: Partial<TaskBarColorStyles>;
   expandIconWidth?: number;
   headerHeight?: number;
@@ -421,7 +423,7 @@ export interface TaskListHeaderProps {
   columnResizeEvent: ColumnResizeEvent | null;
   fontFamily: string;
   fontSize: string;
-  canResizeColumn: boolean;
+  canResizeColumns: boolean;
   onResizeStart: (columnIndex: number, event: React.MouseEvent) => void;
 }
 
@@ -539,6 +541,7 @@ export type Column = {
   component: ComponentType<ColumnProps>;
   width: number;
   title?: ReactNode;
+  canResize?: boolean;
 };
 
 export type ColumnResizeEvent = {
@@ -548,6 +551,7 @@ export type ColumnResizeEvent = {
 };
 
 export type OnResizeColumn = (
+  nextColumns: readonly Column[],
   columnIndex: number,
   nextWidth: number,
 ) => void;

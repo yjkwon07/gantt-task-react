@@ -45,42 +45,30 @@ const ProgressColumn: React.FC<ColumnProps> = ({
   return null;
 };
 
+const columns: readonly Column[] = [
+  {
+    component: DateStartColumn,
+    width: 200,
+    title: "Date of start",
+  },
+  {
+    component: TitleColumn,
+    width: 260,
+    title: "Title",
+  },
+  {
+    component: ProgressColumn,
+    width: 80,
+    title: "Progress",
+  },
+];
+
 type AppProps = {
   ganttHeight?: number;
 };
 
 export const CustomColumns: React.FC<AppProps> = (props) => {
   const [tasks, setTasks] = useState<readonly TaskOrEmpty[]>(initTasks());
-  const [columns, setColumns] = useState<readonly Column[]>(() => [
-    {
-      component: DateStartColumn,
-      width: 200,
-      title: "Date of start",
-    },
-    {
-      component: TitleColumn,
-      width: 260,
-      title: "Title",
-    },
-    {
-      component: ProgressColumn,
-      width: 80,
-      title: "Progress",
-    },
-  ]);
-
-  const onResizeColumn = useCallback((columnIndex: number, newWidth: number) => {
-    setColumns((prevValue) => {
-      const nextValue = [...prevValue];
-
-      nextValue[columnIndex] = {
-        ...nextValue[columnIndex],
-        width: newWidth,
-      };
-
-      return nextValue;
-    });
-  }, []);
 
   const handleTaskChange = useCallback<OnDateChange>((
     task,
@@ -485,7 +473,6 @@ export const CustomColumns: React.FC<AppProps> = (props) => {
         onClick={handleClick}
         onArrowDoubleClick={onArrowDoubleClick}
         columns={columns}
-        onResizeColumn={onResizeColumn}
       />
     </DndProvider>
   );

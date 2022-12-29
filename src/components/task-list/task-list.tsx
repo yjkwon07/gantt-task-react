@@ -29,7 +29,7 @@ export type TaskListProps = {
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
   onResizeStart: (columnIndex: number, event: React.MouseEvent) => void;
-  canResizeColumn: boolean;
+  canResizeColumns: boolean;
   fontFamily: string;
   fontSize: string;
   rowHeight: number;
@@ -68,7 +68,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   columns,
   columnResizeEvent,
   onResizeStart,
-  canResizeColumn,
+  canResizeColumns,
   rowHeight,
   fullRowHeight,
   scrollY,
@@ -108,7 +108,7 @@ export const TaskList: React.FC<TaskListProps> = ({
         columns={columns}
         columnResizeEvent={columnResizeEvent}
         onResizeStart={onResizeStart}
-        canResizeColumn={canResizeColumn}
+        canResizeColumns={canResizeColumns}
       />
 
       <div

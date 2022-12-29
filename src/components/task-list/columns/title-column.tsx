@@ -98,7 +98,7 @@ export const TitleColumn: React.FC<ColumnProps> = ({
         {expanderSymbol}
       </div>
 
-      <div>
+      <div className={styles.taskName}>
         {isShowTaskNumbers && (
           <b>{indexStr}{' '}</b>
         )}

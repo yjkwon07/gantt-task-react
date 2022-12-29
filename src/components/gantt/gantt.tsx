@@ -90,6 +90,8 @@ const defaultColors: TaskBarColorStyles = {
 };
 
 export const Gantt: React.FC<GanttProps> = ({
+  actionColumnWidth = 40,
+  canResizeColumns = true,
   expandIconWidth = 20,
   tasks,
   headerHeight = 50,
@@ -608,7 +610,7 @@ export const Gantt: React.FC<GanttProps> = ({
     });
   }, []);
 
-  const columns = useMemo<readonly Column[]>(() => {
+  const [columnsState, setColumns] = useState<readonly Column[]>(() => {
     if (columnsProp) {
       return columnsProp;
     }
@@ -634,28 +636,43 @@ export const Gantt: React.FC<GanttProps> = ({
 
       {
         component: DeleteColumn,
-        width: 40,
+        width: actionColumnWidth,
+        canResize: false,
       },
 
       {
         component: EditColumn,
-        width: 40,
+        width: actionColumnWidth,
+        canResize: false,
       },
 
       {
         component: AddColumn,
-        width: 40,
+        width: actionColumnWidth,
+        canResize: false,
       },
     ];
-  }, [titleCellWidth, dateCellWidth, columnsProp]);
+  });
+
+  const columns = (columnsProp && onResizeColumn) ? columnsProp : columnsState;
 
   const onResizeColumnWithDelta = useCallback((columnIndex: number, delta: number) => {
-    if (onResizeColumn) {
-      const {
-        width,
-      } = columns[columnIndex];
+    const {
+      width,
+    } = columns[columnIndex];
 
-      onResizeColumn(columnIndex, Math.max(10, width + delta));
+    const nextWidth = Math.max(10, width + delta);
+
+    const nextColumns = [...columns];
+    nextColumns[columnIndex] = {
+      ...columns[columnIndex],
+      width: nextWidth,
+    };
+
+    setColumns(nextColumns);
+
+    if (onResizeColumn) {
+      onResizeColumn(nextColumns, columnIndex, Math.max(10, width + delta));
     }
   }, [columns, onResizeColumn]);
 
@@ -976,7 +993,7 @@ export const Gantt: React.FC<GanttProps> = ({
     columns,
     columnResizeEvent,
     onResizeStart,
-    canResizeColumn: Boolean(onResizeColumn),
+    canResizeColumns,
     fontFamily,
     fontSize,
     tasks: visibleTasks,
