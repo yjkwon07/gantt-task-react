@@ -9,6 +9,7 @@ import styles from "./edit-column.module.css";
 export const EditColumn: React.FC<ColumnProps> = ({
   data: {
     handleEditTask,
+    icons,
     task,
   },
 }) => {
@@ -22,7 +23,7 @@ export const EditColumn: React.FC<ColumnProps> = ({
       onClick={onClick}
       className={styles.button}
     >
-      ✎
+      {icons?.renderEditIcon ? icons.renderEditIcon() : "✎"}
     </button>
   );
 };

@@ -12,6 +12,7 @@ import {
   Column,
   ColumnData,
   ColumnResizeEvent,
+  Icons,
   MapTaskToNestedIndex,
   Task,
   TaskOrEmpty,
@@ -23,12 +24,14 @@ import { ROW_DRAG_TYPE } from "../../constants";
 
 type TaskListTableRowProps = {
   canMoveTask: boolean;
+  expandIconWidth: number;
   task: TaskOrEmpty;
   fullRowHeight: number;
   handleAddTask: (task: Task) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
   handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
+  icons?: Partial<Icons>;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
   childTasksMap: ChildMapByLevel;
@@ -44,12 +47,14 @@ type TaskListTableRowProps = {
 
 const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   canMoveTask,
+  expandIconWidth,
   task,
   fullRowHeight,
   handleAddTask,
   handleEditTask,
   handleMoveTaskAfter,
   handleMoveTaskInside,
+  icons = undefined,
   columns,
   columnResizeEvent,
   childTasksMap,
@@ -126,10 +131,12 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     canMoveTask,
     dateTimeOptions,
     depth,
+    expandIconWidth,
     handleDeteleTask,
     handleAddTask,
     handleEditTask,
     hasChildren,
+    icons,
     indexStr,
     isClosed,
     isShowTaskNumbers,

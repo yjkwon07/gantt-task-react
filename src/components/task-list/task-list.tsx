@@ -8,6 +8,7 @@ import {
   ChildMapByLevel,
   Column,
   ColumnResizeEvent,
+  Icons,
   MapTaskToNestedIndex,
   MonthFormats,
   Task,
@@ -18,11 +19,13 @@ import {
 
 export type TaskListProps = {
   canMoveTask: boolean;
+  expandIconWidth: number;
   handleAddTask: (task: Task) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
   handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
   headerHeight: number;
+  icons?: Partial<Icons>;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
   onResizeStart: (columnIndex: number, event: React.MouseEvent) => void;
@@ -53,11 +56,13 @@ export type TaskListProps = {
 
 export const TaskList: React.FC<TaskListProps> = ({
   canMoveTask,
+  expandIconWidth,
   handleAddTask,
   handleEditTask,
   handleMoveTaskAfter,
   handleMoveTaskInside,
   headerHeight,
+  icons = undefined,
   fontFamily,
   fontSize,
   columns,
@@ -113,10 +118,12 @@ export const TaskList: React.FC<TaskListProps> = ({
       >
         <TaskListTable
           canMoveTask={canMoveTask}
+          expandIconWidth={expandIconWidth}
           handleAddTask={handleAddTask}
           handleEditTask={handleEditTask}
           handleMoveTaskAfter={handleMoveTaskAfter}
           handleMoveTaskInside={handleMoveTaskInside}
+          icons={icons}
           rowHeight={rowHeight}
           fullRowHeight={fullRowHeight}
           columns={columns}

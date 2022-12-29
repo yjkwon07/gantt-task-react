@@ -90,6 +90,7 @@ const defaultColors: TaskBarColorStyles = {
 };
 
 export const Gantt: React.FC<GanttProps> = ({
+  expandIconWidth = 20,
   tasks,
   headerHeight = 50,
   columnWidth = 60,
@@ -112,6 +113,7 @@ export const Gantt: React.FC<GanttProps> = ({
   barFill = 60,
   barCornerRadius = 3,
   colors = undefined,
+  icons = undefined,
   rtl = false,
   handleWidth = 8,
   timeStep = 300000,
@@ -963,10 +965,12 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const tableProps: TaskListProps = {
     canMoveTask: Boolean(onMoveTaskAfter || onMoveTaskInside),
+    expandIconWidth,
     handleAddTask,
     handleEditTask,
     handleMoveTaskAfter,
     handleMoveTaskInside,
+    icons,
     rowHeight,
     fullRowHeight,
     columns,

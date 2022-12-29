@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useMemo,
 } from "react";
 
 import { useDrag } from "react-dnd";
@@ -8,28 +9,31 @@ import cx from "classnames";
 
 import { ROW_DRAG_TYPE } from "../../../constants";
 
-import { ColumnProps } from "../../../types/public-types";
+import { ColumnProps, Icons } from "../../../types/public-types";
 
 import styles from './title-column.module.css';
 
 const getExpanderSymbol = (
   hasChildren: boolean,
   isClosed: boolean,
+  icons: Partial<Icons> | undefined,
 ) => {
   if (!hasChildren) {
-    return null;
+    return icons?.renderNoChildrenIcon ? icons.renderNoChildrenIcon() : "";
   }
 
   if (isClosed) {
-    return "▶";
+    return icons?.renderClosedIcon ? icons.renderClosedIcon() : "⊞";
   }
 
-  return "▼";
+  return icons?.renderOpenedIcon ? icons.renderOpenedIcon() : "⊟";
 };
 
 export const TitleColumn: React.FC<ColumnProps> = ({
   data: {
     canMoveTask,
+    expandIconWidth,
+    icons,
     isShowTaskNumbers,
     hasChildren,
     isClosed,
@@ -58,7 +62,10 @@ export const TitleColumn: React.FC<ColumnProps> = ({
     name,
   } = task;
 
-  const expanderSymbol = getExpanderSymbol(hasChildren, isClosed);
+  const expanderSymbol = useMemo(
+    () => getExpanderSymbol(hasChildren, isClosed, icons),
+    [hasChildren, isClosed, icons],
+  );
 
   const title = isShowTaskNumbers ? `${indexStr} ${name}` : name;
 
@@ -80,12 +87,13 @@ export const TitleColumn: React.FC<ColumnProps> = ({
       ref={canMoveTask ? drag : undefined}
     >
       <div
-        className={
-          expanderSymbol
-            ? styles.taskListExpander
-            : styles.taskListEmptyExpander
-        }
+        className={cx(styles.taskListExpander, {
+          [styles.taskListEmptyExpander]: !hasChildren,
+        })}
         onClick={onClick}
+        style={{
+          width: expandIconWidth,
+        }}
       >
         {expanderSymbol}
       </div>

@@ -1,5 +1,6 @@
 .taskListNameWrapper {
   display: flex;
+  align-items: center;
 }
 
 .dragging {
@@ -7,15 +8,13 @@
 }
 
 .taskListExpander {
-  color: rgb(86 86 86);
-  font-size: 0.6rem;
-  padding: 0.15rem 0.2rem 0rem 0.2rem;
+  opacity: 0.9;
+  font-size: 18px;
   user-select: none;
   cursor: pointer;
 }
 
 .taskListEmptyExpander {
-  font-size: 0.6rem;
-  padding-left: 1rem;
   user-select: none;
+  cursor: default;
 }

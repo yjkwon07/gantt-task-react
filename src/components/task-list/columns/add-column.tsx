@@ -9,6 +9,7 @@ import styles from "./add-column.module.css";
 export const AddColumn: React.FC<ColumnProps> = ({
   data: {
     handleAddTask,
+    icons,
     task,
   },
 }) => {
@@ -30,7 +31,7 @@ export const AddColumn: React.FC<ColumnProps> = ({
       onClick={onClick}
       className={styles.button}
     >
-      +
+      {icons?.renderAddIcon ? icons.renderAddIcon() : "+"}
     </button>
   );
 };

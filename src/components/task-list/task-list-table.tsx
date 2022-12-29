@@ -20,11 +20,13 @@ const toLocaleDateStringFactory =
 
 export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   canMoveTask,
+  expandIconWidth,
   fullRowHeight,
   handleAddTask,
   handleEditTask,
   handleMoveTaskAfter,
   handleMoveTaskInside,
+  icons,
   columns,
   columnResizeEvent,
   tasks,
@@ -68,11 +70,13 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
           return (
             <TaskListTableRow
               canMoveTask={canMoveTask}
+              expandIconWidth={expandIconWidth}
               task={task}
               handleAddTask={handleAddTask}
               handleEditTask={handleEditTask}
               handleMoveTaskAfter={handleMoveTaskAfter}
               handleMoveTaskInside={handleMoveTaskInside}
+              icons={icons}
               columns={columns}
               columnResizeEvent={columnResizeEvent}
               fullRowHeight={fullRowHeight}

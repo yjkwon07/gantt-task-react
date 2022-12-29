@@ -319,9 +319,20 @@ export interface DisplayOption {
   isShowTaskNumbers?: boolean;
 }
 
+export interface Icons {
+  renderAddIcon: () => ReactNode;
+  renderClosedIcon: () => ReactNode;
+  renderDeleteIcon: () => ReactNode;
+  renderEditIcon: () => ReactNode;
+  renderOpenedIcon: () => ReactNode;
+  renderNoChildrenIcon: () => ReactNode;
+}
+
 export interface StylingOption {
   colors?: Partial<TaskBarColorStyles>;
+  expandIconWidth?: number;
   headerHeight?: number;
+  icons?: Partial<Icons>;
   columnWidth?: number;
   columns?: readonly Column[];
   onResizeColumn?: OnResizeColumn;
@@ -378,12 +389,14 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
 
 export interface TaskListTableProps {
   canMoveTask: boolean;
+  expandIconWidth: number;
   rowHeight: number;
   fullRowHeight: number;
   handleAddTask: (task: Task) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
   handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
+  icons?: Partial<Icons>;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
   fontFamily: string;
@@ -501,10 +514,12 @@ export type GetMetadata = (task: TaskOrEmpty) => ChangeMetadata;
 
 export type ColumnData = {
   canMoveTask: boolean;
+  expandIconWidth: number;
   isShowTaskNumbers: boolean;
   hasChildren: boolean;
   isClosed: boolean;
   depth: number;
+  icons?: Partial<Icons>;
   indexStr: string;
   task: TaskOrEmpty;
   nestedTaskNameOffset: number;
