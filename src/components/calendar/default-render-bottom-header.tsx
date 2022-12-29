@@ -1,11 +1,10 @@
 import type {
   ReactNode,
-} from 'react';
+} from "react";
+
+import format from "date-fns/format";
 
 import {
-  getCachedDateTimeFormat,
-  getLocalDayOfWeek,
-  getLocaleMonth,
   getWeekNumberISO8601,
 } from '../../helpers/date-helper';
 
@@ -14,7 +13,6 @@ import { DateSetup, ViewMode } from '../../types/public-types';
 export const defaultRenderBottomHeader = (
   date: Date,
   viewMode: ViewMode,
-  locale: string,
   dateSetup: DateSetup,
   index: number,
   isUnknownDates: boolean,
@@ -84,24 +82,48 @@ export const defaultRenderBottomHeader = (
       return date.getFullYear();
 
     case ViewMode.Month:
-      return getLocaleMonth(
-        date,
-        locale,
-        dateSetup.monthCalendarFormat
-      );
+      try {
+        return format(
+          date,
+          dateSetup.monthBottomHeaderFormat,
+          {
+            locale: dateSetup.dateLocale,
+          },
+        );
+      } catch (e) {
+        return date.toLocaleString('default', { month: 'long' });
+      }
 
     case ViewMode.Week:
       return `W${getWeekNumberISO8601(date)}`;
 
     case ViewMode.Day:
-      return `${getLocalDayOfWeek(date, locale, "short")}, ${date.getDate().toString()}`;
+      try {
+        return format(
+          date,
+          dateSetup.dayBottomHeaderFormat,
+          {
+            locale: dateSetup.dateLocale,
+          },
+        );
+      } catch (e) {
+        return String(date.getDate());
+      }
 
     case ViewMode.QuarterDay:
     case ViewMode.HalfDay:
     case ViewMode.Hour:
-      return getCachedDateTimeFormat(locale, {
-        hour: "numeric",
-      }).format(date);
+      try {
+        return format(
+          date,
+          dateSetup.hourBottomHeaderFormat,
+          {
+            locale: dateSetup.dateLocale,
+          },
+        );
+      } catch (e) {
+        return String(date.getDate());
+      }
 
     default:
       throw new Error('Unknown viewMode');

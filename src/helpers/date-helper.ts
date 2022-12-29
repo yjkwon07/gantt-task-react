@@ -12,30 +12,7 @@ import startOfMonth from "date-fns/startOfMonth";
 import startOfDay from "date-fns/startOfDay";
 import startOfHour from "date-fns/startOfHour";
 
-import { MonthFormats, TaskOrEmpty, ViewMode } from "../types/public-types";
-import DateTimeFormatOptions = Intl.DateTimeFormatOptions;
-import DateTimeFormat = Intl.DateTimeFormat;
-
-const intlDTCache = {};
-export const getCachedDateTimeFormat = (
-  locString: string | string[],
-  opts: DateTimeFormatOptions = {}
-): DateTimeFormat => {
-  const key = JSON.stringify([locString, opts]);
-  let dtf = intlDTCache[key];
-
-  if (!dtf) {
-    try {
-      dtf = new Intl.DateTimeFormat(locString, opts);
-    } catch (e) {
-      dtf = new Intl.DateTimeFormat('en', opts);
-    }
-
-    intlDTCache[key] = dtf;
-  }
-
-  return dtf;
-};
+import { TaskOrEmpty, ViewMode } from "../types/public-types";
 
 export const ganttDateRange = (
   tasks: readonly TaskOrEmpty[],
@@ -141,36 +118,6 @@ export const seedDates = (
     dates.push(currentDate);
   }
   return dates;
-};
-
-export const getLocaleMonth = (
-  date: Date,
-  locale: string,
-  monthFormat: MonthFormats
-) => {
-  let bottomValue = getCachedDateTimeFormat(locale, {
-    month: monthFormat,
-  }).format(date);
-  bottomValue = bottomValue.replace(
-    bottomValue[0],
-    bottomValue[0].toLocaleUpperCase()
-  );
-  return bottomValue;
-};
-
-export const getLocalDayOfWeek = (
-  date: Date,
-  locale: string,
-  format?: "long" | "short" | "narrow" | undefined
-) => {
-  let bottomValue = getCachedDateTimeFormat(locale, {
-    weekday: format,
-  }).format(date);
-  bottomValue = bottomValue.replace(
-    bottomValue[0],
-    bottomValue[0].toLocaleUpperCase()
-  );
-  return bottomValue;
 };
 
 /**

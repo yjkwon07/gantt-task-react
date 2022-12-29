@@ -1,21 +1,36 @@
 import React from "react";
 
+import format from "date-fns/format";
+
 import { ColumnProps } from "../../../types/public-types";
 
 export const DateStartColumn: React.FC<ColumnProps> = ({
   data: {
+    dateSetup: {
+      dateColumnFormat,
+      dateLocale,
+    },
+
     task,
-    dateTimeOptions,
-    toLocaleDateString,
   },
 }) => {
   if (task.type === "empty") {
     return null
   }
 
-  return (
-    <>
-      {toLocaleDateString(task.start, dateTimeOptions)}
-    </>
-  );
+  try {
+    return (
+      <>
+        {format(task.start, dateColumnFormat, {
+          locale: dateLocale,
+        })}
+      </>
+    );
+  } catch (e) {
+    return (
+      <>
+        {task.start.toString()}
+      </>
+    );
+  }
 };

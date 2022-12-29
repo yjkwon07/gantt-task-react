@@ -14,27 +14,28 @@ export enum ViewMode {
   Year = "Year",
 }
 
-export type MonthFormats = "numeric" | "2-digit" | "long" | "short" | "narrow";
-
 export interface DateSetup {
-  dates: Date[];
-  viewMode: ViewMode;
+  dateColumnFormat: string;
   dateLocale: DateLocale;
+  dates: Date[];
+  dayBottomHeaderFormat: string;
+  dayTopHeaderFormat: string;
+  hourBottomHeaderFormat: string;
+  monthBottomHeaderFormat: string;
+  monthTopHeaderFormat: string;
   preStepsCount: number;
-  monthCalendarFormat: MonthFormats;
+  viewMode: ViewMode;
 }
 
 export type RenderTopHeader = (
   date: Date,
   viewMode: ViewMode,
-  locale: string,
   dateSetup: DateSetup,
 ) => ReactNode;
 
 export type RenderBottomHeader = (
   date: Date,
   viewMode: ViewMode,
-  locale: string,
   dateSetup: DateSetup,
   index: number,
   isUnknownDates: boolean,
@@ -289,12 +290,6 @@ export interface DisplayOption {
   dateLocale?: DateLocale;
   viewDate?: Date;
   preStepsCount?: number;
-  /**
-   * Specifies the month name language. Able formats: ISO 639-2, Java Locale
-   */
-  locale?: string;
-  monthCalendarFormat?: MonthFormats;
-  monthTaskListFormat?: MonthFormats;
   rtl?: boolean;
 
   /**
@@ -332,9 +327,33 @@ export interface StylingOption {
   actionColumnWidth?: number;
   canResizeColumns?: boolean;
   colors?: Partial<TaskBarColorStyles>;
+  /**
+   * `date-fns` format of date
+   */
+  dateColumnFormat?: string;
+  /**
+   * `date-fns` format of date
+   */
+  dayBottomHeaderFormat?: string;
+  /**
+   * `date-fns` format of date
+   */
+  dayTopHeaderFormat?: string;
   expandIconWidth?: number;
   headerHeight?: number;
+  /**
+   * `date-fns` format of date
+   */
+  hourBottomHeaderFormat?: string;
   icons?: Partial<Icons>;
+  /**
+   * `date-fns` format of header
+   */
+  monthBottomHeaderFormat?: string;
+  /**
+   * `date-fns` format of header
+   */
+  monthTopHeaderFormat?: string;
   columnWidth?: number;
   columns?: readonly Column[];
   onResizeColumn?: OnResizeColumn;
@@ -391,6 +410,7 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
 
 export interface TaskListTableProps {
   canMoveTask: boolean;
+  dateSetup: DateSetup;
   expandIconWidth: number;
   rowHeight: number;
   fullRowHeight: number;
@@ -403,8 +423,6 @@ export interface TaskListTableProps {
   columnResizeEvent: ColumnResizeEvent | null;
   fontFamily: string;
   fontSize: string;
-  locale: string;
-  monthFormat: MonthFormats;
   tasks: readonly TaskOrEmpty[];
   selectedTaskId: string;
   childTasksMap: ChildMapByLevel;
@@ -516,6 +534,7 @@ export type GetMetadata = (task: TaskOrEmpty) => ChangeMetadata;
 
 export type ColumnData = {
   canMoveTask: boolean;
+  dateSetup: DateSetup;
   expandIconWidth: number;
   isShowTaskNumbers: boolean;
   hasChildren: boolean;
@@ -525,8 +544,6 @@ export type ColumnData = {
   indexStr: string;
   task: TaskOrEmpty;
   nestedTaskNameOffset: number;
-  dateTimeOptions: Intl.DateTimeFormatOptions;
-  toLocaleDateString: (date: Date, dateTimeOptions: Intl.DateTimeFormatOptions) => string;
   onExpanderClick: (task: Task) => void;
   handleAddTask: (task: Task) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;

@@ -92,7 +92,11 @@ const defaultColors: TaskBarColorStyles = {
 export const Gantt: React.FC<GanttProps> = ({
   actionColumnWidth = 40,
   canResizeColumns = true,
+  dateColumnFormat = "E, d MMMM yyyy",
+  dayBottomHeaderFormat = "E, d",
+  dayTopHeaderFormat = "E, d",
   expandIconWidth = 20,
+  hourBottomHeaderFormat = "HH",
   tasks,
   headerHeight = 50,
   columnWidth = 60,
@@ -109,9 +113,8 @@ export const Gantt: React.FC<GanttProps> = ({
   dateLocale = enDateLocale,
   isUnknownDates = false,
   preStepsCount = 1,
-  locale = "en-GB",
-  monthCalendarFormat = "long",
-  monthTaskListFormat = "long",
+  monthBottomHeaderFormat = "LLL",
+  monthTopHeaderFormat = "LLLL",
   barFill = 60,
   barCornerRadius = 3,
   colors = undefined,
@@ -390,17 +393,27 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   const dateSetup = useMemo<DateSetup>(() => ({
-    dates,
-    viewMode,
+    dateColumnFormat,
     dateLocale,
+    dates,
+    dayBottomHeaderFormat,
+    dayTopHeaderFormat,
+    hourBottomHeaderFormat,
+    monthBottomHeaderFormat,
+    monthTopHeaderFormat,
     preStepsCount,
-    monthCalendarFormat,
+    viewMode,
   }), [
-    dates,
-    viewMode,
+    dateColumnFormat,
     dateLocale,
+    dates,
+    dayBottomHeaderFormat,
+    dayTopHeaderFormat,
+    hourBottomHeaderFormat,
+    monthBottomHeaderFormat,
+    monthTopHeaderFormat,
     preStepsCount,
-    monthCalendarFormat,
+    viewMode,
   ]);
 
   const svgWidth = dates.length * columnWidth;
@@ -915,7 +928,6 @@ export const Gantt: React.FC<GanttProps> = ({
   const calendarProps: CalendarProps = {
     dateSetup,
     isUnknownDates,
-    locale,
     headerHeight,
     columnWidth,
     fontFamily,
@@ -982,6 +994,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const tableProps: TaskListProps = {
     canMoveTask: Boolean(onMoveTaskAfter || onMoveTaskInside),
+    dateSetup,
     expandIconWidth,
     handleAddTask,
     handleEditTask,
@@ -997,8 +1010,6 @@ export const Gantt: React.FC<GanttProps> = ({
     fontFamily,
     fontSize,
     tasks: visibleTasks,
-    locale,
-    monthFormat: monthTaskListFormat,
     headerHeight,
     scrollY,
     ganttHeight,

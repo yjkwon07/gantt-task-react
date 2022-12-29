@@ -8,9 +8,9 @@ import {
   ChildMapByLevel,
   Column,
   ColumnResizeEvent,
+  DateSetup,
   Icons,
   MapTaskToNestedIndex,
-  MonthFormats,
   Task,
   TaskListHeaderProps,
   TaskListTableProps,
@@ -19,6 +19,7 @@ import {
 
 export type TaskListProps = {
   canMoveTask: boolean;
+  dateSetup: DateSetup;
   expandIconWidth: number;
   handleAddTask: (task: Task) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
@@ -36,8 +37,6 @@ export type TaskListProps = {
   fullRowHeight: number;
   ganttHeight: number;
   scrollY: number;
-  locale: string;
-  monthFormat: MonthFormats;
   tasks: readonly TaskOrEmpty[];
   taskListRef: React.RefObject<HTMLDivElement>;
   horizontalContainerClass?: string;
@@ -56,6 +55,7 @@ export type TaskListProps = {
 
 export const TaskList: React.FC<TaskListProps> = ({
   canMoveTask,
+  dateSetup,
   expandIconWidth,
   handleAddTask,
   handleEditTask,
@@ -82,8 +82,6 @@ export const TaskList: React.FC<TaskListProps> = ({
   closedTasks,
   onExpanderClick,
   handleDeteleTask,
-  locale,
-  monthFormat,
   ganttHeight,
   taskListRef,
   horizontalContainerClass,
@@ -118,6 +116,7 @@ export const TaskList: React.FC<TaskListProps> = ({
       >
         <TaskListTable
           canMoveTask={canMoveTask}
+          dateSetup={dateSetup}
           expandIconWidth={expandIconWidth}
           handleAddTask={handleAddTask}
           handleEditTask={handleEditTask}
@@ -131,8 +130,6 @@ export const TaskList: React.FC<TaskListProps> = ({
           fontFamily={fontFamily}
           fontSize={fontSize}
           tasks={tasks}
-          locale={locale}
-          monthFormat={monthFormat}
           selectedTaskId={selectedTaskId}
           childTasksMap={childTasksMap}
           closedTasks={closedTasks}

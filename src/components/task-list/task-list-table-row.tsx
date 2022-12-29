@@ -12,6 +12,7 @@ import {
   Column,
   ColumnData,
   ColumnResizeEvent,
+  DateSetup,
   Icons,
   MapTaskToNestedIndex,
   Task,
@@ -24,6 +25,7 @@ import { ROW_DRAG_TYPE } from "../../constants";
 
 type TaskListTableRowProps = {
   canMoveTask: boolean;
+  dateSetup: DateSetup;
   expandIconWidth: number;
   task: TaskOrEmpty;
   fullRowHeight: number;
@@ -41,12 +43,11 @@ type TaskListTableRowProps = {
   closedTasks: Readonly<Record<string, true>>;
   onExpanderClick: (task: Task) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;
-  dateTimeOptions: Intl.DateTimeFormatOptions;
-  toLocaleDateString: (date: Date, dateTimeOptions: Intl.DateTimeFormatOptions) => string;
 };
 
 const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   canMoveTask,
+  dateSetup,
   expandIconWidth,
   task,
   fullRowHeight,
@@ -64,8 +65,6 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   closedTasks,
   onExpanderClick,
   handleDeteleTask,
-  dateTimeOptions,
-  toLocaleDateString,
 }) => {
   const hasChildren = useHasChildren(task, childTasksMap);
 
@@ -129,7 +128,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
 
   const columnData: ColumnData = {
     canMoveTask,
-    dateTimeOptions,
+    dateSetup,
     depth,
     expandIconWidth,
     handleDeteleTask,
@@ -143,7 +142,6 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     nestedTaskNameOffset,
     onExpanderClick,
     task,
-    toLocaleDateString,
   };
 
   return (

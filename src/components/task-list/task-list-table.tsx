@@ -1,25 +1,13 @@
-import React, { useMemo } from "react";
+import React from "react";
 
 import { TaskListTableProps } from "../../types/public-types";
 import { TaskListTableRow } from "./task-list-table-row";
 
 import styles from "./task-list-table.module.css";
 
-const localeDateStringCache = {};
-const toLocaleDateStringFactory =
-  (locale: string) =>
-  (date: Date, dateTimeOptions: Intl.DateTimeFormatOptions) => {
-    const key = date.toString() + dateTimeOptions.month;
-    let lds = localeDateStringCache[key];
-    if (!lds) {
-      lds = date.toLocaleDateString(locale, dateTimeOptions);
-      localeDateStringCache[key] = lds;
-    }
-    return lds;
-  };
-
 export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   canMoveTask,
+  dateSetup,
   expandIconWidth,
   fullRowHeight,
   handleAddTask,
@@ -32,8 +20,6 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   tasks,
   fontFamily,
   fontSize,
-  locale,
-  monthFormat,
   childTasksMap,
   mapTaskToNestedIndex,
   nestedTaskNameOffset,
@@ -42,17 +28,6 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   onExpanderClick,
   handleDeteleTask,
 }) => {
-  const dateTimeOptions: Intl.DateTimeFormatOptions = {
-    weekday: "short",
-    year: "numeric",
-    day: "numeric",
-    month: monthFormat,
-  };
-  // debugger;
-  const toLocaleDateString = useMemo(
-    () => toLocaleDateStringFactory(locale),
-    [locale]
-  );
   return (
     <div
       className={styles.taskListWrapper}
@@ -70,6 +45,7 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
           return (
             <TaskListTableRow
               canMoveTask={canMoveTask}
+              dateSetup={dateSetup}
               expandIconWidth={expandIconWidth}
               task={task}
               handleAddTask={handleAddTask}
@@ -87,8 +63,6 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
               closedTasks={closedTasks}
               onExpanderClick={onExpanderClick}
               handleDeteleTask={handleDeteleTask}
-              dateTimeOptions={dateTimeOptions}
-              toLocaleDateString={toLocaleDateString}
               key={task.id}
             />
           );

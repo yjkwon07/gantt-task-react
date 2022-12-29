@@ -23,7 +23,6 @@ import styles from "./calendar.module.css";
 export type CalendarProps = {
   dateSetup: DateSetup;
   isUnknownDates: boolean;
-  locale: string;
   rtl: boolean;
   headerHeight: number;
   columnWidth: number;
@@ -36,7 +35,6 @@ export type CalendarProps = {
 export const Calendar: React.FC<CalendarProps> = ({
   dateSetup,
   isUnknownDates,
-  locale,
   rtl,
   headerHeight,
   columnWidth,
@@ -49,17 +47,16 @@ export const Calendar: React.FC<CalendarProps> = ({
     (date: Date, index: number) => renderBottomHeader(
       date,
       dateSetup.viewMode,
-      locale,
       dateSetup,
       index,
       isUnknownDates,
     ),
-    [renderBottomHeader, dateSetup, locale, isUnknownDates],
+    [renderBottomHeader, dateSetup, isUnknownDates],
   );
 
   const renderTopHeaderByDate = useCallback(
-    (date: Date) => renderTopHeader(date, dateSetup.viewMode, locale, dateSetup),
-    [renderTopHeader, dateSetup, locale],
+    (date: Date) => renderTopHeader(date, dateSetup.viewMode, dateSetup),
+    [renderTopHeader, dateSetup],
   );
 
   const getCalendarValuesForYear = () => {
