@@ -631,7 +631,7 @@ export const Gantt: React.FC<GanttProps> = ({
       {
         component: DateEndColumn,
         width: dateCellWidth,
-        title: "From",
+        title: "To",
       },
 
       {
