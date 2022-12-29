@@ -377,6 +377,7 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
 }
 
 export interface TaskListTableProps {
+  canMoveTask: boolean;
   rowHeight: number;
   fullRowHeight: number;
   handleAddTask: (task: Task) => void;
@@ -499,6 +500,7 @@ export type ChangeInProgress = {
 export type GetMetadata = (task: TaskOrEmpty) => ChangeMetadata;
 
 export type ColumnData = {
+  canMoveTask: boolean;
   isShowTaskNumbers: boolean;
   hasChildren: boolean;
   isClosed: boolean;

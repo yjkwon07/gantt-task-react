@@ -962,6 +962,7 @@ export const Gantt: React.FC<GanttProps> = ({
   };
 
   const tableProps: TaskListProps = {
+    canMoveTask: Boolean(onMoveTaskAfter || onMoveTaskInside),
     handleAddTask,
     handleEditTask,
     handleMoveTaskAfter,

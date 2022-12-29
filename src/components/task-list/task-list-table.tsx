@@ -19,6 +19,7 @@ const toLocaleDateStringFactory =
   };
 
 export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
+  canMoveTask,
   fullRowHeight,
   handleAddTask,
   handleEditTask,
@@ -66,6 +67,7 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
         .map((task) => {
           return (
             <TaskListTableRow
+              canMoveTask={canMoveTask}
               task={task}
               handleAddTask={handleAddTask}
               handleEditTask={handleEditTask}

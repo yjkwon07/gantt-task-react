@@ -17,6 +17,7 @@ import {
 } from "../../types/public-types";
 
 export type TaskListProps = {
+  canMoveTask: boolean;
   handleAddTask: (task: Task) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
@@ -51,6 +52,7 @@ export type TaskListProps = {
 };
 
 export const TaskList: React.FC<TaskListProps> = ({
+  canMoveTask,
   handleAddTask,
   handleEditTask,
   handleMoveTaskAfter,
@@ -110,6 +112,7 @@ export const TaskList: React.FC<TaskListProps> = ({
         style={ganttHeight ? { height: ganttHeight } : {}}
       >
         <TaskListTable
+          canMoveTask={canMoveTask}
           handleAddTask={handleAddTask}
           handleEditTask={handleEditTask}
           handleMoveTaskAfter={handleMoveTaskAfter}
