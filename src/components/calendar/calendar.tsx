@@ -23,6 +23,7 @@ import styles from "./calendar.module.css";
 export type CalendarProps = {
   dateSetup: DateSetup;
   isUnknownDates: boolean;
+  preStepsCount: number;
   rtl: boolean;
   headerHeight: number;
   columnWidth: number;
@@ -35,6 +36,7 @@ export type CalendarProps = {
 export const Calendar: React.FC<CalendarProps> = ({
   dateSetup,
   isUnknownDates,
+  preStepsCount,
   rtl,
   headerHeight,
   columnWidth,
@@ -295,14 +297,20 @@ export const Calendar: React.FC<CalendarProps> = ({
       ) {
         const topValue = renderTopHeaderByDate(date);
 
+        const widthMultiplier = i === 0
+          ? (preStepsCount - ticks) % ticks
+          : i;
+
+        console.log(widthMultiplier)
+
         topValues.push(
           <TopPartOfCalendar
             key={`${dayOfMonth}_${date.getMonth()}_${date.getFullYear() }`}
             value={topValue}
-            x1Line={columnWidth * i + ticks * columnWidth}
+            x1Line={columnWidth * widthMultiplier + ticks * columnWidth}
             y1Line={0}
             y2Line={topDefaultHeight}
-            xText={columnWidth * i + ticks * columnWidth * 0.5}
+            xText={columnWidth * widthMultiplier + ticks * columnWidth * 0.5}
             yText={topDefaultHeight * 0.9}
           />
         );

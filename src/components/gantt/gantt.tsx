@@ -928,6 +928,7 @@ export const Gantt: React.FC<GanttProps> = ({
   const calendarProps: CalendarProps = {
     dateSetup,
     isUnknownDates,
+    preStepsCount,
     headerHeight,
     columnWidth,
     fontFamily,
