@@ -133,8 +133,14 @@ export type OnArrowDoubleClick = (
 ) => void;
 
 export type OnRelationChange = (
-  from: [Task, RelationMoveTarget],
-  to: [Task, RelationMoveTarget],
+  /**
+   * Task, targer, index
+   */
+  from: [Task, RelationMoveTarget, number],
+  /**
+   * Task, targer, index
+   */
+  to: [Task, RelationMoveTarget, number],
   /**
    * One of tasks is descendant of other task
    */
@@ -162,10 +168,16 @@ export type OnDateChangeSuggestionType = [
 
 export type OnDateChange = (
   task: TaskOrEmpty,
-  dependentTasks: Task[],
+  dependentTasks: readonly Task[],
   index: number,
-  parents: Task[],
-  suggestions: OnDateChangeSuggestionType[],
+  parents: readonly Task[],
+  suggestions: readonly OnDateChangeSuggestionType[],
+) => void;
+
+export type OnProgressChange = (
+  task: Task,
+  children: readonly Task[],
+  index: number,
 ) => void;
 
 export type OnEditTask = (
@@ -177,21 +189,21 @@ export type OnEditTask = (
 export type OnMoveTaskAfter = (
   task: TaskOrEmpty,
   taskForMove: TaskOrEmpty,
-  dependentTasks: Task[],
+  dependentTasks: readonly Task[],
   taskIndex: number,
   taskForMoveIndex: number,
-  parents: Task[],
-  suggestions: OnDateChangeSuggestionType[],
+  parents: readonly Task[],
+  suggestions: readonly OnDateChangeSuggestionType[],
 ) => void;
 
 export type OnMoveTaskInside = (
   parent: Task,
   child: TaskOrEmpty,
-  dependentTasks: Task[],
+  dependentTasks: readonly Task[],
   parentIndex: number,
   childIndex: number,
-  parents: Task[],
-  suggestions: OnDateChangeSuggestionType[],
+  parents: readonly Task[],
+  suggestions: readonly OnDateChangeSuggestionType[],
 ) => void;
 
 export type OnAddTask = (
@@ -206,6 +218,10 @@ export type FixPosition = (
    * index in the array of tasks
    */
   index: number,
+) => void;
+
+export type OnChangeTasks = (
+  nextTasks: readonly TaskOrEmpty[],
 ) => void;
 
 export interface EventOption {
@@ -226,6 +242,14 @@ export interface EventOption {
    */
   onClick?: (task: Task) => void;
   /**
+   * Recount parents of tasks in callback `onChangeTasks`
+   */
+  isRecountParentsOnChange?: boolean;
+  /**
+   * Invokes on every change of the list of tasks
+   */
+  onChangeTasks?: OnChangeTasks;
+  /**
    * Invokes on end and start time change. Chart undoes operation if method return false or error.
    */
   onDateChange?: OnDateChange;
@@ -240,10 +264,7 @@ export interface EventOption {
   /**
    * Invokes on progress change
    */
-  onProgressChange?: (
-    task: Task,
-    children: Task[]
-  ) => void;
+  onProgressChange?: OnProgressChange;
   /**
    * Invokes on edit button click
    */
@@ -325,6 +346,10 @@ export interface Icons {
 
 export interface StylingOption {
   actionColumnWidth?: number;
+  /**
+   * Allow drag-n-drop of tasks in the table
+   */
+  canMoveTasks?: boolean;
   canResizeColumns?: boolean;
   colors?: Partial<TaskBarColorStyles>;
   /**
@@ -409,7 +434,7 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
 }
 
 export interface TaskListTableProps {
-  canMoveTask: boolean;
+  canMoveTasks: boolean;
   dateSetup: DateSetup;
   expandIconWidth: number;
   rowHeight: number;
@@ -533,7 +558,7 @@ export type ChangeInProgress = {
 export type GetMetadata = (task: TaskOrEmpty) => ChangeMetadata;
 
 export type ColumnData = {
-  canMoveTask: boolean;
+  canMoveTasks: boolean;
   dateSetup: DateSetup;
   expandIconWidth: number;
   isShowTaskNumbers: boolean;

@@ -24,7 +24,7 @@ import styles from "./task-list-table-row.module.css";
 import { ROW_DRAG_TYPE } from "../../constants";
 
 type TaskListTableRowProps = {
-  canMoveTask: boolean;
+  canMoveTasks: boolean;
   dateSetup: DateSetup;
   expandIconWidth: number;
   task: TaskOrEmpty;
@@ -46,7 +46,7 @@ type TaskListTableRowProps = {
 };
 
 const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
-  canMoveTask,
+  canMoveTasks,
   dateSetup,
   expandIconWidth,
   task,
@@ -127,7 +127,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   }, [mapTaskToNestedIndex, comparisonLevel, id]);
 
   const columnData: ColumnData = {
-    canMoveTask,
+    canMoveTasks,
     dateSetup,
     depth,
     expandIconWidth,

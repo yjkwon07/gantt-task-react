@@ -13,6 +13,7 @@ import { getMapTaskToCoordinatesOnLevel, getTaskCoordinates } from "../../helper
 import { GanttRelationEvent, RelationMoveTarget } from "../../types/gantt-task-actions";
 import {
   MapTaskToCoordinates,
+  MapTaskToGlobalIndex,
   OnRelationChange,
   Task,
   TaskMapByLevel,
@@ -22,6 +23,7 @@ import {
 type UseCreateRelationParams = {
   ganttSVGRef: RefObject<SVGSVGElement>;
   mapTaskToCoordinates: MapTaskToCoordinates;
+  mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   onRelationChange?: OnRelationChange;
   relationCircleOffset: number;
   relationCircleRadius: number;
@@ -34,6 +36,7 @@ type UseCreateRelationParams = {
 export const useCreateRelation = ({
   ganttSVGRef,
   mapTaskToCoordinates,
+  mapTaskToGlobalIndex,
   onRelationChange,
   relationCircleOffset,
   relationCircleRadius,
@@ -155,7 +158,7 @@ export const useCreateRelation = ({
       );
 
       if (endTargetRelationCircle) {
-        const [endRelationTask] = endTargetRelationCircle;
+        const [endRelationTask, endRelationTarget] = endTargetRelationCircle;
 
         const {
           comparisonLevel: startComparisonLevel = 1,
@@ -166,6 +169,24 @@ export const useCreateRelation = ({
         } = endRelationTask;
 
         if (startComparisonLevel === endComparisonLevel) {
+          const indexesOnLevel = mapTaskToGlobalIndex.get(startComparisonLevel);
+
+          if (!indexesOnLevel) {
+            throw new Error(`Indexes are not found for level ${startComparisonLevel}`);
+          }
+
+          const startIndex = indexesOnLevel.get(startRelationTask.id);
+
+          if (typeof startIndex !== "number") {
+            throw new Error(`Index is not found for task ${startRelationTask.id}`);
+          }
+
+          const endIndex = indexesOnLevel.get(endRelationTask.id);
+
+          if (typeof endIndex !== "number") {
+            throw new Error(`Index is not found for task ${endRelationTask.id}`);
+          }
+
           const isOneDescendant = checkIsDescendant(
             startRelationTask,
             endRelationTask,
@@ -177,8 +198,8 @@ export const useCreateRelation = ({
           );
 
           onRelationChange(
-            [startRelationTask, startRelationTarget],
-            endTargetRelationCircle,
+            [startRelationTask, startRelationTarget, startIndex],
+            [endRelationTask, endRelationTarget, endIndex],
             isOneDescendant,
           );
         }

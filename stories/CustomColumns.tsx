@@ -10,15 +10,11 @@ import {
   Column,
   ColumnProps,
   DateStartColumn,
-  Dependency,
   Gantt,
   OnAddTask,
   OnArrowDoubleClick,
   OnDateChange,
   OnEditTask,
-  OnMoveTaskAfter,
-  OnMoveTaskInside,
-  OnRelationChange,
   Task,
   TaskOrEmpty,
   TitleColumn,
@@ -69,104 +65,6 @@ type AppProps = {
 
 export const CustomColumns: React.FC<AppProps> = (props) => {
   const [tasks, setTasks] = useState<readonly TaskOrEmpty[]>(initTasks());
-
-  const handleTaskChange = useCallback<OnDateChange>((
-    task,
-    dependentTasks,
-    taskIndex,
-    parents,
-    suggestions,
-  ) => {
-    const {
-      id: taskId,
-      comparisonLevel = 1,
-    } = task;
-
-    console.log(`On date change Id: ${taskId}`);
-    console.log(`On date change level: ${comparisonLevel}`);
-    console.log(`On date change index: ${taskIndex}`);
-    console.log("Dependent tasks", dependentTasks);
-    console.log("Parents", parents);
-    console.log("Suggestions", suggestions);
-
-    setTasks((prevTasks) => {
-      const newTasks = [...prevTasks];
-
-      newTasks[taskIndex] = task;
-
-      suggestions.forEach(([start, end, task, index]) => {
-        newTasks[index] = {
-          ...task,
-          start,
-          end,
-        };
-      });
-
-      return newTasks;
-    });
-  }, []);
-
-  const handleRelationChange = useCallback<OnRelationChange>((
-    [taskFrom, targetFrom],
-    [taskTo, targetTo],
-    isOneDescendant,
-  ) => {
-    if (isOneDescendant) {
-      return;
-    }
-
-    if (taskFrom.id === taskTo.id) {
-      return;
-    }
-
-    const {
-      comparisonLevel = 1,
-    } = taskFrom;
-
-    setTasks((prevTasks) => prevTasks.map(t => {
-      const {
-        comparisonLevel: otherComparisonLevel = 1,
-      } = t;
-
-      if (otherComparisonLevel !== comparisonLevel) {
-        return t;
-      }
-
-      const newDependency: Dependency = {
-        sourceId: taskFrom.id,
-        sourceTarget: targetFrom,
-        ownTarget: targetTo,
-      };
-
-      if (t.id === taskTo.id) {
-        if (t.type === "empty" || !t.dependencies) {
-          return {
-            ...t,
-            dependencies: [newDependency],
-          };
-        }
-
-        return {
-          ...t,
-          dependencies: [
-            ...t.dependencies.filter(({ sourceId }) => sourceId !== taskFrom.id),
-            newDependency,
-          ],
-        };
-      }
-
-      if (t.id === taskFrom.id) {
-        if (t.type !== "empty" && t.dependencies) {
-          return {
-            ...t,
-            dependencies: t.dependencies.filter(({ sourceId }) => sourceId !== taskTo.id),
-          };
-        }
-      }
-
-      return t;
-    }));
-  }, []);
 
   const onArrowDoubleClick = useCallback<OnArrowDoubleClick>((
     taskFrom,
@@ -362,92 +260,6 @@ export const CustomColumns: React.FC<AppProps> = (props) => {
     return conf;
   }, []);
 
-  const handleProgressChange = useCallback(async (task: Task) => {
-    const {
-      id: taskId,
-      comparisonLevel = 1,
-    } = task;
-
-    console.log("On progress change Id:" + taskId);
-
-    setTasks((prevTasks) => prevTasks.map((otherTask) => {
-      const {
-        id: otherId,
-        comparisonLevel: otherComparisonLevel = 1,
-      } = otherTask;
-
-      if (taskId === otherId && comparisonLevel === otherComparisonLevel) {
-        return task;
-      }
-
-      return otherTask;
-    }));
-  }, []);
-
-  const handleMoveTaskAfter = useCallback<OnMoveTaskAfter>((
-    task,
-    taskForMove,
-    dependentTasks,
-    taskIndex,
-    taskForMoveIndex,
-    parents,
-    suggestions,
-  ) => {
-    setTasks((prevTasks) => {
-      const nextTasks = [...prevTasks];
-
-      suggestions.forEach(([start, end, task, index]) => {
-        nextTasks[index] = {
-          ...task,
-          start,
-          end,
-        };
-      });
-
-      const isMovedTaskBefore = taskForMoveIndex < taskIndex;
-
-      nextTasks.splice(taskForMoveIndex, 1);
-      nextTasks.splice(isMovedTaskBefore ? taskIndex : (taskIndex + 1), 0, {
-        ...taskForMove,
-        parent: task.parent,
-      });
-
-      return nextTasks;
-    });
-  }, []);
-
-  const handleMoveTaskInside = useCallback<OnMoveTaskInside>((
-    parent,
-    child,
-    dependentTasks,
-    parentIndex,
-    childIndex,
-    parents,
-    suggestions,
-  ) => {
-    setTasks((prevTasks) => {
-      const nextTasks = [...prevTasks];
-
-      suggestions.forEach(([start, end, task, index]) => {
-        nextTasks[index] = {
-          ...task,
-          start,
-          end,
-        };
-      });
-
-      const isMovedTaskBefore = childIndex < parentIndex;
-
-      nextTasks.splice(childIndex, 1);
-      nextTasks.splice(isMovedTaskBefore ? parentIndex : (parentIndex + 1), 0, {
-        ...child,
-        parent: parent.id,
-      });
-
-      return nextTasks;
-    });
-  }, []);
-
   const handleDblClick = (task: Task) => {
     alert("On Double Click event Id:" + task.id);
   };
@@ -461,14 +273,10 @@ export const CustomColumns: React.FC<AppProps> = (props) => {
       <Gantt
         {...props}
         tasks={tasks}
-        onDateChange={handleTaskChange}
+        onChangeTasks={setTasks}
         onEditTask={handleTaskEdit}
         onAddTask={handleTaskAdd}
-        onMoveTaskAfter={handleMoveTaskAfter}
-        onMoveTaskInside={handleMoveTaskInside}
-        onRelationChange={handleRelationChange}
         onDelete={handleTaskDelete}
-        onProgressChange={handleProgressChange}
         onDoubleClick={handleDblClick}
         onClick={handleClick}
         onArrowDoubleClick={onArrowDoubleClick}

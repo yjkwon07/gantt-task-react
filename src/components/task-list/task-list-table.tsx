@@ -6,7 +6,7 @@ import { TaskListTableRow } from "./task-list-table-row";
 import styles from "./task-list-table.module.css";
 
 export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
-  canMoveTask,
+  canMoveTasks,
   dateSetup,
   expandIconWidth,
   fullRowHeight,
@@ -44,7 +44,7 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
         .map((task) => {
           return (
             <TaskListTableRow
-              canMoveTask={canMoveTask}
+              canMoveTasks={canMoveTasks}
               dateSetup={dateSetup}
               expandIconWidth={expandIconWidth}
               task={task}

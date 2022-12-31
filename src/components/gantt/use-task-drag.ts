@@ -23,6 +23,7 @@ import {
   MapTaskToCoordinates,
   MapTaskToGlobalIndex,
   OnDateChange,
+  OnProgressChange,
   Task,
   TaskMapByLevel,
 } from "../../types/public-types";
@@ -35,7 +36,7 @@ type UseTaskDragParams = {
   mapTaskToCoordinates: MapTaskToCoordinates;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   onDateChange?: OnDateChange;
-  onProgressChange?: (task: Task, children: Task[]) => void;
+  onProgressChange?: OnProgressChange;
   rtl: boolean;
   tasksMap: TaskMapByLevel;
   timeStep: number;
@@ -293,6 +294,7 @@ export const useTaskDrag = ({
           onProgressChange(
             newChangedTask,
             dependentTasks,
+            taskIndex,
           );
         }
 
@@ -306,7 +308,7 @@ export const useTaskDrag = ({
       onDateChange(
         newChangedTask,
         dependentTasks,
-        typeof taskIndex === 'number' ? taskIndex : -1,
+        taskIndex,
         parents,
         suggestions,
       );

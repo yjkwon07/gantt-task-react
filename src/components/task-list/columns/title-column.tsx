@@ -31,7 +31,7 @@ const getExpanderSymbol = (
 
 export const TitleColumn: React.FC<ColumnProps> = ({
   data: {
-    canMoveTask,
+    canMoveTasks,
     expandIconWidth,
     icons,
     isShowTaskNumbers,
@@ -84,7 +84,7 @@ export const TitleColumn: React.FC<ColumnProps> = ({
         paddingLeft: depth * nestedTaskNameOffset,
       }}
       title={title}
-      ref={canMoveTask ? drag : undefined}
+      ref={canMoveTasks ? drag : undefined}
     >
       <div
         className={cx(styles.taskListExpander, {

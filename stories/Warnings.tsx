@@ -7,18 +7,13 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
 import {
-  Dependency,
   Gantt,
-  FixPosition,
   OnArrowDoubleClick,
   OnDateChange,
-  OnRelationChange,
   Task,
   TaskOrEmpty,
   OnEditTask,
   OnAddTask,
-  OnMoveTaskAfter,
-  OnMoveTaskInside,
 } from "../src";
 
 import { getTaskFields, initTasks } from "./helper";
@@ -31,126 +26,6 @@ type AppProps = {
 
 export const Warnings: React.FC<AppProps> = (props) => {
   const [tasks, setTasks] = useState<readonly TaskOrEmpty[]>(initTasks());
-
-  const handleTaskChange = useCallback<OnDateChange>((
-    task,
-    dependentTasks,
-    taskIndex,
-    parents,
-    suggestions,
-  ) => {
-    const {
-      id: taskId,
-      comparisonLevel = 1,
-    } = task;
-
-    console.log(`On date change Id: ${taskId}`);
-    console.log(`On date change level: ${comparisonLevel}`);
-    console.log(`On date change index: ${taskIndex}`);
-    console.log("Dependent tasks", dependentTasks);
-    console.log("Parents", parents);
-    console.log("Suggestions", suggestions);
-
-    setTasks((prevTasks) => {
-      const newTasks = [...prevTasks];
-      newTasks[taskIndex] = task;
-      return newTasks;
-    });
-  }, []);
-
-  const handleFixStartPosition = useCallback<FixPosition>((
-    task,
-    date,
-    index,
-  ) => {
-    setTasks((prevTasks) => {
-      const newTasks = [...prevTasks];
-      newTasks[index] = {
-        ...task,
-        start: date,
-      };
-
-      return newTasks;
-    });
-  }, []);
-
-  const handleFixEndPosition = useCallback<FixPosition>((
-    task,
-    date,
-    index,
-  ) => {
-    setTasks((prevTasks) => {
-      const newTasks = [...prevTasks];
-      newTasks[index] = {
-        ...task,
-        end: date,
-      };
-
-      return newTasks;
-    });
-  }, []);
-
-  const handleRelationChange = useCallback<OnRelationChange>((
-    [taskFrom, targetFrom],
-    [taskTo, targetTo],
-    isOneDescendant,
-  ) => {
-    if (isOneDescendant) {
-      return;
-    }
-
-    if (taskFrom.id === taskTo.id) {
-      return;
-    }
-
-    const {
-      comparisonLevel = 1,
-    } = taskFrom;
-
-    setTasks((prevTasks) => prevTasks.map(t => {
-      const {
-        comparisonLevel: otherComparisonLevel = 1,
-      } = t;
-
-      if (otherComparisonLevel !== comparisonLevel) {
-        return t;
-      }
-
-      const newDependency: Dependency = {
-        sourceId: taskFrom.id,
-        sourceTarget: targetFrom,
-        ownTarget: targetTo,
-      };
-
-      if (t.id === taskTo.id) {
-        if (t.type === "empty" || !t.dependencies) {
-          return {
-            ...t,
-            dependencies: [newDependency],
-          };
-        }
-
-        return {
-          ...t,
-          dependencies: [
-            ...t.dependencies.filter(({ sourceId }) => sourceId !== taskFrom.id),
-            newDependency,
-          ],
-        };
-      }
-
-      if (t.id === taskFrom.id) {
-        if (t.type !== "empty" && t.dependencies) {
-          return {
-            ...t,
-            dependencies: t.dependencies.filter(({ sourceId }) => sourceId !== taskTo.id),
-          };
-        }
-      }
-
-      return t;
-    }));
-  }, []);
 
   const onArrowDoubleClick = useCallback<OnArrowDoubleClick>((
     taskFrom,
@@ -321,72 +196,6 @@ export const Warnings: React.FC<AppProps> = (props) => {
     return conf;
   }, []);
 
-  const handleProgressChange = useCallback(async (task: Task) => {
-    const {
-      id: taskId,
-      comparisonLevel = 1,
-    } = task;
-
-    console.log("On progress change Id:" + taskId);
-
-    setTasks((prevTasks) => prevTasks.map((otherTask) => {
-      const {
-        id: otherId,
-        comparisonLevel: otherComparisonLevel = 1,
-      } = otherTask;
-
-      if (taskId === otherId && comparisonLevel === otherComparisonLevel) {
-        return task;
-      }
-
-      return otherTask;
-    }));
-  }, []);
-
-  const handleMoveTaskAfter = useCallback<OnMoveTaskAfter>((
-    task,
-    taskForMove,
-    dependentTasks,
-    taskIndex,
-    taskForMoveIndex,
-  ) => {
-    setTasks((prevTasks) => {
-      const nextTasks = [...prevTasks];
-
-      const isMovedTaskBefore = taskForMoveIndex < taskIndex;
-
-      nextTasks.splice(taskForMoveIndex, 1);
-      nextTasks.splice(isMovedTaskBefore ? taskIndex : (taskIndex + 1), 0, {
-        ...taskForMove,
-        parent: task.parent,
-      });
-
-      return nextTasks;
-    });
-  }, []);
-
-  const handleMoveTaskInside = useCallback<OnMoveTaskInside>((
-    parent,
-    child,
-    dependentTasks,
-    parentIndex,
-    childIndex,
-  ) => {
-    setTasks((prevTasks) => {
-      const nextTasks = [...prevTasks];
-
-      const isMovedTaskBefore = childIndex < parentIndex;
-
-      nextTasks.splice(childIndex, 1);
-      nextTasks.splice(isMovedTaskBefore ? parentIndex : (parentIndex + 1), 0, {
-        ...child,
-        parent: parent.id,
-      });
-
-      return nextTasks;
-    });
-  }, []);
-
   const handleDblClick = (task: Task) => {
     alert("On Double Click event Id:" + task.id);
   };
@@ -398,24 +207,18 @@ export const Warnings: React.FC<AppProps> = (props) => {
   return (
     <DndProvider backend={HTML5Backend}>
       <Gantt
+        isRecountParentsOnChange={false}
         isShowChildOutOfParentWarnings
         isShowDependencyWarnings
         {...props}
-        tasks={[...tasks]}
-        onDateChange={handleTaskChange}
+        tasks={tasks}
+        onChangeTasks={setTasks}
         onEditTask={handleTaskEdit}
         onAddTask={handleTaskAdd}
-        onMoveTaskAfter={handleMoveTaskAfter}
-        onMoveTaskInside={handleMoveTaskInside}
-        onFixDependencyPosition={handleTaskChange}
-        onRelationChange={handleRelationChange}
         onDelete={handleTaskDelete}
-        onProgressChange={handleProgressChange}
         onDoubleClick={handleDblClick}
         onClick={handleClick}
         onArrowDoubleClick={onArrowDoubleClick}
-        fixStartPosition={handleFixStartPosition}
-        fixEndPosition={handleFixEndPosition}
       />
     </DndProvider>
   );

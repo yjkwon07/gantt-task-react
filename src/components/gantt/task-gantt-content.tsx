@@ -124,10 +124,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   handleBarRelationStart,
   setSelectedTask,
   handleDeteleTask,
-  onDateChange = undefined,
   onFixDependencyPosition = undefined,
-  onRelationChange,
-  onProgressChange,
   onDoubleClick,
   onClick,
   onArrowDoubleClick = undefined,
@@ -322,9 +319,9 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               relationCircleRadius={relationCircleRadius}
               taskWarningOffset={taskWarningOffset}
               isRelationDrawMode={Boolean(ganttRelationEvent)}
-              isProgressChangeable={!!onProgressChange && !task.isDisabled}
-              isDateChangeable={!!onDateChange && !task.isDisabled}
-              isRelationChangeable={!!onRelationChange && !task.isDisabled}
+              isProgressChangeable={!task.isDisabled}
+              isDateChangeable={!task.isDisabled}
+              isRelationChangeable={!task.isDisabled}
               isDelete={!task.isDisabled}
               onDoubleClick={onDoubleClick}
               onClick={onClick}
