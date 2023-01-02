@@ -129,7 +129,9 @@ export type TaskOrEmpty = Task | EmptyTask;
 
 export type OnArrowDoubleClick = (
   taskFrom: Task,
+  taskFromIndex: number,
   taskTo: Task,
+  taskToIndex: number,
 ) => void;
 
 export type OnRelationChange = (
@@ -220,8 +222,51 @@ export type FixPosition = (
   index: number,
 ) => void;
 
+export type OnChangeTasksAction =
+  | {
+    type: "date_change";
+  }
+  | {
+    type: "delete_relation";
+    payload: {
+      taskFrom: Task;
+      taskFromIndex: number;
+      taskTo: Task;
+      taskToIndex: number;
+    };
+  }
+  | {
+    type: "delete_task";
+    payload: {
+      task: TaskOrEmpty;
+      taskIndex: number;
+    };
+  }
+  | {
+    type: "fix_dependency_position";
+  }
+  | {
+    type: "fix_end_position";
+  }
+  | {
+    type: "fix_start_position";
+  }
+  | {
+    type: "move_task_after";
+  }
+  | {
+    type: "move_task_inside";
+  }
+  | {
+    type: "progress_change";
+  }
+  | {
+    type: "relation_change";
+  };
+
 export type OnChangeTasks = (
   nextTasks: readonly TaskOrEmpty[],
+  action: OnChangeTasksAction,
 ) => void;
 
 export interface EventOption {
@@ -301,6 +346,7 @@ export interface EventOption {
 
 export interface DisplayOption {
   viewMode?: ViewMode;
+  isDeleteDependencyOnDoubleClick?: boolean;
   /**
    * Display offsets from start on timeline instead of dates
    */

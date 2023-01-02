@@ -119,6 +119,7 @@ export const Gantt: React.FC<GanttProps> = ({
   ganttHeight = 0,
   viewMode = ViewMode.Day,
   dateLocale = enDateLocale,
+  isDeleteDependencyOnDoubleClick = true,
   isUnknownDates = false,
   preStepsCount = 1,
   monthBottomHeaderFormat = "LLL",
@@ -158,7 +159,7 @@ export const Gantt: React.FC<GanttProps> = ({
   onMoveTaskAfter = undefined,
   onMoveTaskInside = undefined,
   onSelect,
-  onArrowDoubleClick = undefined,
+  onArrowDoubleClick: onArrowDoubleClickProp = undefined,
   fixStartPosition: fixStartPositionProp = undefined,
   fixEndPosition: fixEndPositionProp = undefined,
   renderBottomHeader = undefined,
@@ -753,7 +754,7 @@ export const Gantt: React.FC<GanttProps> = ({
   }, [onAddTask, getMetadata]);
 
   const handleDeteleTask = useCallback((task: TaskOrEmpty) => {
-    if (!onDelete) {
+    if (!onDelete && !onChangeTasks) {
       return;
     }
 
@@ -769,17 +770,45 @@ export const Gantt: React.FC<GanttProps> = ({
       task,
     });
 
-    onDelete(
-      task,
-      dependentTasks,
-      taskIndex,
-      parents,
-      suggestions,
-    );
+    if (onDelete) {
+      onDelete(
+        task,
+        dependentTasks,
+        taskIndex,
+        parents,
+        suggestions,
+      );
+    }
+
+    if (onChangeTasks) {
+      const nextTasks = [...tasks];
+
+      nextTasks[taskIndex] = task;
+
+      suggestions.forEach(([start, end, task, index]) => {
+        nextTasks[index] = {
+          ...task,
+          start,
+          end,
+        };
+      });
+
+      nextTasks.splice(taskIndex, 1);
+
+      onChangeTasks(nextTasks, {
+        type: "delete_task",
+        payload: {
+          task,
+          taskIndex,
+        },
+      });
+    }
   }, [
     getMetadata,
+    onChangeTasks,
     onDelete,
     setTooltipTask,
+    tasks,
   ]);
 
   /**
@@ -866,7 +895,9 @@ export const Gantt: React.FC<GanttProps> = ({
         parent: target.parent,
       });
 
-      onChangeTasks(withSuggestions);
+      onChangeTasks(withSuggestions, {
+        type: "move_task_after",
+      });
     }
   }, [
     getMetadata,
@@ -935,7 +966,9 @@ export const Gantt: React.FC<GanttProps> = ({
         parent: parent.id,
       });
 
-      onChangeTasks(withSuggestions);
+      onChangeTasks(withSuggestions, {
+        type: "move_task_inside",
+      });
     }
   }, [
     getMetadata,
@@ -978,7 +1011,9 @@ export const Gantt: React.FC<GanttProps> = ({
     if (onChangeTasks) {
       const withSuggestions = prepareSuggestions(suggestions);
       withSuggestions[index] = task;
-      onChangeTasks(withSuggestions);
+      onChangeTasks(withSuggestions, {
+        type: "date_change",
+      });
     }
   }, [
     prepareSuggestions,
@@ -1002,11 +1037,13 @@ export const Gantt: React.FC<GanttProps> = ({
     if (onChangeTasks) {
       const nextTasks = [...tasks];
       nextTasks[index] = task;
-      onChangeTasks(nextTasks);
+      onChangeTasks(nextTasks, {
+        type: "progress_change",
+      });
     }
   }, [
     tasks,
-    onDateChange,
+    onChangeTasks,
     onProgressChangeProp,
   ]);
 
@@ -1022,7 +1059,9 @@ export const Gantt: React.FC<GanttProps> = ({
         start: date,
       };
 
-      onChangeTasks(nextTasks);
+      onChangeTasks(nextTasks, {
+        type: "fix_start_position",
+      });
     }
   }, [
     fixStartPositionProp,
@@ -1042,7 +1081,9 @@ export const Gantt: React.FC<GanttProps> = ({
         end: date,
       };
 
-      onChangeTasks(nextTasks);
+      onChangeTasks(nextTasks, {
+        type: "fix_end_position",
+      });
     }
   }, [
     fixEndPositionProp,
@@ -1071,7 +1112,9 @@ export const Gantt: React.FC<GanttProps> = ({
       const nextTasks = [...tasks];
       nextTasks[taskIndex] = task;
 
-      onChangeTasks(nextTasks);
+      onChangeTasks(nextTasks, {
+        type: "fix_dependency_position",
+      });
     }
   }, [
     onFixDependencyPositionProp,
@@ -1117,13 +1160,76 @@ export const Gantt: React.FC<GanttProps> = ({
           : undefined,
       };
 
-      onChangeTasks(nextTasks);
+      onChangeTasks(nextTasks, {
+        type: "relation_change",
+      });
     }
   }, [
     onRelationChangeProp,
     onChangeTasks,
     tasks,
   ]);
+
+  const onArrowDoubleClick = useCallback(
+    (taskFrom: Task, taskTo: Task) => {
+      if (!onArrowDoubleClickProp && !onChangeTasks) {
+        return;
+      }
+
+      const {
+        comparisonLevel = 1,
+      } = taskFrom;
+
+      const indexesOnLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+
+      if (!indexesOnLevel) {
+        throw new Error(`Indexes are not found for level ${comparisonLevel}`);
+      }
+
+      const taskFromIndex = indexesOnLevel.get(taskFrom.id);
+
+      if (typeof taskFromIndex !== "number") {
+        throw new Error(`Index is not found for task ${taskFrom.id}`);
+      }
+
+      const taskToIndex = indexesOnLevel.get(taskTo.id);
+
+      if (typeof taskToIndex !== "number") {
+        throw new Error(`Index is not found for task ${taskTo.id}`);
+      }
+
+      if (onArrowDoubleClickProp) {
+        onArrowDoubleClickProp(taskFrom, taskFromIndex, taskTo, taskToIndex);
+      }
+
+      if (onChangeTasks && isDeleteDependencyOnDoubleClick) {
+        const nextTasks = [...tasks];
+        nextTasks[taskToIndex] = {
+          ...taskTo,
+          dependencies: taskTo.dependencies
+            ? taskTo.dependencies.filter(({ sourceId }) => sourceId !== taskFrom.id)
+            : undefined,
+        };
+
+        onChangeTasks(nextTasks, {
+          type: "delete_relation",
+          payload: {
+            taskFrom,
+            taskFromIndex,
+            taskTo,
+            taskToIndex,
+          },
+        });
+      }
+    },
+    [
+      isDeleteDependencyOnDoubleClick,
+      mapTaskToGlobalIndex,
+      onArrowDoubleClickProp,
+      onChangeTasks,
+      tasks,
+    ],
+  );
 
   const [changeInProgress, handleTaskDragStart] = useTaskDrag({
     childTasksMap,

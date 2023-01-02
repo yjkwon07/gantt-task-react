@@ -7,7 +7,6 @@ import React, {
 import cx from 'classnames';
 
 import {
-  OnArrowDoubleClick,
   Task,
   TaskCoordinates,
 } from "../../types/public-types";
@@ -41,7 +40,7 @@ type ArrowProps = {
   dependencyFixIndent: number;
   isCritical: boolean;
   rtl: boolean;
-  onArrowDoubleClick?: OnArrowDoubleClick;
+  onArrowDoubleClick?: (taskFrom: Task, taskTo: Task) => void;
   handleFixDependency: (
     task: Task,
     delta: number,
@@ -73,7 +72,10 @@ const ArrowInner: React.FC<ArrowProps> = ({
 }) => {
   const onDoubleClick = useCallback(() => {
     if (onArrowDoubleClick) {
-      onArrowDoubleClick(taskFrom, taskTo);
+      onArrowDoubleClick(
+        taskFrom,
+        taskTo,
+      );
     }
   }, [
     taskFrom,

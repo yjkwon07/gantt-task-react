@@ -12,8 +12,7 @@ import {
   DateStartColumn,
   Gantt,
   OnAddTask,
-  OnArrowDoubleClick,
-  OnDateChange,
+  OnChangeTasks,
   OnEditTask,
   Task,
   TaskOrEmpty,
@@ -66,50 +65,23 @@ type AppProps = {
 export const CustomColumns: React.FC<AppProps> = (props) => {
   const [tasks, setTasks] = useState<readonly TaskOrEmpty[]>(initTasks());
 
-  const onArrowDoubleClick = useCallback<OnArrowDoubleClick>((
-    taskFrom,
-    taskTo,
-  ) => {
-    if (window.confirm(`Do yo want to remove relation between ${taskFrom.name} and ${taskTo.name}?`)) {
-      const {
-        comparisonLevel = 1,
-      } = taskFrom;
-
-      setTasks((prevTasks) => prevTasks.map((otherTask) => {
-        if (otherTask.type === "empty") {
-          return otherTask;
+  const onChangeTasks = useCallback<OnChangeTasks>((nextTasks, action) => {
+    switch (action.type) {
+      case "delete_relation":
+        if (window.confirm(`Do yo want to remove relation between ${action.payload.taskFrom.name} and ${action.payload.taskTo.name}?`)) {
+          setTasks(nextTasks);
         }
+        break;
 
-        const {
-          dependencies,
-          id: otherId,
-          comparisonLevel: otherComparisonLevel = 1,
-        } = otherTask;
-
-        if (comparisonLevel !== otherComparisonLevel) {
-          return otherTask;
+      case "delete_task":
+        if (window.confirm("Are you sure about " + action.payload.task.name + " ?")) {
+          setTasks(nextTasks);
         }
+        break;
 
-        if (otherId === taskFrom.id) {
-          if (dependencies) {
-            return {
-              ...otherTask,
-              dependencies: dependencies.filter(({ sourceId }) => sourceId !== taskTo.id),
-            };
-          }
-        }
-
-        if (otherId === taskTo.id) {
-          if (dependencies) {
-            return {
-              ...otherTask,
-              dependencies: dependencies.filter(({ sourceId }) => sourceId !== taskFrom.id),
-            };
-          }
-        }
-
-        return otherTask;
-      }));
+      default:
+        setTasks(nextTasks);
+        break;
     }
   }, []);
 
@@ -229,37 +201,6 @@ export const CustomColumns: React.FC<AppProps> = (props) => {
     });
   }, []);
 
-  const handleTaskDelete = useCallback<OnDateChange>((
-    task,
-    dependentTasks,
-    taskIndex,
-    parents,
-    suggestions,
-  ) => {
-    const conf = window.confirm("Are you sure about " + task.name + " ?");
-
-    if (conf) {
-      setTasks((prevTasks) => {
-        const newTasks = [...prevTasks];
-
-        newTasks[taskIndex] = task;
-
-        suggestions.forEach(([start, end, task, index]) => {
-          newTasks[index] = {
-            ...task,
-            start,
-            end,
-          };
-        });
-
-        newTasks.splice(taskIndex, 1);
-
-        return newTasks;
-      });
-    }
-    return conf;
-  }, []);
-
   const handleDblClick = (task: Task) => {
     alert("On Double Click event Id:" + task.id);
   };
@@ -273,13 +214,11 @@ export const CustomColumns: React.FC<AppProps> = (props) => {
       <Gantt
         {...props}
         tasks={tasks}
-        onChangeTasks={setTasks}
+        onChangeTasks={onChangeTasks}
         onEditTask={handleTaskEdit}
         onAddTask={handleTaskAdd}
-        onDelete={handleTaskDelete}
         onDoubleClick={handleDblClick}
         onClick={handleClick}
-        onArrowDoubleClick={onArrowDoubleClick}
         columns={columns}
       />
     </DndProvider>

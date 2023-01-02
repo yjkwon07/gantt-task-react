@@ -16,7 +16,6 @@ import {
   MapTaskToCoordinates,
   MapTaskToGlobalIndex,
   MapTaskToRowIndex,
-  OnArrowDoubleClick,
   Task,
   TaskBarColorStyles,
   TaskMapByLevel,
@@ -77,12 +76,12 @@ export type TaskGanttContentProps = {
   handleBarRelationStart: (target: RelationMoveTarget, task: Task) => void;
   setSelectedTask: (task: Task | null) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;
-  onArrowDoubleClick?: OnArrowDoubleClick;
+  onArrowDoubleClick?: (taskFrom: Task, taskTo: Task) => void;
   comparisonLevels: number;
   fixStartPosition?: FixPosition;
   fixEndPosition?: FixPosition;
   colorStyles: TaskBarColorStyles;
-} & EventOption;
+} & Omit<EventOption, 'onArrowDoubleClick'>;
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   visibleTasks,
