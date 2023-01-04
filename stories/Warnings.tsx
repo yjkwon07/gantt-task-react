@@ -10,12 +10,14 @@ import {
   Gantt,
   Task,
   TaskOrEmpty,
-  OnEditTask,
-  OnAddTask,
   OnChangeTasks,
 } from "../src";
 
-import { getTaskFields, initTasks } from "./helper";
+import {
+  initTasks,
+  onAddTask,
+  onEditTask,
+} from "./helper";
 
 import "../dist/index.css";
 
@@ -35,7 +37,7 @@ export const Warnings: React.FC<AppProps> = (props) => {
         break;
 
       case "delete_task":
-        if (window.confirm("Are you sure about " + action.payload.task.name + " ?")) {
+        if (window.confirm(`Are you sure about ${action.payload.task.name}?`)) {
           setTasks(nextTasks);
         }
         break;
@@ -44,97 +46,6 @@ export const Warnings: React.FC<AppProps> = (props) => {
         setTasks(nextTasks);
         break;
     }
-  }, []);
-
-  const handleTaskEdit = useCallback<OnEditTask>((task, index) => {
-    const taskFields = getTaskFields({
-      name: task.name,
-      start: task.type === "empty" ? null : task.start,
-      end: task.type === "empty" ? null : task.end,
-    });
-
-    const nextTask: TaskOrEmpty = (task.type === "task" || task.type === "empty")
-      ? (taskFields.start && taskFields.end)
-        ? {
-          type: "task",
-          start: taskFields.start,
-          end: taskFields.end,
-          comparisonLevel: task.comparisonLevel,
-          id: task.id,
-          name: taskFields.name || task.name,
-          progress: task.type === "empty"
-            ? 0
-            : task.progress,
-          dependencies: task.type === "empty"
-            ? undefined
-            : task.dependencies,
-          parent: task.parent,
-          styles: task.styles,
-          isDisabled: task.isDisabled,
-        }
-        : {
-          type: "empty",
-          comparisonLevel: task.comparisonLevel,
-          id: task.id,
-          name: taskFields.name || task.name,
-          parent: task.parent,
-          styles: task.styles,
-          isDisabled: task.isDisabled,
-        }
-      : {
-        ...task,
-        name: taskFields.name || task.name,
-        start: taskFields.start || task.start,
-        end: taskFields.end || task.end,
-      };
-
-    setTasks((prevTasks) => {
-      const nextTasks = [...prevTasks];
-      nextTasks[index] = nextTask;
-
-      return nextTasks;
-    });
-  }, []);
-
-  const handleTaskAdd = useCallback<OnAddTask>((task, getMetadata) => {
-    const taskFields = getTaskFields({
-      start: task.start,
-      end: task.end,
-    });
-
-    const nextTask: TaskOrEmpty = (taskFields.start && taskFields.end)
-      ? {
-        type: "task",
-        start: taskFields.start,
-        end: taskFields.end,
-        comparisonLevel: task.comparisonLevel,
-        id: String(Date.now()),
-        name: taskFields.name || "",
-        progress: 0,
-        parent: task.id,
-        styles: task.styles,
-      }
-      : {
-        type: "empty",
-        comparisonLevel: task.comparisonLevel,
-        id: String(Date.now()),
-        name: taskFields.name || "",
-        parent: task.id,
-        styles: task.styles,
-      };
-
-    const [
-      dependentTasks,
-      taskIndex,
-    ] = getMetadata(nextTask);
-
-    setTasks((prevTasks) => {
-      const nextTasks = [...prevTasks];
-
-      nextTasks.splice(taskIndex + 1, 0, nextTask);
-
-      return nextTasks;
-    });
   }, []);
 
   const handleDblClick = (task: Task) => {
@@ -152,12 +63,12 @@ export const Warnings: React.FC<AppProps> = (props) => {
         isShowChildOutOfParentWarnings
         isShowDependencyWarnings
         {...props}
-        tasks={tasks}
+        onAddTask={onAddTask}
         onChangeTasks={onChangeTasks}
-        onEditTask={handleTaskEdit}
-        onAddTask={handleTaskAdd}
         onDoubleClick={handleDblClick}
+        onEditTask={onEditTask}
         onClick={handleClick}
+        tasks={tasks}
       />
     </DndProvider>
   );

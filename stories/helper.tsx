@@ -3,7 +3,7 @@ import isValid from "date-fns/isValid";
 import parse from "date-fns/parse";
 import startOfMinute from "date-fns/startOfMinute";
 
-import { Task } from "../src";
+import { Task, TaskOrEmpty } from "../src";
 
 const dateFormat = "dd/MM/yyyy HH:mm";
 
@@ -179,4 +179,79 @@ export const getTaskFields = (initialValues: {
     start: isValid(startDate) ? startDate : null,
     end: isValid(endDate) ? endDate : null,
   };
+};
+
+export const onAddTask = (parentTask: Task) => {
+  const taskFields = getTaskFields({
+    start: parentTask.start,
+    end: parentTask.end,
+  });
+
+  const nextTask: TaskOrEmpty = (taskFields.start && taskFields.end)
+    ? {
+      type: "task",
+      start: taskFields.start,
+      end: taskFields.end,
+      comparisonLevel: parentTask.comparisonLevel,
+      id: String(Date.now()),
+      name: taskFields.name || "",
+      progress: 0,
+      parent: parentTask.id,
+      styles: parentTask.styles,
+    }
+    : {
+      type: "empty",
+      comparisonLevel: parentTask.comparisonLevel,
+      id: String(Date.now()),
+      name: taskFields.name || "",
+      parent: parentTask.id,
+      styles: parentTask.styles,
+    };
+
+  return Promise.resolve(nextTask);
+};
+
+export const onEditTask = (task: TaskOrEmpty) => {
+  const taskFields = getTaskFields({
+    name: task.name,
+    start: task.type === "empty" ? null : task.start,
+    end: task.type === "empty" ? null : task.end,
+  });
+
+  const nextTask: TaskOrEmpty = (task.type === "task" || task.type === "empty")
+    ? (taskFields.start && taskFields.end)
+      ? {
+        type: "task",
+        start: taskFields.start,
+        end: taskFields.end,
+        comparisonLevel: task.comparisonLevel,
+        id: task.id,
+        name: taskFields.name || task.name,
+        progress: task.type === "empty"
+          ? 0
+          : task.progress,
+        dependencies: task.type === "empty"
+          ? undefined
+          : task.dependencies,
+        parent: task.parent,
+        styles: task.styles,
+        isDisabled: task.isDisabled,
+      }
+      : {
+        type: "empty",
+        comparisonLevel: task.comparisonLevel,
+        id: task.id,
+        name: taskFields.name || task.name,
+        parent: task.parent,
+        styles: task.styles,
+        isDisabled: task.isDisabled,
+      }
+    : {
+      ...task,
+      name: taskFields.name || task.name,
+      start: taskFields.start || task.start,
+      end: taskFields.end || task.end,
+    };
+
+  return Promise.resolve(nextTask);
 };

@@ -146,20 +146,22 @@ export const Gantt: React.FC<GanttProps> = ({
   TooltipContent = StandardTooltipContent,
   TaskListHeader = TaskListHeaderDefault,
   TaskListTable = TaskListTableDefault,
-  onChangeTasks = undefined,
-  onDateChange: onDateChangeProp,
-  onFixDependencyPosition: onFixDependencyPositionProp = undefined,
-  onRelationChange: onRelationChangeProp = undefined,
-  onProgressChange: onProgressChangeProp = undefined,
-  onDoubleClick,
-  onClick,
-  onDelete = undefined,
-  onEditTask = undefined,
   onAddTask = undefined,
+  onAddTaskClick = undefined,
+  onArrowDoubleClick: onArrowDoubleClickProp = undefined,
+  onChangeTasks = undefined,
+  onClick = undefined,
+  onDateChange: onDateChangeProp = undefined,
+  onDelete = undefined,
+  onDoubleClick = undefined,
+  onEditTask = undefined,
+  onEditTaskClick = undefined,
   onMoveTaskAfter = undefined,
   onMoveTaskInside = undefined,
-  onSelect,
-  onArrowDoubleClick: onArrowDoubleClickProp = undefined,
+  onFixDependencyPosition: onFixDependencyPositionProp = undefined,
+  onProgressChange: onProgressChangeProp = undefined,
+  onRelationChange: onRelationChangeProp = undefined,
+  onSelect = undefined,
   fixStartPosition: fixStartPositionProp = undefined,
   fixEndPosition: fixEndPositionProp = undefined,
   renderBottomHeader = undefined,
@@ -717,41 +719,124 @@ export const Gantt: React.FC<GanttProps> = ({
     ],
   );
 
+  /**
+   * Result is not readonly for optimization
+   */
+  const prepareSuggestions = useCallback((
+    suggestions: readonly OnDateChangeSuggestionType[],
+  ): TaskOrEmpty[] => {
+    if (!isRecountParentsOnChange) {
+      return [...tasks];
+    }
+
+    const nextTasks = [...tasks];
+
+    suggestions.forEach(([start, end, task, index]) => {
+      nextTasks[index] = {
+        ...task,
+        start,
+        end,
+      };
+    });
+
+    return nextTasks;
+  }, [
+    isRecountParentsOnChange,
+    tasks,
+  ]);
+
   const handleEditTask = useCallback((task: TaskOrEmpty) => {
-    if (onEditTask) {
-      const {
-        id,
-        comparisonLevel = 1,
-      } = task;
+    if (!onEditTaskClick && (!onEditTask || !onChangeTasks)) {
+      return;
+    }
 
-      const indexesOnLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+    const {
+      id,
+      comparisonLevel = 1,
+    } = task;
 
-      if (!indexesOnLevel) {
-        throw new Error(`Indexes are not found for level ${comparisonLevel}`);
-      }
+    const indexesOnLevel = mapTaskToGlobalIndex.get(comparisonLevel);
 
-      const taskIndex = indexesOnLevel.get(id);
+    if (!indexesOnLevel) {
+      throw new Error(`Indexes are not found for level ${comparisonLevel}`);
+    }
 
-      if (typeof taskIndex !== "number") {
-        throw new Error(`Index is not found for task ${id}`);
-      }
+    const taskIndex = indexesOnLevel.get(id);
 
-      onEditTask(task, taskIndex, (changedTask: TaskOrEmpty) => getMetadata({
+    if (typeof taskIndex !== "number") {
+      throw new Error(`Index is not found for task ${id}`);
+    }
+
+    if (onEditTaskClick) {
+      onEditTaskClick(task, taskIndex, (changedTask: TaskOrEmpty) => getMetadata({
         type: "change",
         task: changedTask,
       }));
+    } else if (onEditTask && onChangeTasks) {
+      onEditTask(task)
+        .then((nextTask) => {
+          if (!nextTask) {
+            return;
+          }
+
+          const [,,, suggestions] = getMetadata({
+            type: "change",
+            task: nextTask,
+          });
+
+          const withSuggestions = prepareSuggestions(suggestions);
+
+          withSuggestions[taskIndex] = nextTask;
+
+          onChangeTasks(withSuggestions, {
+            type: "edit_task",
+          });
+        });
     }
-  }, [onEditTask, getMetadata, mapTaskToGlobalIndex]);
+  }, [
+    onChangeTasks,
+    onEditTask,
+    onEditTaskClick,
+    getMetadata,
+    mapTaskToGlobalIndex,
+    prepareSuggestions,
+  ]);
 
   const handleAddTask = useCallback((task: Task) => {
-    if (onAddTask) {
-      onAddTask(task, (newTask: TaskOrEmpty) => getMetadata({
+    if (onAddTaskClick) {
+      onAddTaskClick(task, (newTask: TaskOrEmpty) => getMetadata({
         type: "add-child",
         parent: task,
         child: newTask,
       }));
+    } else if (onAddTask && onChangeTasks) {
+      onAddTask(task)
+        .then((nextTask) => {
+          if (!nextTask) {
+            return;
+          }
+
+          const [, taskIndex, , suggestions] = getMetadata({
+            type: "change",
+            task: nextTask,
+          });
+
+          const withSuggestions = prepareSuggestions(suggestions);
+
+          withSuggestions.splice(taskIndex + 1, 0, nextTask);
+
+          onChangeTasks(withSuggestions, {
+            type: "add_task",
+          });
+        });
     }
-  }, [onAddTask, getMetadata]);
+  }, [
+    onAddTask,
+    onAddTaskClick,
+    onChangeTasks,
+    getMetadata,
+    prepareSuggestions,
+  ]);
 
   const handleDeteleTask = useCallback((task: TaskOrEmpty) => {
     if (!onDelete && !onChangeTasks) {
@@ -781,21 +866,21 @@ export const Gantt: React.FC<GanttProps> = ({
     }
 
     if (onChangeTasks) {
-      const nextTasks = [...tasks];
+      const withSuggestions = prepareSuggestions(suggestions);
 
-      nextTasks[taskIndex] = task;
+      withSuggestions[taskIndex] = task;
 
       suggestions.forEach(([start, end, task, index]) => {
-        nextTasks[index] = {
+        withSuggestions[index] = {
           ...task,
           start,
           end,
         };
       });
 
-      nextTasks.splice(taskIndex, 1);
+      withSuggestions.splice(taskIndex, 1);
 
-      onChangeTasks(nextTasks, {
+      onChangeTasks(withSuggestions, {
         type: "delete_task",
         payload: {
           task,
@@ -807,34 +892,8 @@ export const Gantt: React.FC<GanttProps> = ({
     getMetadata,
     onChangeTasks,
     onDelete,
+    prepareSuggestions,
     setTooltipTask,
-    tasks,
-  ]);
-
-  /**
-   * Result is not readonly for optimization
-   */
-  const prepareSuggestions = useCallback((
-    suggestions: readonly OnDateChangeSuggestionType[],
-  ): TaskOrEmpty[] => {
-    if (!isRecountParentsOnChange) {
-      return [...tasks];
-    }
-
-    const nextTasks = [...tasks];
-
-    suggestions.forEach(([start, end, task, index]) => {
-      nextTasks[index] = {
-        ...task,
-        start,
-        end,
-      };
-    });
-
-    return nextTasks;
-  }, [
-    isRecountParentsOnChange,
-    tasks,
   ]);
 
   const handleMoveTaskAfter = useCallback((target: TaskOrEmpty, taskForMove: TaskOrEmpty) => {

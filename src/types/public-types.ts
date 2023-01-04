@@ -224,6 +224,9 @@ export type FixPosition = (
 
 export type OnChangeTasksAction =
   | {
+    type: "add_task";
+  }
+  | {
     type: "date_change";
   }
   | {
@@ -241,6 +244,9 @@ export type OnChangeTasksAction =
       task: TaskOrEmpty;
       taskIndex: number;
     };
+  }
+  | {
+    type: "edit_task";
   }
   | {
     type: "fix_dependency_position";
@@ -311,17 +317,25 @@ export interface EventOption {
    */
   onProgressChange?: OnProgressChange;
   /**
+   * Callback for getting data of the added task
+   */
+  onAddTask?: (task: Task) => Promise<TaskOrEmpty | null>;
+  /**
    * Invokes on edit button click
    */
-  onAddTask?: OnAddTask;
+  onAddTaskClick?: OnAddTask;
   /**
    * Invokes on delete selected task
    */
   onDelete?: OnDateChange;
   /**
+   * Callback for getting new data of the edited task
+   */
+  onEditTask?: (task: TaskOrEmpty) => Promise<TaskOrEmpty | null>;
+  /**
    * Invokes on edit button click
    */
-  onEditTask?: OnEditTask;
+  onEditTaskClick?: OnEditTask;
   /**
    * Invokes on move task after other task
    */
