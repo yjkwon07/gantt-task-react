@@ -13,6 +13,7 @@ import {
   ColumnData,
   ColumnResizeEvent,
   DateSetup,
+  Distances,
   Icons,
   MapTaskToNestedIndex,
   Task,
@@ -26,7 +27,7 @@ import { ROW_DRAG_TYPE } from "../../constants";
 type TaskListTableRowProps = {
   canMoveTasks: boolean;
   dateSetup: DateSetup;
-  expandIconWidth: number;
+  distances: Distances;
   task: TaskOrEmpty;
   fullRowHeight: number;
   handleAddTask: (task: Task) => void;
@@ -38,7 +39,6 @@ type TaskListTableRowProps = {
   columnResizeEvent: ColumnResizeEvent | null;
   childTasksMap: ChildMapByLevel;
   mapTaskToNestedIndex: MapTaskToNestedIndex;
-  nestedTaskNameOffset: number;
   isShowTaskNumbers: boolean;
   closedTasks: Readonly<Record<string, true>>;
   onExpanderClick: (task: Task) => void;
@@ -48,7 +48,7 @@ type TaskListTableRowProps = {
 const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   canMoveTasks,
   dateSetup,
-  expandIconWidth,
+  distances,
   task,
   fullRowHeight,
   handleAddTask,
@@ -60,7 +60,6 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   columnResizeEvent,
   childTasksMap,
   mapTaskToNestedIndex,
-  nestedTaskNameOffset,
   isShowTaskNumbers,
   closedTasks,
   onExpanderClick,
@@ -130,7 +129,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     canMoveTasks,
     dateSetup,
     depth,
-    expandIconWidth,
+    distances,
     handleDeteleTask,
     handleAddTask,
     handleEditTask,
@@ -139,7 +138,6 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     indexStr,
     isClosed,
     isShowTaskNumbers,
-    nestedTaskNameOffset,
     onExpanderClick,
     task,
   };

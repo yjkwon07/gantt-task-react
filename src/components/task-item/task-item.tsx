@@ -19,6 +19,7 @@ import {
   ColorStyles,
   TaskCoordinates,
   TaskOrEmpty,
+  Distances,
 } from "../../types/public-types";
 import { Bar } from "./bar/bar";
 import { BarSmall } from "./bar/bar-small";
@@ -34,17 +35,12 @@ export type TaskItemProps = {
   childTasksMap: ChildMapByLevel;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
   dependencyMarginsMap: DependencyMargins;
+  distances: Distances;
   isShowDependencyWarnings: boolean;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   mapTaskToCoordinates: MapTaskToCoordinates;
-  arrowIndent: number;
-  barCornerRadius: number;
-  handleWidth: number;
   taskHeight: number;
   taskHalfHeight: number;
-  relationCircleOffset: number;
-  relationCircleRadius: number;
-  taskWarningOffset: number;
   isProgressChangeable: boolean;
   isDateChangeable: boolean;
   isRelationChangeable: boolean;
@@ -89,11 +85,16 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     childTasksMap,
     childOutOfParentWarnings,
     dependencyMarginsMap,
+
+    distances: {
+      arrowIndent,
+      handleWidth,
+      taskWarningOffset,
+    },
+
     isShowDependencyWarnings,
     mapTaskToGlobalIndex,
     mapTaskToCoordinates,
-    taskWarningOffset,
-    arrowIndent,
     isDelete,
     taskHeight,
     taskHalfHeight,
@@ -108,7 +109,6 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     fixStartPosition = undefined,
     fixEndPosition = undefined,
     handleDeteleTask,
-    handleWidth,
     colorStyles: stylesProp,
   } = props;
 

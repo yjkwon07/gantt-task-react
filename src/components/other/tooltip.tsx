@@ -5,25 +5,28 @@ import React, {
   useState,
 } from "react";
 
-import { MapTaskToCoordinates, MapTaskToRowIndex, Task } from "../../types/public-types";
+import {
+  Distances,
+  MapTaskToCoordinates,
+  MapTaskToRowIndex,
+  Task,
+} from "../../types/public-types";
 import styles from "./tooltip.module.css";
 import { getTaskCoordinates } from "../../helpers/get-task-coordinates";
 import { getTaskRowIndex } from "../../helpers/get-task-row-index";
 
 export type TooltipProps = {
   task: Task;
+  distances: Distances;
   mapTaskToCoordinates: MapTaskToCoordinates;
   mapTaskToRowIndex: MapTaskToRowIndex;
-  arrowIndent: number;
   rtl: boolean;
   svgContainerHeight: number;
   svgContainerWidth: number;
   svgWidth: number;
-  headerHeight: number;
   taskListWidth: number;
   scrollX: number;
   scrollY: number;
-  rowHeight: number;
   fullRowHeight: number;
   fontSize: string;
   fontFamily: string;
@@ -36,19 +39,23 @@ export type TooltipProps = {
 
 export const Tooltip: React.FC<TooltipProps> = ({
   task,
+  
+  distances: {
+    arrowIndent,
+    headerHeight,
+    rowHeight,
+  },
+
   mapTaskToCoordinates,
   mapTaskToRowIndex,
-  rowHeight,
   fullRowHeight,
   rtl,
   svgContainerHeight,
   svgContainerWidth,
   scrollX,
   scrollY,
-  arrowIndent,
   fontSize,
   fontFamily,
-  headerHeight,
   taskListWidth,
   TooltipContent,
 }) => {

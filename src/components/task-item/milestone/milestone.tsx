@@ -13,11 +13,15 @@ import styles from "./milestone.module.css";
 export const Milestone: React.FC<TaskItemExtendedProps> = ({
   task,
   coordinates,
-  barCornerRadius,
+
+  distances: {
+    barCornerRadius,
+    relationCircleOffset,
+    relationCircleRadius,
+  },
+
   taskHeight,
   taskHalfHeight,
-  relationCircleOffset,
-  relationCircleRadius,
   isDateChangeable,
   isRelationChangeable,
   isRelationDrawMode,

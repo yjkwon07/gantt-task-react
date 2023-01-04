@@ -8,6 +8,7 @@ import cx from 'classnames';
 
 import {
   ColorStyles,
+  Distances,
   Task,
   TaskCoordinates,
 } from "../../types/public-types";
@@ -20,6 +21,7 @@ import styles from "./arrow.module.css";
 
 type ArrowProps = {
   colorStyles: ColorStyles;
+  distances: Distances;
   taskFrom: Task;
   targetFrom: RelationMoveTarget;
   taskTo: Task;
@@ -33,10 +35,6 @@ type ArrowProps = {
   fullRowHeight: number;
   taskHeight: number;
   isShowDependencyWarnings: boolean;
-  arrowIndent: number;
-  dependencyFixWidth: number;
-  dependencyFixHeight: number;
-  dependencyFixIndent: number;
   isCritical: boolean;
   rtl: boolean;
   onArrowDoubleClick?: (taskFrom: Task, taskTo: Task) => void;
@@ -53,6 +51,13 @@ const ArrowInner: React.FC<ArrowProps> = ({
     arrowCriticalColor,
   },
 
+  distances: {
+    arrowIndent,
+    dependencyFixWidth,
+    dependencyFixHeight,
+    dependencyFixIndent,
+  },
+
   taskFrom,
   targetFrom,
   taskTo,
@@ -63,10 +68,6 @@ const ArrowInner: React.FC<ArrowProps> = ({
   fullRowHeight,
   taskHeight,
   isShowDependencyWarnings,
-  arrowIndent,
-  dependencyFixWidth,
-  dependencyFixHeight,
-  dependencyFixIndent,
   isCritical,
   rtl,
   onArrowDoubleClick = undefined,

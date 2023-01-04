@@ -13,13 +13,17 @@ import styles from "./bar.module.css";
 export const BarSmall: React.FC<TaskItemExtendedProps> = ({
   task,
   coordinates,
+
+  distances: {
+    barCornerRadius,
+    handleWidth,
+  },
+
   taskHeight,
   childTasksMap,
   isProgressChangeable,
   isDateChangeable,
-  barCornerRadius,
   onEventStart,
-  handleWidth,
   isSelected,
   isCritical,
   colorStyles,

@@ -10,6 +10,7 @@ import {
   ViewMode,
   RenderTopHeader,
   RenderBottomHeader,
+  Distances,
 } from "../../types/public-types";
 import { TopPartOfCalendar } from "./top-part-of-calendar";
 import {
@@ -22,11 +23,10 @@ import styles from "./calendar.module.css";
 
 export type CalendarProps = {
   dateSetup: DateSetup;
+  distances: Distances;
   isUnknownDates: boolean;
   preStepsCount: number;
   rtl: boolean;
-  headerHeight: number;
-  columnWidth: number;
   fontFamily: string;
   fontSize: string;
   renderBottomHeader?: RenderBottomHeader;
@@ -35,11 +35,15 @@ export type CalendarProps = {
 
 export const Calendar: React.FC<CalendarProps> = ({
   dateSetup,
+
+  distances: {
+    columnWidth,
+    headerHeight,
+  },
+
   isUnknownDates,
   preStepsCount,
   rtl,
-  headerHeight,
-  columnWidth,
   fontFamily,
   fontSize,
   renderBottomHeader = defaultRenderBottomHeader,

@@ -12,6 +12,7 @@ import {
   DependencyMap,
   DependencyMargins,
   DependentMap,
+  Distances,
   EventOption,
   FixPosition,
   MapTaskToCoordinates,
@@ -36,6 +37,7 @@ export type TaskGanttContentProps = {
   visibleTasks: readonly TaskOrEmpty[];
   visibleTasksMirror: Readonly<Record<string, true>>;
   childTasksMap: ChildMapByLevel;
+  distances: Distances;
   tasksMap: TaskMapByLevel;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   mapTaskToRowIndex: MapTaskToRowIndex;
@@ -49,18 +51,9 @@ export type TaskGanttContentProps = {
   ganttRelationEvent: GanttRelationEvent | null;
   selectedTask: Task | null;
   fullRowHeight: number;
-  handleWidth: number;
   svgWidth: number;
   taskHeight: number;
   taskHalfHeight: number;
-  relationCircleOffset: number;
-  relationCircleRadius: number;
-  taskWarningOffset: number;
-  arrowIndent: number;
-  barCornerRadius: number;
-  dependencyFixWidth: number;
-  dependencyFixHeight: number;
-  dependencyFixIndent: number;
   fontSize: string;
   fontFamily: string;
   rtl: boolean;
@@ -84,6 +77,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   visibleTasks,
   visibleTasksMirror,
   childTasksMap,
+  distances,
   tasksMap,
   mapTaskToGlobalIndex,
   mapTaskToRowIndex,
@@ -97,17 +91,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   ganttRelationEvent,
   selectedTask,
   fullRowHeight,
-  handleWidth,
   taskHeight,
   taskHalfHeight,
-  relationCircleOffset,
-  relationCircleRadius,
-  taskWarningOffset,
-  arrowIndent,
-  barCornerRadius,
-  dependencyFixWidth,
-  dependencyFixHeight,
-  dependencyFixIndent,
   fontFamily,
   fontSize,
   rtl,
@@ -250,6 +235,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                 <Arrow
                   key={`Arrow from ${taskId} to ${source.id} on ${comparisonLevel}`}
                   colorStyles={colorStyles}
+                  distances={distances}
                   taskFrom={source}
                   targetFrom={sourceTarget}
                   taskTo={task}
@@ -259,10 +245,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                   mapTaskRowIndexByLevel={mapTaskRowIndexByLevel}
                   fullRowHeight={fullRowHeight}
                   taskHeight={taskHeight}
-                  arrowIndent={arrowIndent}
-                  dependencyFixWidth={dependencyFixWidth}
-                  dependencyFixHeight={dependencyFixHeight}
-                  dependencyFixIndent={dependencyFixIndent}
                   isShowDependencyWarnings={isShowDependencyWarnings}
                   isCritical={isCritical}
                   rtl={rtl}
@@ -302,17 +284,12 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               childTasksMap={childTasksMap}
               childOutOfParentWarnings={childOutOfParentWarnings}
               dependencyMarginsMap={dependencyMarginsMap}
+              distances={distances}
               isShowDependencyWarnings={isShowDependencyWarnings}
               mapTaskToGlobalIndex={mapTaskToGlobalIndex}
               mapTaskToCoordinates={mapTaskToCoordinates}
-              arrowIndent={arrowIndent}
-              barCornerRadius={barCornerRadius}
-              handleWidth={handleWidth}
               taskHeight={taskHeight}
               taskHalfHeight={taskHalfHeight}
-              relationCircleOffset={relationCircleOffset}
-              relationCircleRadius={relationCircleRadius}
-              taskWarningOffset={taskWarningOffset}
               isRelationDrawMode={Boolean(ganttRelationEvent)}
               isProgressChangeable={!task.isDisabled}
               isDateChangeable={!task.isDisabled}

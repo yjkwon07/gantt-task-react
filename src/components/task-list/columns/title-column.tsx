@@ -32,7 +32,12 @@ const getExpanderSymbol = (
 export const TitleColumn: React.FC<ColumnProps> = ({
   data: {
     canMoveTasks,
-    expandIconWidth,
+
+    distances: {
+      expandIconWidth,
+      nestedTaskNameOffset,
+    },
+
     icons,
     isShowTaskNumbers,
     hasChildren,
@@ -40,7 +45,6 @@ export const TitleColumn: React.FC<ColumnProps> = ({
     depth,
     indexStr,
     task,
-    nestedTaskNameOffset,
     onExpanderClick,
   },
 }) => {

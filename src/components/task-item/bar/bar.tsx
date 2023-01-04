@@ -17,14 +17,18 @@ import stylesRelationHandle from "./bar-relation-handle.module.css";
 
 export const Bar: React.FC<TaskItemExtendedProps> = ({
   coordinates,
+
+  distances: {
+    barCornerRadius,
+    handleWidth,
+    relationCircleOffset,
+    relationCircleRadius,
+  },
+
   task,
   childTasksMap,
-  barCornerRadius,
-  handleWidth,
   taskHeight,
   taskHalfHeight,
-  relationCircleOffset,
-  relationCircleRadius,
   isProgressChangeable,
   isDateChangeable,
   isRelationChangeable,

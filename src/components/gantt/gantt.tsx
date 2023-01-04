@@ -12,10 +12,13 @@ import enDateLocale from 'date-fns/locale/en-US';
 import {
   ChangeAction,
   ChildOutOfParentWarnings,
+  ColorStyles,
   Column,
   CriticalPath,
+  DateFormats,
   DateSetup,
   Dependency,
+  Distances,
   FixPosition,
   GanttProps,
   OnDateChange,
@@ -23,11 +26,9 @@ import {
   OnProgressChange,
   OnRelationChange,
   Task,
-  ColorStyles,
   TaskOrEmpty,
   TaskOutOfParentWarnings,
   ViewMode,
-  DateFormats,
 } from "../../types/public-types";
 import { GridProps } from "../grid/grid";
 import { ganttDateRange, seedDates } from "../../helpers/date-helper";
@@ -108,42 +109,46 @@ const defaultDateFormats: DateFormats = {
   monthTopHeaderFormat: "LLLL",
 };
 
+const defaultDistances: Distances = {
+  actionColumnWidth: 40,
+  arrowIndent: 20,
+  barCornerRadius: 3,
+  barFill: 60,
+  columnWidth: 60,
+  dateCellWidth: 220,
+  dependencyFixHeight: 20,
+  dependencyFixIndent: 50,
+  dependencyFixWidth: 20,
+  expandIconWidth: 20,
+  handleWidth: 8,
+  headerHeight: 50,
+  ganttHeight: 0,
+  nestedTaskNameOffset: 20,
+  relationCircleOffset: 10,
+  relationCircleRadius: 5,
+  rowHeight: 50,
+  taskWarningOffset: 35,
+  titleCellWidth: 220,
+};
+
 export const Gantt: React.FC<GanttProps> = ({
-  actionColumnWidth = 40,
   canMoveTasks = true,
   canResizeColumns = true,
   dateFormats: dateFormatsProp = undefined,
-  expandIconWidth = 20,
+  distances: distancesProp = undefined,
   isRecountParentsOnChange = true,
   tasks,
-  headerHeight = 50,
-  columnWidth = 60,
   columns: columnsProp = undefined,
   onResizeColumn = undefined,
-  titleCellWidth = 220,
-  dateCellWidth = 220,
-  rowHeight = 50,
-  relationCircleOffset = 10,
-  relationCircleRadius = 5,
-  taskWarningOffset = 35,
-  ganttHeight = 0,
   viewMode = ViewMode.Day,
   dateLocale = enDateLocale,
   isDeleteDependencyOnDoubleClick = true,
   isUnknownDates = false,
   preStepsCount = 1,
-  barFill = 60,
-  barCornerRadius = 3,
   colors = undefined,
   icons = undefined,
   rtl = false,
-  handleWidth = 8,
   timeStep = 300000,
-  arrowIndent = 20,
-  dependencyFixWidth = 20,
-  dependencyFixHeight = 20,
-  dependencyFixIndent = 50,
-  nestedTaskNameOffset = 20,
   fontFamily = "Arial, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue",
   fontSize = "14px",
   todayColor = "rgba(252, 248, 227, 0.5)",
@@ -314,9 +319,14 @@ export const Gantt: React.FC<GanttProps> = ({
     return resTask;
   }, [tooltipTask, tasksMap]);
 
+  const distances = useMemo<Distances>(() => ({
+    ...defaultDistances,
+    ...distancesProp,
+  }), [distancesProp]);
+
   const fullRowHeight = useMemo(
-    () => rowHeight * comparisonLevels,
-    [rowHeight, comparisonLevels],
+    () => distances.rowHeight * comparisonLevels,
+    [distances, comparisonLevels],
   );
 
   const colorStyles = useMemo<ColorStyles>(() => ({
@@ -327,8 +337,8 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   const taskHeight = useMemo(
-    () => (rowHeight * barFill) / 100,
-    [rowHeight, barFill]
+    () => (distances.rowHeight * distances.barFill) / 100,
+    [distances]
   );
 
   const taskHalfHeight = useMemo(
@@ -394,19 +404,17 @@ export const Gantt: React.FC<GanttProps> = ({
     mapTaskToRowIndex,
     dates,
     rtl,
-    rowHeight,
     fullRowHeight,
     taskHeight,
-    columnWidth,
+    distances,
   ), [
+    distances,
     tasks,
     mapTaskToRowIndex,
     dates,
     rtl,
-    rowHeight,
     fullRowHeight,
     taskHeight,
-    columnWidth,
   ]);
 
   const dateFormats = useMemo<DateFormats>(() => ({
@@ -430,13 +438,13 @@ export const Gantt: React.FC<GanttProps> = ({
     viewMode,
   ]);
 
-  const svgWidth = dates.length * columnWidth;
+  const svgWidth = dates.length * distances.columnWidth;
 
   useEffect(() => {
     if (rtl && scrollX === -1) {
-      setScrollX(dates.length * columnWidth);
+      setScrollX(dates.length * distances.columnWidth);
     }
-  }, [dates, rtl, columnWidth, scrollX]);
+  }, [dates, rtl, distances, scrollX]);
 
   useEffect(() => {
     if (
@@ -455,11 +463,11 @@ export const Gantt: React.FC<GanttProps> = ({
         return;
       }
       setCurrentViewDate(viewDate);
-      setScrollX(columnWidth * index);
+      setScrollX(distances.columnWidth * index);
     }
   }, [
+    distances,
     viewDate,
-    columnWidth,
     dateSetup.dates,
     dateSetup.viewMode,
     viewMode,
@@ -468,13 +476,13 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   useEffect(() => {
-    if (!titleCellWidth && !dateCellWidth) {
+    if (!distances.titleCellWidth && !distances.dateCellWidth) {
       setTaskListWidth(0);
     }
     if (taskListRef.current) {
       setTaskListWidth(taskListRef.current.offsetWidth);
     }
-  }, [taskListRef, titleCellWidth, dateCellWidth]);
+  }, [taskListRef, distances]);
 
   useEffect(() => {
     if (wrapperRef.current) {
@@ -483,15 +491,24 @@ export const Gantt: React.FC<GanttProps> = ({
   }, [wrapperRef, taskListWidth]);
 
   const svgContainerHeight = useMemo(() => {
+    const {
+      ganttHeight,
+      headerHeight,
+    } = distances;
+
     if (ganttHeight) {
       return ganttHeight + headerHeight;
     }
 
     return ganttFullHeight * fullRowHeight + headerHeight;
-  }, [ganttHeight, ganttFullHeight, headerHeight, fullRowHeight]);
+  }, [distances, fullRowHeight, ganttFullHeight]);
 
   // scroll events
   useEffect(() => {
+    const {
+      ganttHeight,
+    } = distances;
+
     const handleWheel = (event: WheelEvent) => {
       if (event.shiftKey || event.deltaX) {
         const scrollMove = event.deltaX ? event.deltaX : event.deltaY;
@@ -534,10 +551,10 @@ export const Gantt: React.FC<GanttProps> = ({
       }
     };
   }, [
+    distances,
     wrapperRef,
     scrollY,
     scrollX,
-    ganttHeight,
     svgWidth,
     rtl,
     ganttFullHeight,
@@ -565,6 +582,12 @@ export const Gantt: React.FC<GanttProps> = ({
    * Handles arrow keys events and transform it to new scroll
    */
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const {
+      columnWidth,
+      ganttHeight,
+      rowHeight,
+    } = distances;
+
     event.preventDefault();
     let newScrollY = scrollY;
     let newScrollX = scrollX;
@@ -641,6 +664,12 @@ export const Gantt: React.FC<GanttProps> = ({
     if (columnsProp) {
       return columnsProp;
     }
+
+    const {
+      titleCellWidth,
+      dateCellWidth,
+      actionColumnWidth,
+    } = distances;
 
     return [
       {
@@ -1047,10 +1076,10 @@ export const Gantt: React.FC<GanttProps> = ({
       dates[1].getTimezoneOffset() * 60 * 1000 +
       dates[0].getTimezoneOffset() * 60 * 1000;
 
-    const newXStep = (timeStep * columnWidth) / dateDelta;
+    const newXStep = (timeStep * distances.columnWidth) / dateDelta;
 
     return newXStep;
-  }, [columnWidth, dates, timeStep]);
+  }, [distances, dates, timeStep]);
 
   const onDateChange = useCallback<OnDateChange>((
     task,
@@ -1308,12 +1337,11 @@ export const Gantt: React.FC<GanttProps> = ({
   });
 
   const [ganttRelationEvent, handleBarRelationStart] = useCreateRelation({
+    distances,
     ganttSVGRef,
     mapTaskToCoordinates,
     mapTaskToGlobalIndex,
     onRelationChange,
-    relationCircleOffset,
-    relationCircleRadius,
     rtl,
     taskHalfHeight,
     tasksMap,
@@ -1321,7 +1349,7 @@ export const Gantt: React.FC<GanttProps> = ({
   });
 
   const gridProps: GridProps = {
-    columnWidth,
+    distances,
     isUnknownDates,
     svgWidth,
     fullRowHeight,
@@ -1333,10 +1361,9 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const calendarProps: CalendarProps = {
     dateSetup,
+    distances,
     isUnknownDates,
     preStepsCount,
-    headerHeight,
-    columnWidth,
     fontFamily,
     fontSize,
     rtl,
@@ -1348,6 +1375,7 @@ export const Gantt: React.FC<GanttProps> = ({
     visibleTasks,
     visibleTasksMirror,
     childTasksMap,
+    distances,
     tasksMap,
     mapTaskToGlobalIndex,
     mapTaskToRowIndex,
@@ -1361,17 +1389,8 @@ export const Gantt: React.FC<GanttProps> = ({
     ganttRelationEvent,
     selectedTask,
     fullRowHeight,
-    handleWidth,
     taskHeight,
     taskHalfHeight,
-    relationCircleOffset,
-    relationCircleRadius,
-    taskWarningOffset,
-    arrowIndent,
-    barCornerRadius,
-    dependencyFixWidth,
-    dependencyFixHeight,
-    dependencyFixIndent,
     timeStep,
     fontFamily,
     fontSize,
@@ -1398,13 +1417,12 @@ export const Gantt: React.FC<GanttProps> = ({
   const tableProps: TaskListProps = {
     canMoveTasks,
     dateSetup,
-    expandIconWidth,
+    distances,
     handleAddTask,
     handleEditTask,
     handleMoveTaskAfter,
     handleMoveTaskInside,
     icons,
-    rowHeight,
     fullRowHeight,
     columns,
     columnResizeEvent,
@@ -1413,16 +1431,13 @@ export const Gantt: React.FC<GanttProps> = ({
     fontFamily,
     fontSize,
     tasks: visibleTasks,
-    headerHeight,
     scrollY,
-    ganttHeight,
     horizontalContainerClass: styles.horizontalContainer,
     selectedTask,
     taskListRef,
     setSelectedTask,
     childTasksMap,
     mapTaskToNestedIndex,
-    nestedTaskNameOffset,
     isShowTaskNumbers,
     closedTasks,
     onExpanderClick: handleExpanderClick,
@@ -1445,7 +1460,7 @@ export const Gantt: React.FC<GanttProps> = ({
           gridProps={gridProps}
           calendarProps={calendarProps}
           barProps={barProps}
-          ganttHeight={ganttHeight}
+          ganttHeight={distances.ganttHeight}
           ganttFullHeight={ganttFullHeight}
           scrollY={scrollY}
           scrollX={scrollX}
@@ -1454,10 +1469,9 @@ export const Gantt: React.FC<GanttProps> = ({
 
         {tooltipTaskFromMap && (
           <Tooltip
-            arrowIndent={arrowIndent}
+            distances={distances}
             mapTaskToCoordinates={mapTaskToCoordinates}
             mapTaskToRowIndex={mapTaskToRowIndex}
-            rowHeight={rowHeight}
             fullRowHeight={fullRowHeight}
             svgContainerHeight={svgContainerHeight}
             svgContainerWidth={svgContainerWidth}
@@ -1466,7 +1480,6 @@ export const Gantt: React.FC<GanttProps> = ({
             scrollX={scrollX}
             scrollY={scrollY}
             task={tooltipTaskFromMap}
-            headerHeight={headerHeight}
             taskListWidth={taskListWidth}
             TooltipContent={TooltipContent}
             rtl={rtl}
@@ -1476,8 +1489,8 @@ export const Gantt: React.FC<GanttProps> = ({
 
         <VerticalScroll
           ganttFullHeight={ganttFullHeight}
-          ganttHeight={ganttHeight}
-          headerHeight={headerHeight}
+          ganttHeight={distances.ganttHeight}
+          headerHeight={distances.headerHeight}
           scroll={scrollY}
           onScroll={handleScrollY}
           rtl={rtl}

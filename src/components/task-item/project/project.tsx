@@ -7,7 +7,11 @@ import styles from "./project.module.css";
 
 export const Project: React.FC<TaskItemExtendedProps> = ({
   coordinates,
-  barCornerRadius,
+
+  distances: {
+    barCornerRadius,
+  },
+
   taskHalfHeight,
   taskHeight,
   isSelected,

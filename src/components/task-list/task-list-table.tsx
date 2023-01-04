@@ -8,7 +8,7 @@ import styles from "./task-list-table.module.css";
 export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   canMoveTasks,
   dateSetup,
-  expandIconWidth,
+  distances,
   fullRowHeight,
   handleAddTask,
   handleEditTask,
@@ -22,7 +22,6 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
   fontSize,
   childTasksMap,
   mapTaskToNestedIndex,
-  nestedTaskNameOffset,
   isShowTaskNumbers,
   closedTasks,
   onExpanderClick,
@@ -46,7 +45,7 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
             <TaskListTableRow
               canMoveTasks={canMoveTasks}
               dateSetup={dateSetup}
-              expandIconWidth={expandIconWidth}
+              distances={distances}
               task={task}
               handleAddTask={handleAddTask}
               handleEditTask={handleEditTask}
@@ -58,7 +57,6 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
               fullRowHeight={fullRowHeight}
               childTasksMap={childTasksMap}
               mapTaskToNestedIndex={mapTaskToNestedIndex}
-              nestedTaskNameOffset={nestedTaskNameOffset}
               isShowTaskNumbers={isShowTaskNumbers}
               closedTasks={closedTasks}
               onExpanderClick={onExpanderClick}

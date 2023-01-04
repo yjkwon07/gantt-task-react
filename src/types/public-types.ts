@@ -100,6 +100,32 @@ export interface DateFormats {
   monthTopHeaderFormat: string;
 }
 
+export interface Distances {
+  actionColumnWidth: number;
+  arrowIndent: number;
+  barCornerRadius: number;
+  /**
+   * How many of row width can be taken by task.
+   * From 0 to 100
+   */
+  barFill: number;
+  columnWidth: number;
+  dateCellWidth: number;
+  dependencyFixHeight: number;
+  dependencyFixIndent: number;
+  dependencyFixWidth: number;
+  expandIconWidth: number;
+  handleWidth: number;
+  headerHeight: number;
+  ganttHeight: number;
+  nestedTaskNameOffset: number;
+  relationCircleOffset: number;
+  relationCircleRadius: number;
+  rowHeight: number;
+  taskWarningOffset: number;
+  titleCellWidth: number;
+}
+
 export type TaskType = "task" | "milestone" | "project";
 
 export interface Task {
@@ -415,7 +441,6 @@ export interface Icons {
 }
 
 export interface StylingOption {
-  actionColumnWidth?: number;
   /**
    * Allow drag-n-drop of tasks in the table
    */
@@ -423,33 +448,12 @@ export interface StylingOption {
   canResizeColumns?: boolean;
   colors?: Partial<ColorStyles>;
   dateFormats?: Partial<DateFormats>;
-  expandIconWidth?: number;
-  headerHeight?: number;
+  distances?: Partial<Distances>;
   icons?: Partial<Icons>;
-  columnWidth?: number;
   columns?: readonly Column[];
   onResizeColumn?: OnResizeColumn;
-  titleCellWidth?: number;
-  dateCellWidth?: number;
-  rowHeight?: number;
-  relationCircleOffset?: number;
-  relationCircleRadius?: number;
-  taskWarningOffset?: number;
-  ganttHeight?: number;
-  barCornerRadius?: number;
-  handleWidth?: number;
   fontFamily?: string;
   fontSize?: string;
-  /**
-   * How many of row width can be taken by task.
-   * From 0 to 100
-   */
-  barFill?: number;
-  arrowIndent?: number;
-  dependencyFixWidth?: number;
-  dependencyFixHeight?: number;
-  dependencyFixIndent?: number;
-  nestedTaskNameOffset?: number;
   todayColor?: string;
   TooltipContent?: ComponentType<{
     task: Task;
@@ -480,8 +484,7 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
 export interface TaskListTableProps {
   canMoveTasks: boolean;
   dateSetup: DateSetup;
-  expandIconWidth: number;
-  rowHeight: number;
+  distances: Distances;
   fullRowHeight: number;
   handleAddTask: (task: Task) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
@@ -496,7 +499,6 @@ export interface TaskListTableProps {
   selectedTaskId: string;
   childTasksMap: ChildMapByLevel;
   mapTaskToNestedIndex: MapTaskToNestedIndex;
-  nestedTaskNameOffset: number;
   isShowTaskNumbers: boolean;
   setSelectedTask: (task: Task) => void;
   closedTasks: Readonly<Record<string, true>>;
@@ -604,7 +606,7 @@ export type GetMetadata = (task: TaskOrEmpty) => ChangeMetadata;
 export type ColumnData = {
   canMoveTasks: boolean;
   dateSetup: DateSetup;
-  expandIconWidth: number;
+  distances: Distances;
   isShowTaskNumbers: boolean;
   hasChildren: boolean;
   isClosed: boolean;
@@ -612,7 +614,6 @@ export type ColumnData = {
   icons?: Partial<Icons>;
   indexStr: string;
   task: TaskOrEmpty;
-  nestedTaskNameOffset: number;
   onExpanderClick: (task: Task) => void;
   handleAddTask: (task: Task) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;

@@ -12,6 +12,7 @@ import { getRelationCircleByCoordinates } from "../../helpers/get-relation-circl
 import { getMapTaskToCoordinatesOnLevel, getTaskCoordinates } from "../../helpers/get-task-coordinates";
 import { GanttRelationEvent, RelationMoveTarget } from "../../types/gantt-task-actions";
 import {
+  Distances,
   MapTaskToCoordinates,
   MapTaskToGlobalIndex,
   OnRelationChange,
@@ -21,12 +22,11 @@ import {
 } from "../../types/public-types";
 
 type UseCreateRelationParams = {
+  distances: Distances;
   ganttSVGRef: RefObject<SVGSVGElement>;
   mapTaskToCoordinates: MapTaskToCoordinates;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   onRelationChange?: OnRelationChange;
-  relationCircleOffset: number;
-  relationCircleRadius: number;
   rtl: boolean;
   taskHalfHeight: number;
   tasksMap: TaskMapByLevel;
@@ -34,12 +34,15 @@ type UseCreateRelationParams = {
 };
 
 export const useCreateRelation = ({
+  distances: {
+    relationCircleOffset,
+    relationCircleRadius,
+  },
+
   ganttSVGRef,
   mapTaskToCoordinates,
   mapTaskToGlobalIndex,
   onRelationChange,
-  relationCircleOffset,
-  relationCircleRadius,
   rtl,
   taskHalfHeight,
   tasksMap,

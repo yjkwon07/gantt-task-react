@@ -8,25 +8,30 @@ import type {
 import addMilliseconds from 'date-fns/addMilliseconds';
 
 import styles from "./grid.module.css";
+import { Distances } from "../../types/public-types";
 
 export type GridBodyProps = {
   dates: Date[];
+  distances: Distances;
   isUnknownDates: boolean;
   svgWidth: number;
   fullRowHeight: number;
   maxLevelLength: number;
-  columnWidth: number;
   todayColor: string;
   rtl: boolean;
 };
 
 const GridBodyInner: React.FC<GridBodyProps> = ({
   dates,
+
+  distances: {
+    columnWidth,
+  },
+
   isUnknownDates,
   fullRowHeight,
   maxLevelLength,
   svgWidth,
-  columnWidth,
   todayColor,
   rtl,
 }) => {

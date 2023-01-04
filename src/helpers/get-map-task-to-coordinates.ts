@@ -1,4 +1,5 @@
 import {
+  Distances,
   MapTaskToCoordinates,
   MapTaskToRowIndex,
   TaskCoordinates,
@@ -20,12 +21,16 @@ export const getMapTaskToCoordinates = (
   mapTaskToRowIndex: MapTaskToRowIndex,
   dates: Date[],
   rtl: boolean,
-  rowHeight: number,
   fullRowHeight: number,
   taskHeight: number,
-  columnWidth: number,
+  distances: Distances,
 ): MapTaskToCoordinates => {
   const res = new Map<number, Map<string, TaskCoordinates>>();
+
+  const {
+    columnWidth,
+    rowHeight,
+  } = distances;
 
   tasks.forEach((task) => {
     if (task.type === "empty") {

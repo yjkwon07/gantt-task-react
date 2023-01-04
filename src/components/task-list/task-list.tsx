@@ -9,6 +9,7 @@ import {
   Column,
   ColumnResizeEvent,
   DateSetup,
+  Distances,
   Icons,
   MapTaskToNestedIndex,
   Task,
@@ -20,12 +21,11 @@ import {
 export type TaskListProps = {
   canMoveTasks: boolean;
   dateSetup: DateSetup;
-  expandIconWidth: number;
+  distances: Distances;
   handleAddTask: (task: Task) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
   handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
-  headerHeight: number;
   icons?: Partial<Icons>;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
@@ -33,9 +33,7 @@ export type TaskListProps = {
   canResizeColumns: boolean;
   fontFamily: string;
   fontSize: string;
-  rowHeight: number;
   fullRowHeight: number;
-  ganttHeight: number;
   scrollY: number;
   tasks: readonly TaskOrEmpty[];
   taskListRef: React.RefObject<HTMLDivElement>;
@@ -43,7 +41,6 @@ export type TaskListProps = {
   selectedTask: Task | null;
   childTasksMap: ChildMapByLevel;
   mapTaskToNestedIndex: MapTaskToNestedIndex;
-  nestedTaskNameOffset: number;
   isShowTaskNumbers: boolean;
   setSelectedTask: (task: Task) => void;
   closedTasks: Readonly<Record<string, true>>;
@@ -56,12 +53,11 @@ export type TaskListProps = {
 export const TaskList: React.FC<TaskListProps> = ({
   canMoveTasks,
   dateSetup,
-  expandIconWidth,
+  distances,
   handleAddTask,
   handleEditTask,
   handleMoveTaskAfter,
   handleMoveTaskInside,
-  headerHeight,
   icons = undefined,
   fontFamily,
   fontSize,
@@ -69,20 +65,17 @@ export const TaskList: React.FC<TaskListProps> = ({
   columnResizeEvent,
   onResizeStart,
   canResizeColumns,
-  rowHeight,
   fullRowHeight,
   scrollY,
   tasks,
   selectedTask,
   childTasksMap,
   mapTaskToNestedIndex,
-  nestedTaskNameOffset,
   isShowTaskNumbers,
   setSelectedTask,
   closedTasks,
   onExpanderClick,
   handleDeteleTask,
-  ganttHeight,
   taskListRef,
   horizontalContainerClass,
   TaskListHeader,
@@ -100,7 +93,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   return (
     <div ref={taskListRef}>
       <TaskListHeader
-        headerHeight={headerHeight}
+        headerHeight={distances.headerHeight}
         fontFamily={fontFamily}
         fontSize={fontSize}
         columns={columns}
@@ -112,18 +105,17 @@ export const TaskList: React.FC<TaskListProps> = ({
       <div
         ref={horizontalContainerRef}
         className={horizontalContainerClass}
-        style={ganttHeight ? { height: ganttHeight } : {}}
+        style={distances.ganttHeight ? { height: distances.ganttHeight } : {}}
       >
         <TaskListTable
           canMoveTasks={canMoveTasks}
           dateSetup={dateSetup}
-          expandIconWidth={expandIconWidth}
+          distances={distances}
           handleAddTask={handleAddTask}
           handleEditTask={handleEditTask}
           handleMoveTaskAfter={handleMoveTaskAfter}
           handleMoveTaskInside={handleMoveTaskInside}
           icons={icons}
-          rowHeight={rowHeight}
           fullRowHeight={fullRowHeight}
           columns={columns}
           columnResizeEvent={columnResizeEvent}
@@ -134,7 +126,6 @@ export const TaskList: React.FC<TaskListProps> = ({
           childTasksMap={childTasksMap}
           closedTasks={closedTasks}
           mapTaskToNestedIndex={mapTaskToNestedIndex}
-          nestedTaskNameOffset={nestedTaskNameOffset}
           isShowTaskNumbers={isShowTaskNumbers}
           setSelectedTask={setSelectedTask}
           onExpanderClick={onExpanderClick}
