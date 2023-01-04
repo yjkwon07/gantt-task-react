@@ -7,7 +7,7 @@ import { ColumnProps } from "../../../types/public-types";
 export const DateEndColumn: React.FC<ColumnProps> = ({
   data: {
     dateSetup: {
-      dateColumnFormat,
+      dateFormats,
       dateLocale,
     },
 
@@ -21,7 +21,7 @@ export const DateEndColumn: React.FC<ColumnProps> = ({
   try {
     return (
       <>
-        {format(task.end, dateColumnFormat, {
+        {format(task.end, dateFormats.dateColumnFormat, {
           locale: dateLocale,
         })}
       </>

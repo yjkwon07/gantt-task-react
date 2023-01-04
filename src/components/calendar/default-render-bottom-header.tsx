@@ -85,7 +85,7 @@ export const defaultRenderBottomHeader = (
       try {
         return format(
           date,
-          dateSetup.monthBottomHeaderFormat,
+          dateSetup.dateFormats.monthBottomHeaderFormat,
           {
             locale: dateSetup.dateLocale,
           },
@@ -101,7 +101,7 @@ export const defaultRenderBottomHeader = (
       try {
         return format(
           date,
-          dateSetup.dayBottomHeaderFormat,
+          dateSetup.dateFormats.dayBottomHeaderFormat,
           {
             locale: dateSetup.dateLocale,
           },
@@ -116,7 +116,7 @@ export const defaultRenderBottomHeader = (
       try {
         return format(
           date,
-          dateSetup.hourBottomHeaderFormat,
+          dateSetup.dateFormats.hourBottomHeaderFormat,
           {
             locale: dateSetup.dateLocale,
           },

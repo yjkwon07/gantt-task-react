@@ -7,6 +7,7 @@ import React, {
 import cx from 'classnames';
 
 import {
+  ColorStyles,
   Task,
   TaskCoordinates,
 } from "../../types/public-types";
@@ -18,6 +19,7 @@ import { FixDependencyPosition, fixPositionContainerClass } from "./fix-dependen
 import styles from "./arrow.module.css";
 
 type ArrowProps = {
+  colorStyles: ColorStyles;
   taskFrom: Task;
   targetFrom: RelationMoveTarget;
   taskTo: Task;
@@ -30,9 +32,6 @@ type ArrowProps = {
   mapTaskRowIndexByLevel: Map<string, number>;
   fullRowHeight: number;
   taskHeight: number;
-  arrowColor: string;
-  arrowWarningColor: string;
-  arrowCriticalColor: string;
   isShowDependencyWarnings: boolean;
   arrowIndent: number;
   dependencyFixWidth: number;
@@ -48,6 +47,12 @@ type ArrowProps = {
 };
 
 const ArrowInner: React.FC<ArrowProps> = ({
+  colorStyles: {
+    arrowColor,
+    arrowWarningColor,
+    arrowCriticalColor,
+  },
+
   taskFrom,
   targetFrom,
   taskTo,
@@ -57,9 +62,6 @@ const ArrowInner: React.FC<ArrowProps> = ({
   mapTaskRowIndexByLevel,
   fullRowHeight,
   taskHeight,
-  arrowColor,
-  arrowWarningColor,
-  arrowCriticalColor,
   isShowDependencyWarnings,
   arrowIndent,
   dependencyFixWidth,

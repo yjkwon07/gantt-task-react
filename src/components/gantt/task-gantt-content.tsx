@@ -7,6 +7,7 @@ import {
   ChangeInProgress,
   ChildMapByLevel,
   ChildOutOfParentWarnings,
+  ColorStyles,
   CriticalPaths,
   DependencyMap,
   DependencyMargins,
@@ -17,7 +18,6 @@ import {
   MapTaskToGlobalIndex,
   MapTaskToRowIndex,
   Task,
-  TaskBarColorStyles,
   TaskMapByLevel,
   TaskOrEmpty,
 } from "../../types/public-types";
@@ -56,9 +56,6 @@ export type TaskGanttContentProps = {
   relationCircleOffset: number;
   relationCircleRadius: number;
   taskWarningOffset: number;
-  arrowColor: string;
-  arrowCriticalColor: string;
-  arrowWarningColor: string;
   arrowIndent: number;
   barCornerRadius: number;
   dependencyFixWidth: number;
@@ -80,7 +77,7 @@ export type TaskGanttContentProps = {
   comparisonLevels: number;
   fixStartPosition?: FixPosition;
   fixEndPosition?: FixPosition;
-  colorStyles: TaskBarColorStyles;
+  colorStyles: ColorStyles;
 } & Omit<EventOption, 'onArrowDoubleClick'>;
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
@@ -106,9 +103,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   relationCircleOffset,
   relationCircleRadius,
   taskWarningOffset,
-  arrowColor,
-  arrowCriticalColor,
-  arrowWarningColor,
   arrowIndent,
   barCornerRadius,
   dependencyFixWidth,
@@ -184,7 +178,11 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
 
   return (
     <g className="content">
-      <g className="arrows" fill={arrowColor} stroke={arrowColor}>
+      <g
+        className="arrows"
+        fill={colorStyles.arrowColor}
+        stroke={colorStyles.arrowColor}
+      >
         {visibleTasks.map(task => {
           const {
             id: taskId,
@@ -251,6 +249,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               return (
                 <Arrow
                   key={`Arrow from ${taskId} to ${source.id} on ${comparisonLevel}`}
+                  colorStyles={colorStyles}
                   taskFrom={source}
                   targetFrom={sourceTarget}
                   taskTo={task}
@@ -264,9 +263,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                   dependencyFixWidth={dependencyFixWidth}
                   dependencyFixHeight={dependencyFixHeight}
                   dependencyFixIndent={dependencyFixIndent}
-                  arrowColor={arrowColor}
-                  arrowWarningColor={arrowWarningColor}
-                  arrowCriticalColor={arrowCriticalColor}
                   isShowDependencyWarnings={isShowDependencyWarnings}
                   isCritical={isCritical}
                   rtl={rtl}

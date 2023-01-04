@@ -2,7 +2,7 @@ import React, {
   useMemo,
 } from "react";
 
-import { TaskBarColorStyles } from "../../../types/public-types";
+import { ColorStyles } from "../../../types/public-types";
 
 import style from "./bar.module.css";
 
@@ -18,7 +18,7 @@ type BarDisplayProps = {
   progressX: number;
   progressWidth: number;
   barCornerRadius: number;
-  styles: TaskBarColorStyles;
+  styles: ColorStyles;
   onMouseDown: (event: React.MouseEvent<SVGPolygonElement, MouseEvent>) => void;
 };
 

@@ -23,10 +23,11 @@ import {
   OnProgressChange,
   OnRelationChange,
   Task,
-  TaskBarColorStyles,
+  ColorStyles,
   TaskOrEmpty,
   TaskOutOfParentWarnings,
   ViewMode,
+  DateFormats,
 } from "../../types/public-types";
 import { GridProps } from "../grid/grid";
 import { ganttDateRange, seedDates } from "../../helpers/date-helper";
@@ -64,7 +65,10 @@ import { AddColumn } from "../task-list/columns/add-column";
 import { useCreateRelation } from "./use-create-relation";
 import { useTaskDrag } from "./use-task-drag";
 
-const defaultColors: TaskBarColorStyles = {
+const defaultColors: ColorStyles = {
+  arrowColor: "grey",
+  arrowCriticalColor: "#ff0000",
+  arrowWarningColor: "#ffbc00",
   barProgressColor: "#a3a3ff",
   barProgressCriticalColor: "#ff1919",
   barProgressSelectedColor: "#8282f5",
@@ -95,15 +99,21 @@ const defaultColors: TaskBarColorStyles = {
   milestoneBackgroundSelectedCriticalColor: "#ff0000",
 };
 
+const defaultDateFormats: DateFormats = {
+  dateColumnFormat: "E, d MMMM yyyy",
+  dayBottomHeaderFormat: "E, d",
+  dayTopHeaderFormat: "E, d",
+  hourBottomHeaderFormat: "HH",
+  monthBottomHeaderFormat: "LLL",
+  monthTopHeaderFormat: "LLLL",
+};
+
 export const Gantt: React.FC<GanttProps> = ({
   actionColumnWidth = 40,
   canMoveTasks = true,
   canResizeColumns = true,
-  dateColumnFormat = "E, d MMMM yyyy",
-  dayBottomHeaderFormat = "E, d",
-  dayTopHeaderFormat = "E, d",
+  dateFormats: dateFormatsProp = undefined,
   expandIconWidth = 20,
-  hourBottomHeaderFormat = "HH",
   isRecountParentsOnChange = true,
   tasks,
   headerHeight = 50,
@@ -122,8 +132,6 @@ export const Gantt: React.FC<GanttProps> = ({
   isDeleteDependencyOnDoubleClick = true,
   isUnknownDates = false,
   preStepsCount = 1,
-  monthBottomHeaderFormat = "LLL",
-  monthTopHeaderFormat = "LLLL",
   barFill = 60,
   barCornerRadius = 3,
   colors = undefined,
@@ -131,9 +139,6 @@ export const Gantt: React.FC<GanttProps> = ({
   rtl = false,
   handleWidth = 8,
   timeStep = 300000,
-  arrowColor = "grey",
-  arrowCriticalColor = "#ff0000",
-  arrowWarningColor = "#ffbc00",
   arrowIndent = 20,
   dependencyFixWidth = 20,
   dependencyFixHeight = 20,
@@ -314,7 +319,7 @@ export const Gantt: React.FC<GanttProps> = ({
     [rowHeight, comparisonLevels],
   );
 
-  const colorStyles = useMemo<TaskBarColorStyles>(() => ({
+  const colorStyles = useMemo<ColorStyles>(() => ({
     ...defaultColors,
     ...colors,
   }), [
@@ -404,26 +409,23 @@ export const Gantt: React.FC<GanttProps> = ({
     columnWidth,
   ]);
 
+  const dateFormats = useMemo<DateFormats>(() => ({
+    ...defaultDateFormats,
+    ...dateFormatsProp,
+  }), [
+    dateFormatsProp,
+  ]);
+
   const dateSetup = useMemo<DateSetup>(() => ({
-    dateColumnFormat,
+    dateFormats,
     dateLocale,
     dates,
-    dayBottomHeaderFormat,
-    dayTopHeaderFormat,
-    hourBottomHeaderFormat,
-    monthBottomHeaderFormat,
-    monthTopHeaderFormat,
     preStepsCount,
     viewMode,
   }), [
-    dateColumnFormat,
+    dateFormats,
     dateLocale,
     dates,
-    dayBottomHeaderFormat,
-    dayTopHeaderFormat,
-    hourBottomHeaderFormat,
-    monthBottomHeaderFormat,
-    monthTopHeaderFormat,
     preStepsCount,
     viewMode,
   ]);
@@ -1365,9 +1367,6 @@ export const Gantt: React.FC<GanttProps> = ({
     relationCircleOffset,
     relationCircleRadius,
     taskWarningOffset,
-    arrowColor,
-    arrowCriticalColor,
-    arrowWarningColor,
     arrowIndent,
     barCornerRadius,
     dependencyFixWidth,

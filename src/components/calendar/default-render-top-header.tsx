@@ -9,7 +9,7 @@ const getDayText = (
   try {
     return format(
       date,
-      dateSetup.dayTopHeaderFormat,
+      dateSetup.dateFormats.dayTopHeaderFormat,
       {
         locale: dateSetup.dateLocale,
       },
@@ -26,7 +26,7 @@ const getMonthText = (
   try {
     return format(
       date,
-      dateSetup.monthTopHeaderFormat,
+      dateSetup.dateFormats.monthTopHeaderFormat,
       {
         locale: dateSetup.dateLocale,
       },

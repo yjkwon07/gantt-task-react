@@ -15,14 +15,9 @@ export enum ViewMode {
 }
 
 export interface DateSetup {
-  dateColumnFormat: string;
+  dateFormats: DateFormats;
   dateLocale: DateLocale;
   dates: Date[];
-  dayBottomHeaderFormat: string;
-  dayTopHeaderFormat: string;
-  hourBottomHeaderFormat: string;
-  monthBottomHeaderFormat: string;
-  monthTopHeaderFormat: string;
   preStepsCount: number;
   viewMode: ViewMode;
 }
@@ -59,7 +54,10 @@ export interface ExpandedDependent {
   ownTarget: RelationMoveTarget;
 };
 
-export interface TaskBarColorStyles {
+export interface ColorStyles {
+  arrowColor: string;
+  arrowCriticalColor: string;
+  arrowWarningColor: string;
   barProgressColor: string;
   barProgressCriticalColor: string;
   barProgressSelectedColor: string;
@@ -90,6 +88,18 @@ export interface TaskBarColorStyles {
   milestoneBackgroundSelectedCriticalColor: string;
 }
 
+/**
+ * date-fns formats
+ */
+export interface DateFormats {
+  dateColumnFormat: string;
+  dayBottomHeaderFormat: string;
+  dayTopHeaderFormat: string;
+  hourBottomHeaderFormat: string;
+  monthBottomHeaderFormat: string;
+  monthTopHeaderFormat: string;
+}
+
 export type TaskType = "task" | "milestone" | "project";
 
 export interface Task {
@@ -102,7 +112,7 @@ export interface Task {
    * From 0 to 100
    */
   progress: number;
-  styles?: Partial<TaskBarColorStyles>;
+  styles?: Partial<ColorStyles>;
   isDisabled?: boolean;
   /**
    * Project or task
@@ -122,7 +132,7 @@ export interface EmptyTask {
   comparisonLevel?: number;
   displayOrder?: number;
   isDisabled?: boolean;
-  styles?: Partial<TaskBarColorStyles>;
+  styles?: Partial<ColorStyles>;
 }
 
 export type TaskOrEmpty = Task | EmptyTask;
@@ -411,34 +421,11 @@ export interface StylingOption {
    */
   canMoveTasks?: boolean;
   canResizeColumns?: boolean;
-  colors?: Partial<TaskBarColorStyles>;
-  /**
-   * `date-fns` format of date
-   */
-  dateColumnFormat?: string;
-  /**
-   * `date-fns` format of date
-   */
-  dayBottomHeaderFormat?: string;
-  /**
-   * `date-fns` format of date
-   */
-  dayTopHeaderFormat?: string;
+  colors?: Partial<ColorStyles>;
+  dateFormats?: Partial<DateFormats>;
   expandIconWidth?: number;
   headerHeight?: number;
-  /**
-   * `date-fns` format of date
-   */
-  hourBottomHeaderFormat?: string;
   icons?: Partial<Icons>;
-  /**
-   * `date-fns` format of header
-   */
-  monthBottomHeaderFormat?: string;
-  /**
-   * `date-fns` format of header
-   */
-  monthTopHeaderFormat?: string;
   columnWidth?: number;
   columns?: readonly Column[];
   onResizeColumn?: OnResizeColumn;
@@ -458,9 +445,6 @@ export interface StylingOption {
    * From 0 to 100
    */
   barFill?: number;
-  arrowColor?: string;
-  arrowCriticalColor?: string;
-  arrowWarningColor?: string;
   arrowIndent?: number;
   dependencyFixWidth?: number;
   dependencyFixHeight?: number;

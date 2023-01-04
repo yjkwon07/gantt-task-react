@@ -16,7 +16,7 @@ import {
   MapTaskToCoordinates,
   MapTaskToGlobalIndex,
   Task,
-  TaskBarColorStyles,
+  ColorStyles,
   TaskCoordinates,
   TaskOrEmpty,
 } from "../../types/public-types";
@@ -72,7 +72,7 @@ export type TaskItemProps = {
   fixStartPosition?: FixPosition;
   fixEndPosition?: FixPosition;
   handleDeteleTask: (task: TaskOrEmpty) => void;
-  colorStyles: TaskBarColorStyles;
+  colorStyles: ColorStyles;
 };
 
 export type TaskItemExtendedProps = TaskItemProps & {
