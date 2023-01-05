@@ -98,6 +98,7 @@ const defaultColors: ColorStyles = {
   milestoneBackgroundCriticalColor: "#ff8e8e",
   milestoneBackgroundSelectedColor: "#f29e4c",
   milestoneBackgroundSelectedCriticalColor: "#ff0000",
+  todayColor: "rgba(252, 248, 227, 0.5)",
 };
 
 const defaultDateFormats: DateFormats = {
@@ -151,7 +152,6 @@ export const Gantt: React.FC<GanttProps> = ({
   timeStep = 300000,
   fontFamily = "Arial, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue",
   fontSize = "14px",
-  todayColor = "rgba(252, 248, 227, 0.5)",
   viewDate,
   TooltipContent = StandardTooltipContent,
   TaskListHeader = TaskListHeaderDefault,
@@ -1355,7 +1355,7 @@ export const Gantt: React.FC<GanttProps> = ({
     fullRowHeight,
     maxLevelLength,
     dates: dateSetup.dates,
-    todayColor,
+    todayColor: colorStyles.todayColor,
     rtl,
   };
 

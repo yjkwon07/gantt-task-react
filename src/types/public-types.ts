@@ -86,6 +86,7 @@ export interface ColorStyles {
   milestoneBackgroundCriticalColor: string;
   milestoneBackgroundSelectedColor: string;
   milestoneBackgroundSelectedCriticalColor: string;
+  todayColor: string;
 }
 
 /**
@@ -454,7 +455,6 @@ export interface StylingOption {
   onResizeColumn?: OnResizeColumn;
   fontFamily?: string;
   fontSize?: string;
-  todayColor?: string;
   TooltipContent?: ComponentType<{
     task: Task;
     fontSize: string;
