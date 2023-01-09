@@ -93,7 +93,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     collect: (monitor) => ({
       isLighten: monitor.canDrop() && monitor.isOver(),
     }),
-  }, [id, comparisonLevel, handleMoveTaskInside]);
+  }, [id, comparisonLevel, handleMoveTaskInside, task]);
 
   const [dropAfterProps, dropAfter] = useDrop({
     accept: ROW_DRAG_TYPE,
@@ -105,7 +105,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     collect: (monitor) => ({
       isLighten: monitor.isOver(),
     }),
-  }, [id, comparisonLevel, handleMoveTaskAfter]);
+  }, [id, comparisonLevel, handleMoveTaskAfter, task]);
 
   const isClosed = Boolean(closedTasks[id]);
 

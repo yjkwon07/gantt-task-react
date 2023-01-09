@@ -291,13 +291,15 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
         );
     }
   }, [
-    coordinates,
-    task,
-    isSelected,
-    isRelationDrawMode,
     childTasksMap,
-    outOfParentWarnings,
+    coordinates,
     handleWidth,
+    isRelationDrawMode,
+    isSelected,
+    outOfParentWarnings,
+    props,
+    styles,
+    task,
   ]);
 
   useEffect(() => {

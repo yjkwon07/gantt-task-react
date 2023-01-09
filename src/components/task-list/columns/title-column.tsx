@@ -51,6 +51,7 @@ export const TitleColumn: React.FC<ColumnProps> = ({
   const {
     id,
     comparisonLevel = 1,
+    name,
   } = task;
 
   const [collected, drag] = useDrag({
@@ -60,11 +61,7 @@ export const TitleColumn: React.FC<ColumnProps> = ({
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-  }, [id, comparisonLevel]);
-
-  const {
-    name,
-  } = task;
+  }, [id, comparisonLevel, task]);
 
   const expanderSymbol = useMemo(
     () => getExpanderSymbol(hasChildren, isClosed, icons),
