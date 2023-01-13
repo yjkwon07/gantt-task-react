@@ -1,3 +1,5 @@
+const { mergeConfig } = require('vite');
+
 module.exports = {
   stories: ['../stories/**/*.stories.mdx'],
 
@@ -16,5 +18,11 @@ module.exports = {
   features: {
     storyStoreV7: true,
     previewMdx2: true,
+  },
+
+  async viteFinal(config) {
+    return mergeConfig(config, {
+      base: "./",
+    });
   },
 };

@@ -3,7 +3,7 @@
   "version": "0.3.9",
   "description": "Interactive Gantt Chart for React with TypeScript.",
   "author": "MaTeMaTuK <maksym.vikarii@gmail.com>",
-  "homepage": "https://github.com/MaTeMaTuK/gantt-task-react",
+  "homepage": "http://vtaits.github.io/gantt-task-react",
   "license": "MIT",
   "repository": "MaTeMaTuK/gantt-task-react",
   "main": "dist/index.js",
@@ -30,8 +30,9 @@
     "test:lint": "eslint --ext .tsx src/**/*",
     "test:unit": "cross-env CI=1 react-scripts test --env=jsdom",
     "test:watch": "react-scripts test --env=jsdom",
-    "predeploy": "cd example && npm install && npm run build",
-    "deploy": "gh-pages -d example/build"
+    "predeploy": "yarn build-storybook",
+    "deploy-storybook": "gh-pages -d storybook-static",
+    "build-storybook": "build-storybook"
   },
   "peerDependencies": {
     "react": "^18.0.0",
