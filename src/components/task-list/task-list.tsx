@@ -1,7 +1,10 @@
 import React, {
-  ComponentType,
+  memo,
   useEffect,
   useRef,
+} from "react";
+import type {
+  ComponentType,
 } from "react";
 
 import {
@@ -50,7 +53,7 @@ export type TaskListProps = {
   TaskListTable: ComponentType<TaskListTableProps>;
 };
 
-export const TaskList: React.FC<TaskListProps> = ({
+const TaskListInner: React.FC<TaskListProps> = ({
   canMoveTasks,
   dateSetup,
   distances,
@@ -135,3 +138,5 @@ export const TaskList: React.FC<TaskListProps> = ({
     </div>
   );
 };
+
+export const TaskList = memo(TaskListInner);
