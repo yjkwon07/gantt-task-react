@@ -145,12 +145,7 @@ export function initTasks() {
     },
   ];
 
-  const secondLevelTasks = tasks.map<Task>((task) => ({
-    ...task,
-    comparisonLevel: 2,
-  }));
-
-  return [...tasks, ...secondLevelTasks];
+  return tasks;
 }
 
 export const getTaskFields = (initialValues: {
