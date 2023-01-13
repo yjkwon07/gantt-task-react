@@ -22,18 +22,74 @@ import {
 
 import "../dist/index.css";
 
-const NUMBER_OF_ROOTS = 100;
-const NUMBER_OF_SUBTASKS = 5;
+const NUMBER_OF_ROOTS = 4;
+const NUMBER_OF_SUBTASKS = 4;
+const DEPTH = 4;
+
+// 4 * ()
 
 type AppProps = {
   ganttHeight?: number;
+};
+
+const initSubtasks = (
+  res: Task[],
+  parentId: string,
+  parentStartDate: Date,
+  parentName: string,
+  currentDepth: number,
+) => {
+  const restDepth = DEPTH - currentDepth;
+  const taskDuration = Math.pow(NUMBER_OF_SUBTASKS, restDepth);
+
+  let prevTaskId: string | null = null;
+
+  for (let j = 0; j < NUMBER_OF_SUBTASKS; ++j) {
+    const taskId = `${parentId}/task_${j + 1}`;
+    const taskName = `${parentName}.${j + 1}`;
+
+    const startDate = addDays(parentStartDate, j * taskDuration);
+    const endDate = addDays(parentStartDate, (j + 1) * taskDuration);
+
+    const task: Task = {
+      start: startDate,
+      end: endDate,
+      name: taskName,
+      id: taskId,
+      progress: 45,
+      type: "task",
+      parent: parentId,
+      dependencies: prevTaskId
+      ? [
+        {
+          ownTarget: "startOfTask",
+          sourceTarget: "endOfTask",
+          sourceId: prevTaskId,
+        },
+      ]
+      : undefined,
+    };
+
+    prevTaskId = taskId;
+    res.push(task);
+
+    if (restDepth > 0) {
+      initSubtasks(
+        res,
+        taskId,
+        startDate,
+        taskName,
+        currentDepth + 1,
+      );
+    }
+  }
 };
 
 const initTasks = () => {
   const res: Task[] = [];
 
   const firstStartDate = new Date();
-  const firstEndDate = addDays(firstStartDate, NUMBER_OF_SUBTASKS);
+  const firstEndDate = addDays(firstStartDate, Math.pow(NUMBER_OF_SUBTASKS, DEPTH));
 
   for (let i = 0; i < NUMBER_OF_ROOTS; ++i) {
     const projectStartDate = addDays(firstStartDate, i);
@@ -53,21 +109,13 @@ const initTasks = () => {
 
     res.push(project);
 
-    for (let j = 0; j < NUMBER_OF_SUBTASKS; ++j) {
-      const taskId = `${projectId}/task_${j + 1}`;
-      const taskName = `Task ${i + 1}.${j + 1}`;
-
-      const task: Task = {
-        start: addDays(projectStartDate, j),
-        end: addDays(projectStartDate, j + 1),
-        name: taskName,
-        id: taskId,
-        progress: 45,
-        type: "task",
-        parent: projectId,
-      };
-      res.push(task);
-    }
+    initSubtasks(
+      res,
+      projectId,
+      projectStartDate,
+      `Task #${i + 1}`,
+      1,
+    );
   }
 
   return res;
@@ -75,6 +123,7 @@ const initTasks = () => {
 
 export const StressTest: React.FC<AppProps> = (props) => {
   const [tasks, setTasks] = useState<readonly TaskOrEmpty[]>(initTasks);
+  console.log(tasks.length)
 
   const onChangeTasks = useCallback<OnChangeTasks>((nextTasks, action) => {
     switch (action.type) {
