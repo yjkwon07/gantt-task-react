@@ -123,7 +123,6 @@ const initTasks = () => {
 
 export const StressTest: React.FC<AppProps> = (props) => {
   const [tasks, setTasks] = useState<readonly TaskOrEmpty[]>(initTasks);
-  console.log(tasks.length)
 
   const onChangeTasks = useCallback<OnChangeTasks>((nextTasks, action) => {
     switch (action.type) {

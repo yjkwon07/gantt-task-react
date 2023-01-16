@@ -1,4 +1,5 @@
 import React, {
+  memo,
   useEffect,
   useRef,
   useState,
@@ -66,7 +67,7 @@ export type TaskItemProps = {
   colorStyles: ColorStyles;
 };
 
-export const TaskItem: React.FC<TaskItemProps> = (props) => {
+const TaskItemInner: React.FC<TaskItemProps> = (props) => {
   const {
     coordinates,
     getTaskGlobalIndexByRef,
@@ -377,3 +378,5 @@ export const TaskItem: React.FC<TaskItemProps> = (props) => {
     </g>
   );
 };
+
+export const TaskItem = memo(TaskItemInner);
