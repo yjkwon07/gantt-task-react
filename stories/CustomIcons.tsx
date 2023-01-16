@@ -7,6 +7,7 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
 import {
+  Distances,
   Gantt,
   Icons,
   OnChangeTasks,
@@ -30,6 +31,10 @@ const icons: Icons = {
   renderNoChildrenIcon: () => <>🥳</>,
   renderOpenedIcon: () => <>📂</>,
 };
+
+const distances: Partial<Distances> = {
+  expandIconWidth: 30,
+}
 
 type AppProps = {
   ganttHeight?: number;
@@ -58,19 +63,19 @@ export const CustomIcons: React.FC<AppProps> = (props) => {
     }
   }, []);
 
-  const handleDblClick = (task: Task) => {
+  const handleDblClick = useCallback((task: Task) => {
     alert("On Double Click event Id:" + task.id);
-  };
+  }, []);
 
-  const handleClick = (task: Task) => {
+  const handleClick = useCallback((task: Task) => {
     console.log("On Click event Id:" + task.id);
-  };
+  }, []);
 
   return (
     <DndProvider backend={HTML5Backend}>
       <Gantt
         {...props}
-        expandIconWidth={30}
+        distances={distances}
         icons={icons}
         onAddTask={onAddTask}
         onChangeTasks={onChangeTasks}

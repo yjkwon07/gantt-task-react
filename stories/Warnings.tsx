@@ -48,13 +48,13 @@ export const Warnings: React.FC<AppProps> = (props) => {
     }
   }, []);
 
-  const handleDblClick = (task: Task) => {
+  const handleDblClick = useCallback((task: Task) => {
     alert("On Double Click event Id:" + task.id);
-  };
+  }, []);
 
-  const handleClick = (task: Task) => {
+  const handleClick = useCallback((task: Task) => {
     console.log("On Click event Id:" + task.id);
-  };
+  }, []);
 
   return (
     <DndProvider backend={HTML5Backend}>
