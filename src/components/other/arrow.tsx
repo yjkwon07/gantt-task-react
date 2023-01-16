@@ -10,11 +10,9 @@ import {
   ColorStyles,
   Distances,
   Task,
-  TaskCoordinates,
 } from "../../types/public-types";
 import { RelationMoveTarget } from "../../types/gantt-task-actions";
 import { generateTrianglePoints } from "../../helpers/generate-triangle-points";
-import { getCoordinatesOnLevel } from "../../helpers/get-task-coordinates";
 import { FixDependencyPosition, fixPositionContainerClass } from "./fix-dependency-position";
 
 import styles from "./arrow.module.css";
@@ -24,13 +22,18 @@ type ArrowProps = {
   distances: Distances;
   taskFrom: Task;
   targetFrom: RelationMoveTarget;
+  fromX1: number;
+  fromX2: number;
+  fromY: number;
   taskTo: Task;
   targetTo: RelationMoveTarget;
+  toX1: number;
+  toX2: number;
+  toY: number;
   /**
    * dependency margins for task `taskTo`
    */
   marginsByTask?: Map<string, number>;
-  mapTaskToCoordinatesOnLevel: Map<string, TaskCoordinates>;
   mapTaskRowIndexByLevel: Map<string, number>;
   fullRowHeight: number;
   taskHeight: number;
@@ -60,10 +63,15 @@ const ArrowInner: React.FC<ArrowProps> = ({
 
   taskFrom,
   targetFrom,
+  fromX1,
+  fromX2,
+  fromY,
   taskTo,
   targetTo,
+  toX1,
+  toX2,
+  toY,
   marginsByTask = undefined,
-  mapTaskToCoordinatesOnLevel,
   mapTaskRowIndexByLevel,
   fullRowHeight,
   taskHeight,
@@ -86,11 +94,6 @@ const ArrowInner: React.FC<ArrowProps> = ({
     onArrowDoubleClick,
   ]);
 
-  const coordinatesFrom = useMemo(
-    () => getCoordinatesOnLevel(taskFrom.id, mapTaskToCoordinatesOnLevel),
-    [taskFrom, mapTaskToCoordinatesOnLevel],
-  );
-
   const indexFrom = useMemo(() => {
     const {
       id,
@@ -104,11 +107,6 @@ const ArrowInner: React.FC<ArrowProps> = ({
 
     return res;
   }, [taskFrom, mapTaskRowIndexByLevel]);
-
-  const coordinatesTo = useMemo(
-    () => getCoordinatesOnLevel(taskTo.id, mapTaskToCoordinatesOnLevel),
-    [taskTo, mapTaskToCoordinatesOnLevel],
-  );
 
   const indexTo = useMemo(() => {
     const {
@@ -127,10 +125,14 @@ const ArrowInner: React.FC<ArrowProps> = ({
   const [path, trianglePoints] = useMemo(
     () => drownPathAndTriangle(
       indexFrom,
-      coordinatesFrom,
+      fromX1,
+      fromX2,
+      fromY,
       (targetFrom === 'startOfTask') !== rtl,
       indexTo,
-      coordinatesTo,
+      toX1,
+      toX2,
+      toY,
       (targetTo === 'startOfTask') !== rtl,
       fullRowHeight,
       taskHeight,
@@ -138,10 +140,14 @@ const ArrowInner: React.FC<ArrowProps> = ({
     ),
     [
       indexFrom,
-      coordinatesFrom,
+      fromX1,
+      fromX2,
+      fromY,
       targetFrom,
       indexTo,
-      coordinatesTo,
+      toX1,
+      toX2,
+      toY,
       targetTo,
       rtl,
       fullRowHeight,
@@ -154,12 +160,13 @@ const ArrowInner: React.FC<ArrowProps> = ({
     const isLeft = (targetFrom === 'startOfTask') !== rtl;
 
     if (isLeft) {
-      return coordinatesFrom.x1 - dependencyFixIndent;
+      return fromX1 - dependencyFixIndent;
     }
 
-    return coordinatesFrom.x2 + dependencyFixIndent;
+    return fromX2 + dependencyFixIndent;
   }, [
-    coordinatesFrom,
+    fromX1,
+    fromX2,
     targetFrom,
     rtl,
     dependencyFixIndent,
@@ -169,12 +176,13 @@ const ArrowInner: React.FC<ArrowProps> = ({
     const isLeft = (targetTo === 'startOfTask') !== rtl;
 
     if (isLeft) {
-      return coordinatesTo.x1 - dependencyFixIndent;
+      return toX1 - dependencyFixIndent;
     }
 
-    return coordinatesTo.x2 + dependencyFixIndent;
+    return toX2 + dependencyFixIndent;
   }, [
-    coordinatesTo,
+    toX1,
+    toX2,
     targetTo,
     rtl,
     dependencyFixIndent,
@@ -263,7 +271,7 @@ const ArrowInner: React.FC<ArrowProps> = ({
         <>
           <FixDependencyPosition
             x={taskToFixerPosition}
-            y={coordinatesTo.y}
+            y={toY}
             dependencyFixIndent={dependencyFixIndent}
             isLeft={rtl}
             color="grey"
@@ -274,7 +282,7 @@ const ArrowInner: React.FC<ArrowProps> = ({
 
           <FixDependencyPosition
             x={taskFromFixerPosition}
-            y={coordinatesFrom.y}
+            y={fromY}
             dependencyFixIndent={dependencyFixIndent}
             isLeft={!rtl}
             color="grey"
@@ -292,10 +300,14 @@ export const Arrow = memo(ArrowInner);
 
 const drownPathAndTriangle = (
   indexForm: number,
-  from: TaskCoordinates,
+  fromX1: number,
+  fromX2: number,
+  fromY: number,
   isTaskFromLeftSide: boolean,
   indexTo: number,
-  to: TaskCoordinates,
+  toX1: number,
+  toX2: number,
+  toY: number,
   isTaskToLeftSide: boolean,
   fullRowHeight: number,
   taskHeight: number,
@@ -307,30 +319,30 @@ const drownPathAndTriangle = (
     : (indexForm * fullRowHeight);
 
   const taskFromEndPositionX = isTaskFromLeftSide
-    ? from.x1 - arrowIndent
-    : from.x2 + arrowIndent;
+    ? fromX1 - arrowIndent
+    : fromX2 + arrowIndent;
 
   const taskToEndPositionX = isTaskToLeftSide
-    ? to.x1 - arrowIndent
-    : to.x2 + arrowIndent;
-  const taskToEndPositionY = to.y + taskHeight / 2;
+    ? toX1 - arrowIndent
+    : toX2 + arrowIndent;
+  const taskToEndPositionY = toY + taskHeight / 2;
 
-  const path = `M ${isTaskFromLeftSide ? from.x1 : from.x2} ${from.y + taskHeight / 2}
+  const path = `M ${isTaskFromLeftSide ? fromX1 : fromX2} ${fromY + taskHeight / 2}
   H ${taskFromEndPositionX}
   V ${horizontalDockingY}
   H ${taskToEndPositionX}
   V ${taskToEndPositionY}
-  H ${isTaskToLeftSide ? to.x1 : to.x2}`;
+  H ${isTaskToLeftSide ? toX1 : toX2}`;
 
   const trianglePoints = isTaskToLeftSide
     ? generateTrianglePoints(
-      to.x1,
+      toX1,
       taskToEndPositionY,
       5,
       false,
     )
     : generateTrianglePoints(
-      to.x2,
+      toX2,
       taskToEndPositionY,
       5,
       true,

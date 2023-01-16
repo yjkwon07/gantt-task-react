@@ -30,7 +30,6 @@ import {
   GanttRelationEvent,
   RelationMoveTarget,
 } from "../../types/gantt-task-actions";
-import { getMapTaskToCoordinatesOnLevel } from "../../helpers/get-task-coordinates";
 import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
 import { getTaskCoordinates as getTaskCoordinatesDefault } from "../../helpers/get-task-coordinates";
 
@@ -217,11 +216,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             );
           }
 
-          const mapTaskToCoordinatesOnLevel = getMapTaskToCoordinatesOnLevel(
-            task,
-            mapTaskToCoordinates,
-          );
-
           const mapTaskRowIndexByLevel = mapTaskToRowIndex.get(comparisonLevel);
 
           if (!mapTaskRowIndexByLevel) {
@@ -234,6 +228,12 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             ? criticalPathOnLevel.dependencies.get(task.id)
             : undefined;
 
+          const {
+            x1: toX1,
+            x2: toX2,
+            y: toY,
+          } = getTaskCoordinates(task);
+
           return dependenciesByTask
             .filter(({ source }) => visibleTasksMirror[source.id])
             .map(({
@@ -245,6 +245,12 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                 ? criticalPathForTask.has(source.id)
                 : false;
 
+              const {
+                x1: fromX1,
+                x2: fromX2,
+                y: fromY,
+              } = getTaskCoordinates(source);
+
               return (
                 <Arrow
                   key={`Arrow from ${taskId} to ${source.id} on ${comparisonLevel}`}
@@ -252,10 +258,15 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                   distances={distances}
                   taskFrom={source}
                   targetFrom={sourceTarget}
+                  fromX1={fromX1}
+                  fromX2={fromX2}
+                  fromY={fromY}
                   taskTo={task}
                   targetTo={ownTarget}
+                  toX1={toX1}
+                  toX2={toX2}
+                  toY={toY}
                   marginsByTask={marginsByLevel ? marginsByLevel.get(task.id) : undefined}
-                  mapTaskToCoordinatesOnLevel={mapTaskToCoordinatesOnLevel}
                   mapTaskRowIndexByLevel={mapTaskRowIndexByLevel}
                   fullRowHeight={fullRowHeight}
                   taskHeight={taskHeight}
