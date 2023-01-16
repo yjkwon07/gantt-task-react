@@ -6,8 +6,6 @@ import { TaskItemProps } from "../task-item";
 import styles from "./project.module.css";
 
 export const Project: React.FC<TaskItemProps> = ({
-  coordinates,
-
   distances: {
     barCornerRadius,
   },
@@ -17,6 +15,11 @@ export const Project: React.FC<TaskItemProps> = ({
   isSelected,
   isCritical,
   colorStyles,
+  progressWidth,
+  progressX,
+  taskYOffset,
+  x1,
+  x2,
 }) => {
   const barColor = useMemo(() => {
     if (isCritical) {
@@ -50,41 +53,41 @@ export const Project: React.FC<TaskItemProps> = ({
     return colorStyles.projectProgressColor;
   }, [isSelected, isCritical, colorStyles]);
 
-  const projectWith = coordinates.x2 - coordinates.x1;
+  const projectWith = x2 - x1;
 
   const projectLeftTriangle = [
-    coordinates.x1,
-    coordinates.y + taskHeight / 2 - 1,
-    coordinates.x1,
-    coordinates.y + taskHeight,
-    coordinates.x1 + 15,
-    coordinates.y + taskHeight / 2 - 1,
+    x1,
+    taskYOffset + taskHeight / 2 - 1,
+    x1,
+    taskYOffset + taskHeight,
+    x1 + 15,
+    taskYOffset + taskHeight / 2 - 1,
   ].join(",");
   const projectRightTriangle = [
-    coordinates.x2,
-    coordinates.y + taskHeight / 2 - 1,
-    coordinates.x2,
-    coordinates.y + taskHeight,
-    coordinates.x2 - 15,
-    coordinates.y + taskHeight / 2 - 1,
+    x2,
+    taskYOffset + taskHeight / 2 - 1,
+    x2,
+    taskYOffset + taskHeight,
+    x2 - 15,
+    taskYOffset + taskHeight / 2 - 1,
   ].join(",");
 
   return (
     <g tabIndex={0} className={styles.projectWrapper}>
       <rect
         fill={barColor}
-        x={coordinates.x1}
+        x={x1}
         width={projectWith}
-        y={coordinates.y}
+        y={taskYOffset}
         height={taskHeight}
         rx={barCornerRadius}
         ry={barCornerRadius}
         className={styles.projectBackground}
       />
       <rect
-        x={coordinates.progressX}
-        width={coordinates.progressWidth}
-        y={coordinates.y}
+        x={progressX}
+        width={progressWidth}
+        y={taskYOffset}
         height={taskHeight}
         ry={barCornerRadius}
         rx={barCornerRadius}
@@ -92,9 +95,9 @@ export const Project: React.FC<TaskItemProps> = ({
       />
       <rect
         fill={barColor}
-        x={coordinates.x1}
+        x={x1}
         width={projectWith}
-        y={coordinates.y}
+        y={taskYOffset}
         height={taskHalfHeight}
         rx={barCornerRadius}
         ry={barCornerRadius}

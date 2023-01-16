@@ -1,11 +1,14 @@
-import React from "react";
+import React, {
+  memo,
+} from "react";
 
+import { checkHasChildren } from "../../helpers/use-has-children";
 import { TaskListTableProps } from "../../types/public-types";
 import { TaskListTableRow } from "./task-list-table-row";
 
 import styles from "./task-list-table.module.css";
 
-export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
+const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   canMoveTasks,
   dateSetup,
   distances,
@@ -41,30 +44,52 @@ export const TaskListTableDefault: React.FC<TaskListTableProps> = ({
          */
         .filter((task) => !task.comparisonLevel || task.comparisonLevel === 1)
         .map((task) => {
+          const {
+            id,
+            comparisonLevel = 1,
+          } = task;
+
+          const indexesOnLevel = mapTaskToNestedIndex.get(comparisonLevel);
+  
+          if (!indexesOnLevel) {
+            throw new Error(`Indexes are not found for level ${comparisonLevel}`);
+          }
+        
+          const taskIndex = indexesOnLevel.get(id);
+        
+          if (!taskIndex) {
+            throw new Error(`Index is not found for task ${id}`);
+          }
+        
+          const [depth, indexStr] = taskIndex;
+
           return (
             <TaskListTableRow
               canMoveTasks={canMoveTasks}
+              columnResizeEvent={columnResizeEvent}
+              columns={columns}
               dateSetup={dateSetup}
+              depth={depth}
               distances={distances}
-              task={task}
+              fullRowHeight={fullRowHeight}
               handleAddTask={handleAddTask}
+              handleDeteleTask={handleDeteleTask}
               handleEditTask={handleEditTask}
               handleMoveTaskAfter={handleMoveTaskAfter}
               handleMoveTaskInside={handleMoveTaskInside}
+              hasChildren={checkHasChildren(task, childTasksMap)}
               icons={icons}
-              columns={columns}
-              columnResizeEvent={columnResizeEvent}
-              fullRowHeight={fullRowHeight}
-              childTasksMap={childTasksMap}
-              mapTaskToNestedIndex={mapTaskToNestedIndex}
+              indexStr={indexStr}
+              isClosed={Boolean(closedTasks[id])}
               isShowTaskNumbers={isShowTaskNumbers}
-              closedTasks={closedTasks}
               onExpanderClick={onExpanderClick}
-              handleDeteleTask={handleDeteleTask}
-              key={task.id}
+              task={task}
+              key={id}
             />
           );
         })}
     </div>
   );
 };
+
+export const TaskListTableDefault = memo(TaskListTableDefaultInner);

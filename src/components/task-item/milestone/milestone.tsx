@@ -12,7 +12,7 @@ import styles from "./milestone.module.css";
 
 export const Milestone: React.FC<TaskItemProps> = ({
   task,
-  coordinates,
+  taskYOffset,
 
   distances: {
     barCornerRadius,
@@ -30,11 +30,13 @@ export const Milestone: React.FC<TaskItemProps> = ({
   isSelected,
   isCritical,
   colorStyles,
+  x1,
+  x2,
 }) => {
   const rotatedHeight = taskHeight / 1.414;
 
-  const transform = `rotate(45 ${coordinates.x1 + rotatedHeight * 0.356} 
-    ${coordinates.y + rotatedHeight * 0.85})`;
+  const transform = `rotate(45 ${x1 + rotatedHeight * 0.356} 
+    ${taskYOffset + rotatedHeight * 0.85})`;
 
   const barColor = useMemo(() => {
     if (isCritical) {
@@ -59,9 +61,9 @@ export const Milestone: React.FC<TaskItemProps> = ({
     >
       <rect
         fill={barColor}
-        x={coordinates.x1}
+        x={x1}
         width={rotatedHeight}
-        y={coordinates.y}
+        y={taskYOffset}
         height={rotatedHeight}
         rx={barCornerRadius}
         ry={barCornerRadius}
@@ -78,8 +80,8 @@ export const Milestone: React.FC<TaskItemProps> = ({
             {/* left */}
             <BarRelationHandle
               isRelationDrawMode={isRelationDrawMode}
-              x={coordinates.x1 - relationCircleOffset}
-              y={coordinates.y + taskHalfHeight}
+              x={x1 - relationCircleOffset}
+              y={taskYOffset + taskHalfHeight}
               radius={relationCircleRadius}
               onMouseDown={() => {
                 onRelationStart("startOfTask", task);
@@ -88,8 +90,8 @@ export const Milestone: React.FC<TaskItemProps> = ({
             {/* right */}
             <BarRelationHandle
               isRelationDrawMode={isRelationDrawMode}
-              x={coordinates.x2 + relationCircleOffset}
-              y={coordinates.y + taskHalfHeight}
+              x={x2 + relationCircleOffset}
+              y={taskYOffset + taskHalfHeight}
               radius={relationCircleRadius}
               onMouseDown={() => {
                 onRelationStart("endOfTask", task);

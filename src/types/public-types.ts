@@ -17,7 +17,6 @@ export enum ViewMode {
 export interface DateSetup {
   dateFormats: DateFormats;
   dateLocale: DateLocale;
-  dates: Date[];
   preStepsCount: number;
   viewMode: ViewMode;
 }
@@ -580,6 +579,7 @@ export type TaskCoordinates = {
   x1: number;
   x2: number;
   y: number;
+  levelY: number;
   progressWidth: number;
   progressX: number;
 };

@@ -15,7 +15,6 @@ import {
   FixPosition,
   Task,
   ColorStyles,
-  TaskCoordinates,
   TaskOrEmpty,
   Distances,
 } from "../../types/public-types";
@@ -28,9 +27,13 @@ import style from "./task-list.module.css";
 import { BarFixWidth, fixWidthContainerClass } from "../other/bar-fix-width";
 
 export type TaskItemProps = {
-  coordinates: TaskCoordinates;
   getTaskGlobalIndexByRef: (task: Task) => number;
+  progressWidth: number;
+  progressX: number;
   task: Task;
+  taskYOffset: number;
+  x1: number;
+  x2: number;
   childTasksMap: ChildMapByLevel;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
   dependencyMarginsMap: DependencyMargins;
@@ -69,13 +72,17 @@ export type TaskItemProps = {
 
 const TaskItemInner: React.FC<TaskItemProps> = (props) => {
   const {
-    coordinates,
     getTaskGlobalIndexByRef,
 
     task,
     task: {
       styles: taskStyles,
     },
+
+    taskYOffset,
+
+    x1,
+    x2,
 
     childTasksMap,
     childOutOfParentWarnings,
@@ -224,7 +231,6 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
         return (
           <Milestone
             {...props}
-            coordinates={coordinates}
             colorStyles={styles}
           />
         );
@@ -233,17 +239,15 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
         return (
           <Project
             {...props}
-            coordinates={coordinates}
             colorStyles={styles}
           />
         );
 
       default:
-        if (coordinates.x2 - coordinates.x1 < handleWidth * 2) {
+        if (x2 - x1 < handleWidth * 2) {
           return (
             <BarSmall
               {...props}
-              coordinates={coordinates}
               colorStyles={styles}
             />
           );
@@ -252,14 +256,12 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
         return (
           <Bar
             {...props}
-            coordinates={coordinates}
             colorStyles={styles}
           />
         );
     }
   }, [
     childTasksMap,
-    coordinates,
     handleWidth,
     isRelationDrawMode,
     isSelected,
@@ -267,29 +269,31 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     props,
     styles,
     task,
+    x1,
+    x2,
   ]);
 
   useEffect(() => {
     if (textRef.current) {
-      setIsTextInside(textRef.current.getBBox().width < coordinates.x2 - coordinates.x1);
+      setIsTextInside(textRef.current.getBBox().width < x2 - x1);
     }
-  }, [textRef, coordinates]);
+  }, [textRef, x1, x2]);
 
   const x = useMemo(() => {
-    const width = coordinates.x2 - coordinates.x1;
+    const width = x2 - x1;
     if (isTextInside) {
-      return coordinates.x1 + width * 0.5;
+      return x1 + width * 0.5;
     }
     if (rtl && textRef.current) {
       return (
-        coordinates.x1 -
+        x1 -
         textRef.current.getBBox().width -
         arrowIndent * 0.8
       );
     }
 
-    return coordinates.x1 + width + arrowIndent * 1.2;
-  }, [coordinates, isTextInside, rtl, arrowIndent]);
+    return x1 + width + arrowIndent * 1.2;
+  }, [x1, x2, isTextInside, rtl, arrowIndent]);
 
   const onFocus = useCallback(() => {
     setSelectedTask(task);
@@ -326,7 +330,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
       {taskItem}
       <text
         x={x}
-        y={coordinates.y + taskHeight * 0.5}
+        y={taskYOffset + taskHeight * 0.5}
         className={
           isTextInside
             ? style.barLabel
@@ -344,7 +348,9 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
           rtl={rtl}
           outOfParentWarnings={outOfParentWarnings}
           hasDependencyWarning={hasDependencyWarning}
-          coordinates={coordinates}
+          taskYOffset={taskYOffset}
+          x1={x1}
+          x2={x2}
         />
       )}
 
@@ -352,8 +358,8 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
         <>
           {outOfParentWarnings.start && (
             <BarFixWidth
-              x={rtl ? coordinates.x2 : coordinates.x1}
-              y={coordinates.y + taskHeight}
+              x={rtl ? x2 : x1}
+              y={taskYOffset + taskHeight}
               height={16}
               width={10}
               isLeft={outOfParentWarnings.start.isOutside !== rtl}
@@ -364,8 +370,8 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
 
           {outOfParentWarnings.end && (
             <BarFixWidth
-              x={rtl ? coordinates.x1 : coordinates.x2}
-              y={coordinates.y + taskHeight}
+              x={rtl ? x1 : x2}
+              y={taskYOffset + taskHeight}
               height={16}
               width={10}
               isLeft={outOfParentWarnings.end.isOutside === rtl}

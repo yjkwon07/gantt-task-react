@@ -7,6 +7,8 @@ import type {
   RefObject,
 } from "react";
 
+import useLatest from "use-latest";
+
 import { checkIsDescendant } from "../../helpers/check-is-descendant";
 import { getRelationCircleByCoordinates } from "../../helpers/get-relation-circle-by-coordinates";
 import { getMapTaskToCoordinatesOnLevel, getTaskCoordinates } from "../../helpers/get-task-coordinates";
@@ -53,6 +55,8 @@ export const useCreateRelation = ({
 ] => {
   const [ganttRelationEvent, setGanttRelationEvent] = useState<GanttRelationEvent | null>(null);
 
+  const mapTaskToCoordinatesRef = useLatest(mapTaskToCoordinates);
+
   /**
    * Method is Start point of start draw relation
    */
@@ -60,7 +64,7 @@ export const useCreateRelation = ({
     target: RelationMoveTarget,
     task: Task,
   ) => {
-    const coordinates = getTaskCoordinates(task, mapTaskToCoordinates);
+    const coordinates = getTaskCoordinates(task, mapTaskToCoordinatesRef.current);
 
     const startX = ((target === 'startOfTask') !== rtl) ? coordinates.x1 - 10 : coordinates.x2 + 10;
     const startY = coordinates.y + taskHalfHeight;
@@ -75,8 +79,7 @@ export const useCreateRelation = ({
     });
   }, [
     taskHalfHeight,
-    setGanttRelationEvent,
-    mapTaskToCoordinates,
+    mapTaskToCoordinatesRef,
     rtl,
   ]);
 

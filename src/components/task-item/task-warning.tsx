@@ -3,7 +3,7 @@ import React, {
   useMemo,
 } from 'react';
 
-import { TaskCoordinates, TaskOutOfParentWarnings } from '../../types/public-types';
+import { TaskOutOfParentWarnings } from '../../types/public-types';
 
 type TaskWarningProps = {
   rtl: boolean;
@@ -11,7 +11,9 @@ type TaskWarningProps = {
   hasDependencyWarning: boolean;
   taskWarningOffset: number;
   taskHalfHeight: number;
-  coordinates: TaskCoordinates;
+  taskYOffset: number;
+  x1: number;
+  x2: number;
 };
 
 const TaskWarningInner: React.FC<TaskWarningProps> = ({
@@ -20,7 +22,9 @@ const TaskWarningInner: React.FC<TaskWarningProps> = ({
   hasDependencyWarning,
   taskWarningOffset,
   taskHalfHeight,
-  coordinates,
+  taskYOffset,
+  x1,
+  x2,
 }) => {
   const isError = useMemo(
     () => {
@@ -44,17 +48,22 @@ const TaskWarningInner: React.FC<TaskWarningProps> = ({
 
   const centerX = useMemo(() => {
     if (rtl) {
-      return coordinates.x1 - taskWarningOffset;
+      return x1 - taskWarningOffset;
     }
 
-    return coordinates.x2 + taskWarningOffset;
-  }, [coordinates, rtl, taskWarningOffset]);
+    return x2 + taskWarningOffset;
+  }, [
+    rtl,
+    taskWarningOffset,
+    x1,
+    x2,
+  ]);
 
   return (
     <g>
       <circle
         cx={centerX}
-        cy={coordinates.y + taskHalfHeight}
+        cy={taskYOffset + taskHalfHeight}
         r={12}
         fill={isError ? "#ff0000" : "#e1ca24"}
         strokeWidth={5}
@@ -63,7 +72,7 @@ const TaskWarningInner: React.FC<TaskWarningProps> = ({
       <rect
         fill="#ffffff"
         x={centerX - 2}
-        y={coordinates.y + taskHalfHeight - 7}
+        y={taskYOffset + taskHalfHeight - 7}
         width={4}
         height={4}
       />
@@ -71,7 +80,7 @@ const TaskWarningInner: React.FC<TaskWarningProps> = ({
       <rect
         fill="#ffffff"
         x={centerX - 2}
-        y={coordinates.y + taskHalfHeight}
+        y={taskYOffset + taskHalfHeight}
         width={4}
         height={8}
       />

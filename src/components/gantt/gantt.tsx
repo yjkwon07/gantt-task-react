@@ -192,6 +192,8 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const [closedTasks, setClosedTasks] = useState(() => getInitialClosedTasks(tasks));
 
+  const tasksRef = useLatest(tasks);
+
   const [currentViewDate, setCurrentViewDate] = useState<Date | undefined>(
     undefined
   );
@@ -211,6 +213,8 @@ export const Gantt: React.FC<GanttProps> = ({
     [sortedTasks],
   );
 
+  const childTasksMapRef = useLatest(childTasksMap);
+
   const [visibleTasks, visibleTasksMirror] = useMemo(
     () => collectVisibleTasks(
       childTasksMap,
@@ -228,6 +232,8 @@ export const Gantt: React.FC<GanttProps> = ({
     () => getTasksMap(tasks),
     [tasks],
   );
+
+  const tasksMapRef = useLatest(tasksMap);
 
   const mapTaskToGlobalIndex = useMemo(
     () => getMapTaskToGlobalIndex(tasks),
@@ -282,6 +288,8 @@ export const Gantt: React.FC<GanttProps> = ({
       isShowCriticalPath,
     ],
   );
+
+  const dependentMapRef = useLatest(dependentMap);
 
   const cirticalPaths = useMemo(() => {
     if (isShowCriticalPath) {
@@ -365,7 +373,12 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const taskHeight = useMemo(
     () => (distances.rowHeight * distances.barFill) / 100,
-    [distances]
+    [distances],
+  );
+
+  const taskYOffset = useMemo(
+    () => (distances.rowHeight - taskHeight) / 2,
+    [distances, taskHeight],
   );
 
   const taskHalfHeight = useMemo(
@@ -405,7 +418,6 @@ export const Gantt: React.FC<GanttProps> = ({
   const [scrollX, setScrollX] = useState(-1);
 
   const onChangeScrollX = useCallback((nextScrollX: number) => {
-    console.log(nextScrollX)
     if (verticalGanttContainerRef.current) {
       verticalGanttContainerRef.current.scrollLeft = nextScrollX;
     }
@@ -449,6 +461,7 @@ export const Gantt: React.FC<GanttProps> = ({
     rtl,
     fullRowHeight,
     taskHeight,
+    taskYOffset,
     distances,
   ), [
     distances,
@@ -458,6 +471,7 @@ export const Gantt: React.FC<GanttProps> = ({
     rtl,
     fullRowHeight,
     taskHeight,
+    taskYOffset,
   ]);
 
   const dateFormats = useMemo<DateFormats>(() => ({
@@ -470,13 +484,11 @@ export const Gantt: React.FC<GanttProps> = ({
   const dateSetup = useMemo<DateSetup>(() => ({
     dateFormats,
     dateLocale,
-    dates,
     preStepsCount,
     viewMode,
   }), [
     dateFormats,
     dateLocale,
-    dates,
     preStepsCount,
     viewMode,
   ]);
@@ -501,7 +513,6 @@ export const Gantt: React.FC<GanttProps> = ({
       ((viewDate && !currentViewDate) ||
         (viewDate && currentViewDate?.valueOf() !== viewDate.valueOf()))
     ) {
-      const dates = dateSetup.dates;
       const index = dates.findIndex(
         (d, i) =>
           viewDate.valueOf() >= d.valueOf() &&
@@ -516,7 +527,7 @@ export const Gantt: React.FC<GanttProps> = ({
     }
   }, [
     currentViewDate,
-    dateSetup.dates,
+    dates,
     dateSetup.viewMode,
     distances,
     onChangeScrollX,
@@ -776,16 +787,16 @@ export const Gantt: React.FC<GanttProps> = ({
   const getMetadata = useCallback(
     (changeAction: ChangeAction) => getChangeTaskMetadata(
       changeAction,
-      tasksMap,
-      childTasksMap,
-      mapTaskToGlobalIndex,
-      dependentMap,
+      tasksMapRef.current,
+      childTasksMapRef.current,
+      mapTaskToGlobalIndexRef.current,
+      dependentMapRef.current,
     ),
     [
-      tasksMap,
-      childTasksMap,
-      mapTaskToGlobalIndex,
-      dependentMap,
+      tasksMapRef,
+      childTasksMapRef,
+      mapTaskToGlobalIndexRef,
+      dependentMapRef,
     ],
   );
 
@@ -795,11 +806,13 @@ export const Gantt: React.FC<GanttProps> = ({
   const prepareSuggestions = useCallback((
     suggestions: readonly OnDateChangeSuggestionType[],
   ): TaskOrEmpty[] => {
+    const prevTasks = [...tasksRef.current];
+
     if (!isRecountParentsOnChange) {
-      return [...tasks];
+      return prevTasks;
     }
 
-    const nextTasks = [...tasks];
+    const nextTasks = prevTasks;
 
     suggestions.forEach(([start, end, task, index]) => {
       nextTasks[index] = {
@@ -812,7 +825,7 @@ export const Gantt: React.FC<GanttProps> = ({
     return nextTasks;
   }, [
     isRecountParentsOnChange,
-    tasks,
+    tasksRef,
   ]);
 
   const handleEditTask = useCallback((task: TaskOrEmpty) => {
@@ -825,7 +838,7 @@ export const Gantt: React.FC<GanttProps> = ({
       comparisonLevel = 1,
     } = task;
 
-    const indexesOnLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+    const indexesOnLevel = mapTaskToGlobalIndexRef.current.get(comparisonLevel);
 
     if (!indexesOnLevel) {
       throw new Error(`Indexes are not found for level ${comparisonLevel}`);
@@ -868,7 +881,7 @@ export const Gantt: React.FC<GanttProps> = ({
     onEditTask,
     onEditTaskClick,
     getMetadata,
-    mapTaskToGlobalIndex,
+    mapTaskToGlobalIndexRef,
     prepareSuggestions,
   ]);
 
@@ -989,7 +1002,7 @@ export const Gantt: React.FC<GanttProps> = ({
       comparisonLevel = 1,
     } = taskForMove;
 
-    const indexesOnLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+    const indexesOnLevel = mapTaskToGlobalIndexRef.current.get(comparisonLevel);
 
     if (!indexesOnLevel) {
       throw new Error(`Indexes are not found for level ${comparisonLevel}`);
@@ -1032,7 +1045,7 @@ export const Gantt: React.FC<GanttProps> = ({
     getMetadata,
     onChangeTasks,
     onMoveTaskAfter,
-    mapTaskToGlobalIndex,
+    mapTaskToGlobalIndexRef,
     prepareSuggestions,
     setTooltipTask,
   ]);
@@ -1060,7 +1073,7 @@ export const Gantt: React.FC<GanttProps> = ({
       comparisonLevel = 1,
     } = child;
 
-    const indexesOnLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+    const indexesOnLevel = mapTaskToGlobalIndexRef.current.get(comparisonLevel);
 
     if (!indexesOnLevel) {
       throw new Error(`Indexes are not found for level ${comparisonLevel}`);
@@ -1103,7 +1116,7 @@ export const Gantt: React.FC<GanttProps> = ({
     getMetadata,
     onChangeTasks,
     onMoveTaskInside,
-    mapTaskToGlobalIndex,
+    mapTaskToGlobalIndexRef,
     prepareSuggestions,
     setTooltipTask,
   ]);
@@ -1388,7 +1401,7 @@ export const Gantt: React.FC<GanttProps> = ({
   });
 
   const gridProps: GridProps = useMemo(() => ({
-    dates: dateSetup.dates,
+    dates,
     distances,
     ganttFullHeight,
     isUnknownDates,
@@ -1396,7 +1409,7 @@ export const Gantt: React.FC<GanttProps> = ({
     todayColor: colorStyles.todayColor,
   }), [
     colorStyles.todayColor,
-    dateSetup.dates,
+    dates,
     distances,
     ganttFullHeight,
     isUnknownDates,
@@ -1405,6 +1418,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const calendarProps: CalendarProps = useMemo(() => ({
     dateSetup,
+    dates,
     distances,
     isUnknownDates,
     preStepsCount,
@@ -1415,6 +1429,7 @@ export const Gantt: React.FC<GanttProps> = ({
     renderTopHeader,
   }), [
     dateSetup,
+    dates,
     distances,
     isUnknownDates,
     preStepsCount,
@@ -1427,6 +1442,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const barProps: TaskGanttContentProps = useMemo(() => ({
     getTaskGlobalIndexByRef,
+    taskYOffset,
     visibleTasks,
     visibleTasksMirror,
     childTasksMap,
@@ -1469,6 +1485,7 @@ export const Gantt: React.FC<GanttProps> = ({
     colorStyles,
   }), [
     getTaskGlobalIndexByRef,
+    taskYOffset,
     visibleTasks,
     visibleTasksMirror,
     childTasksMap,

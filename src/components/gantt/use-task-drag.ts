@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import useLatest from "use-latest";
+
 import { handleTaskBySVGMouseEvent } from "../../helpers/bar-helper";
 
 import { getTaskCoordinates } from "../../helpers/get-task-coordinates";
@@ -62,6 +63,8 @@ export const useTaskDrag = ({
 ] => {
   const [changeInProgress, setChangeInProgress] = useState<ChangeInProgress | null>(null);
 
+  const mapTaskToCoordinatesRef = useLatest(mapTaskToCoordinates);
+
   /**
    * Method is Start point of task change
    */
@@ -83,7 +86,7 @@ export const useTaskDrag = ({
       svgNode.getScreenCTM()?.inverse()
     );
 
-    const coordinates = getTaskCoordinates(task, mapTaskToCoordinates);
+    const coordinates = getTaskCoordinates(task, mapTaskToCoordinatesRef.current);
 
     setChangeInProgress({
       action,
@@ -94,7 +97,7 @@ export const useTaskDrag = ({
     });
   }, [
     ganttSVGRef,
-    mapTaskToCoordinates,
+    mapTaskToCoordinatesRef,
   ]);
 
   const changeInProgressTask = changeInProgress?.task;

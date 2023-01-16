@@ -10,7 +10,6 @@ import {
   progressWithByParams,
   taskXCoordinate,
   taskXCoordinateRTL,
-  taskYCoordinate,
 } from "./bar-helper";
 
 /**
@@ -23,6 +22,7 @@ export const getMapTaskToCoordinates = (
   rtl: boolean,
   fullRowHeight: number,
   taskHeight: number,
+  taskYOffset: number,
   distances: Distances,
 ): MapTaskToCoordinates => {
   const res = new Map<number, Map<string, TaskCoordinates>>();
@@ -66,13 +66,9 @@ export const getMapTaskToCoordinates = (
       ? taskXCoordinateRTL(task.start, dates, columnWidth)
       : taskXCoordinate(task.end, dates, columnWidth);
 
-    const y = taskYCoordinate(
-      rowIndex,
-      rowHeight,
-      fullRowHeight,
-      taskHeight,
-      comparisonLevel,
-    );
+    const levelY = rowIndex * fullRowHeight + rowHeight * (comparisonLevel - 1);
+
+    const y = levelY + taskYOffset;
 
     const [progressWidth, progressX] = type === 'milestone'
       ? [0, x1]
@@ -91,6 +87,7 @@ export const getMapTaskToCoordinates = (
         ? x2 + taskHeight * 0.5
         : x2,
       y,
+      levelY,
       progressWidth,
       progressX,
     };

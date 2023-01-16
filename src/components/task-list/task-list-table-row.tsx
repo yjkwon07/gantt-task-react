@@ -8,18 +8,15 @@ import { useDrop } from "react-dnd";
 import cx from "classnames";
 
 import {
-  ChildMapByLevel,
   Column,
   ColumnData,
   ColumnResizeEvent,
   DateSetup,
   Distances,
   Icons,
-  MapTaskToNestedIndex,
   Task,
   TaskOrEmpty,
 } from "../../types/public-types";
-import { useHasChildren } from "../../helpers/use-has-children";
 
 import styles from "./task-list-table-row.module.css";
 import { ROW_DRAG_TYPE } from "../../constants";
@@ -27,6 +24,7 @@ import { ROW_DRAG_TYPE } from "../../constants";
 type TaskListTableRowProps = {
   canMoveTasks: boolean;
   dateSetup: DateSetup;
+  depth: number;
   distances: Distances;
   task: TaskOrEmpty;
   fullRowHeight: number;
@@ -34,13 +32,13 @@ type TaskListTableRowProps = {
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
   handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
+  hasChildren: boolean;
   icons?: Partial<Icons>;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
-  childTasksMap: ChildMapByLevel;
-  mapTaskToNestedIndex: MapTaskToNestedIndex;
+  indexStr: string;
+  isClosed: boolean;
   isShowTaskNumbers: boolean;
-  closedTasks: Readonly<Record<string, true>>;
   onExpanderClick: (task: Task) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;
 };
@@ -48,6 +46,7 @@ type TaskListTableRowProps = {
 const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   canMoveTasks,
   dateSetup,
+  depth,
   distances,
   task,
   fullRowHeight,
@@ -55,18 +54,16 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   handleEditTask,
   handleMoveTaskAfter,
   handleMoveTaskInside,
+  hasChildren,
   icons = undefined,
   columns,
   columnResizeEvent,
-  childTasksMap,
-  mapTaskToNestedIndex,
+  indexStr,
+  isClosed,
   isShowTaskNumbers,
-  closedTasks,
   onExpanderClick,
   handleDeteleTask,
 }) => {
-  const hasChildren = useHasChildren(task, childTasksMap);
-
   const {
     id,
     comparisonLevel = 1,
@@ -107,25 +104,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     }),
   }, [id, comparisonLevel, handleMoveTaskAfter, task]);
 
-  const isClosed = Boolean(closedTasks[id]);
-
-  const [depth, indexStr] = useMemo(() => {
-    const indexesOnLevel = mapTaskToNestedIndex.get(comparisonLevel);
-  
-    if (!indexesOnLevel) {
-      throw new Error(`Indexes are not found for level ${comparisonLevel}`);
-    }
-  
-    const taskIndex = indexesOnLevel.get(id);
-  
-    if (!taskIndex) {
-      throw new Error(`Index is not found for task ${id}`);
-    }
-  
-    return taskIndex;
-  }, [mapTaskToNestedIndex, comparisonLevel, id]);
-
-  const columnData: ColumnData = {
+  const columnData: ColumnData = useMemo(() => ({
     canMoveTasks,
     dateSetup,
     depth,
@@ -140,7 +119,22 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     isShowTaskNumbers,
     onExpanderClick,
     task,
-  };
+  }), [
+    canMoveTasks,
+    dateSetup,
+    depth,
+    distances,
+    handleDeteleTask,
+    handleAddTask,
+    handleEditTask,
+    hasChildren,
+    icons,
+    indexStr,
+    isClosed,
+    isShowTaskNumbers,
+    onExpanderClick,
+    task,
+  ]);
 
   return (
     <div

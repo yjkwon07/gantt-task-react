@@ -24,20 +24,6 @@ export const taskXCoordinateRTL = (
   return x;
 };
 
-export const taskYCoordinate = (
-  rowIndex: number,
-  rowHeight: number,
-  fullRowHeight: number,
-  taskHeight: number,
-  comparisonLevel: number,
-) => {
-  const y = rowIndex * fullRowHeight
-    + (rowHeight * (comparisonLevel - 1))
-    + (rowHeight - taskHeight) / 2;
-
-  return y;
-};
-
 export const progressWithByParams = (
   taskX1: number,
   taskX2: number,

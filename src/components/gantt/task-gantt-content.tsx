@@ -36,6 +36,7 @@ import { getTaskCoordinates as getTaskCoordinatesDefault } from "../../helpers/g
 
 export type TaskGanttContentProps = {
   getTaskGlobalIndexByRef: (task: Task) => number;
+  taskYOffset: number;
   visibleTasks: readonly TaskOrEmpty[];
   visibleTasksMirror: Readonly<Record<string, true>>;
   childTasksMap: ChildMapByLevel;
@@ -77,6 +78,8 @@ export type TaskGanttContentProps = {
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   getTaskGlobalIndexByRef,
+  svgWidth,
+  taskYOffset,
   visibleTasks,
   visibleTasksMirror,
   childTasksMap,
@@ -289,38 +292,57 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             ? criticalPathOnLevel.tasks.has(task.id)
             : false;
 
+          const {
+            x1,
+            x2,
+            levelY,
+            progressWidth,
+            progressX,
+          } = getTaskCoordinates(task);
+
           return (
-            <TaskItem
-              coordinates={getTaskCoordinates(task)}
-              getTaskGlobalIndexByRef={getTaskGlobalIndexByRef}
-              task={task}
-              childTasksMap={childTasksMap}
-              childOutOfParentWarnings={childOutOfParentWarnings}
-              dependencyMarginsMap={dependencyMarginsMap}
-              distances={distances}
-              isShowDependencyWarnings={isShowDependencyWarnings}
-              taskHeight={taskHeight}
-              taskHalfHeight={taskHalfHeight}
-              isRelationDrawMode={Boolean(ganttRelationEvent)}
-              isProgressChangeable={!task.isDisabled}
-              isDateChangeable={!task.isDisabled}
-              isRelationChangeable={!task.isDisabled}
-              isDelete={!task.isDisabled}
-              onDoubleClick={onDoubleClick}
-              onClick={onClick}
-              onEventStart={handleTaskDragStart}
-              setTooltipTask={setTooltipTask}
-              onRelationStart={handleBarRelationStart}
-              setSelectedTask={setSelectedTask}
-              isSelected={selectedTask === task}
-              isCritical={isCritical}
-              rtl={rtl}
-              fixStartPosition={fixStartPosition}
-              fixEndPosition={fixEndPosition}
-              handleDeteleTask={handleDeteleTask}
-              colorStyles={colorStyles}
+            <svg
+              x={0}
+              y={levelY}
+              width={svgWidth}
+              height={fullRowHeight}
               key={key}
-            />
+            >
+              <TaskItem
+                getTaskGlobalIndexByRef={getTaskGlobalIndexByRef}
+                progressWidth={progressWidth}
+                progressX={progressX}
+                task={task}
+                taskYOffset={taskYOffset}
+                x1={x1}
+                x2={x2}
+                childTasksMap={childTasksMap}
+                childOutOfParentWarnings={childOutOfParentWarnings}
+                dependencyMarginsMap={dependencyMarginsMap}
+                distances={distances}
+                isShowDependencyWarnings={isShowDependencyWarnings}
+                taskHeight={taskHeight}
+                taskHalfHeight={taskHalfHeight}
+                isRelationDrawMode={Boolean(ganttRelationEvent)}
+                isProgressChangeable={!task.isDisabled}
+                isDateChangeable={!task.isDisabled}
+                isRelationChangeable={!task.isDisabled}
+                isDelete={!task.isDisabled}
+                onDoubleClick={onDoubleClick}
+                onClick={onClick}
+                onEventStart={handleTaskDragStart}
+                setTooltipTask={setTooltipTask}
+                onRelationStart={handleBarRelationStart}
+                setSelectedTask={setSelectedTask}
+                isSelected={selectedTask === task}
+                isCritical={isCritical}
+                rtl={rtl}
+                fixStartPosition={fixStartPosition}
+                fixEndPosition={fixEndPosition}
+                handleDeteleTask={handleDeteleTask}
+                colorStyles={colorStyles}
+              />
+            </svg>
           );
         })}
       </g>

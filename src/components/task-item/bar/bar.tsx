@@ -16,8 +16,6 @@ import styles from "./bar.module.css";
 import stylesRelationHandle from "./bar-relation-handle.module.css";
 
 export const Bar: React.FC<TaskItemProps> = ({
-  coordinates,
-
   distances: {
     barCornerRadius,
     handleWidth,
@@ -25,7 +23,11 @@ export const Bar: React.FC<TaskItemProps> = ({
     relationCircleRadius,
   },
 
+  progressWidth,
+  progressX,
+
   task,
+  taskYOffset,
   childTasksMap,
   taskHeight,
   taskHalfHeight,
@@ -39,6 +41,8 @@ export const Bar: React.FC<TaskItemProps> = ({
   isSelected,
   isCritical,
   colorStyles,
+  x1,
+  x2,
 }) => {
   const hasChildren = useHasChildren(task, childTasksMap);
 
@@ -90,8 +94,8 @@ export const Bar: React.FC<TaskItemProps> = ({
   );
 
   const progressPoint = getProgressPoint(
-    +!rtl * coordinates.progressWidth + coordinates.progressX,
-    coordinates.y,
+    +!rtl * progressWidth + progressX,
+    taskYOffset,
     taskHeight,
   );
   const handleHeight = taskHeight - 2;
@@ -101,12 +105,12 @@ export const Bar: React.FC<TaskItemProps> = ({
       tabIndex={0}
     >
       <BarDisplay
-        x={coordinates.x1}
-        y={coordinates.y}
-        width={coordinates.x2 - coordinates.x1}
+        x={x1}
+        y={taskYOffset}
+        width={x2 - x1}
         height={taskHeight}
-        progressX={coordinates.progressX}
-        progressWidth={coordinates.progressWidth}
+        progressX={progressX}
+        progressWidth={progressWidth}
         barCornerRadius={barCornerRadius}
         styles={colorStyles}
         isSelected={isSelected}
@@ -115,61 +119,60 @@ export const Bar: React.FC<TaskItemProps> = ({
         onMouseDown={startMoveFullTask}
       />
 
-      {/* Maybe move to to `task-item.tsx`? */}
-      <g className="handleGroup">
-        {canChangeDates && (
-          <g>
-            {/* left */}
-            <BarDateHandle
-              x={coordinates.x1 + 1}
-              y={coordinates.y + 1}
-              width={handleWidth}
-              height={handleHeight}
-              barCornerRadius={barCornerRadius}
-              onMouseDown={startMoveStartOfTask}
-            />
-            {/* right */}
-            <BarDateHandle
-              x={coordinates.x2 - handleWidth - 1}
-              y={coordinates.y + 1}
-              width={handleWidth}
-              height={handleHeight}
-              barCornerRadius={barCornerRadius}
-              onMouseDown={startMoveEndOfTask}
-            />
-          </g>
-        )}
+      {/* left */}
+      {canChangeDates && (
+        <BarDateHandle
+          x={x1 + 1}
+          y={taskYOffset + 1}
+          width={handleWidth}
+          height={handleHeight}
+          barCornerRadius={barCornerRadius}
+          onMouseDown={startMoveStartOfTask}
+        />
+      )}
 
-        {isRelationChangeable && (
-          <g>
-            {/* left */}
-            <BarRelationHandle
-              isRelationDrawMode={isRelationDrawMode}
-              x={coordinates.x1 - relationCircleOffset}
-              y={coordinates.y + taskHalfHeight}
-              radius={relationCircleRadius}
-              onMouseDown={onLeftRelationTriggerMouseDown}
-            />
-            {/* right */}
-            <BarRelationHandle
-              isRelationDrawMode={isRelationDrawMode}
-              x={coordinates.x2 + relationCircleOffset}
-              y={coordinates.y + taskHalfHeight}
-              radius={relationCircleRadius}
-              onMouseDown={onRightRelationTriggerMouseDown}
-            />
-          </g>
-        )}
+      {/* right */}
+      {canChangeDates && (
+        <BarDateHandle
+          x={x2 - handleWidth - 1}
+          y={taskYOffset + 1}
+          width={handleWidth}
+          height={handleHeight}
+          barCornerRadius={barCornerRadius}
+          onMouseDown={startMoveEndOfTask}
+        />
+      )}
 
-        {isProgressChangeable && (
-          <BarProgressHandle
-            progressPoint={progressPoint}
-            onMouseDown={e => {
-              onEventStart("progress", task, e);
-            }}
-          />
-        )}
-      </g>
+      {/* left */}
+      {isRelationChangeable && (
+        <BarRelationHandle
+          isRelationDrawMode={isRelationDrawMode}
+          x={x1 - relationCircleOffset}
+          y={taskYOffset + taskHalfHeight}
+          radius={relationCircleRadius}
+          onMouseDown={onLeftRelationTriggerMouseDown}
+        />
+      )}
+
+      {/* right */}
+      {isRelationChangeable && (
+        <BarRelationHandle
+          isRelationDrawMode={isRelationDrawMode}
+          x={x2 + relationCircleOffset}
+          y={taskYOffset + taskHalfHeight}
+          radius={relationCircleRadius}
+          onMouseDown={onRightRelationTriggerMouseDown}
+        />
+      )}
+
+      {isProgressChangeable && (
+        <BarProgressHandle
+          progressPoint={progressPoint}
+          onMouseDown={e => {
+            onEventStart("progress", task, e);
+          }}
+        />
+      )}
     </g>
   );
 };
