@@ -1,4 +1,12 @@
-import React, { SyntheticEvent, useRef, useEffect } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
+import type {
+  SyntheticEvent,
+} from "react";
+
 import styles from "./vertical-scroll.module.css";
 
 export const VerticalScroll: React.FC<{
@@ -14,13 +22,22 @@ export const VerticalScroll: React.FC<{
   ganttFullHeight,
   headerHeight,
   rtl,
-  onScroll,
+  onScroll: onScrollProp,
 }) => {
+  const isLockedRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const onScroll = useCallback((event: SyntheticEvent<HTMLDivElement>) => {
+    if (!isLockedRef.current) {
+      onScrollProp(event);
+    }
+  }, [onScrollProp]);
 
   useEffect(() => {
     if (scrollRef.current) {
+      isLockedRef.current = true;
       scrollRef.current.scrollTop = scroll;
+      isLockedRef.current = false;
     }
   }, [scroll]);
 

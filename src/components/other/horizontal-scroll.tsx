@@ -1,4 +1,12 @@
-import React, { SyntheticEvent, useRef, useEffect } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
+import type {
+  SyntheticEvent,
+} from "react";
+
 import styles from "./horizontal-scroll.module.css";
 
 export const HorizontalScroll: React.FC<{
@@ -7,12 +15,27 @@ export const HorizontalScroll: React.FC<{
   taskListWidth: number;
   rtl: boolean;
   onScroll: (event: SyntheticEvent<HTMLDivElement>) => void;
-}> = ({ scroll, svgWidth, taskListWidth, rtl, onScroll }) => {
+}> = ({
+  scroll,
+  svgWidth,
+  taskListWidth,
+  rtl,
+  onScroll: onScrollProp,
+}) => {
+  const isLockedRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const onScroll = useCallback((event: SyntheticEvent<HTMLDivElement>) => {
+    if (!isLockedRef.current) {
+      onScrollProp(event);
+    }
+  }, [onScrollProp]);
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollLeft = scroll;
+      isLockedRef.current = true;
+//      scrollRef.current.scrollLeft = scroll;
+      isLockedRef.current = false;
     }
   }, [scroll]);
 

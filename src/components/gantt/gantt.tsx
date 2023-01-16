@@ -405,6 +405,7 @@ export const Gantt: React.FC<GanttProps> = ({
   const [scrollX, setScrollX] = useState(-1);
 
   const onChangeScrollX = useCallback((nextScrollX: number) => {
+    console.log(nextScrollX)
     if (verticalGanttContainerRef.current) {
       verticalGanttContainerRef.current.scrollLeft = nextScrollX;
     }
@@ -419,8 +420,6 @@ export const Gantt: React.FC<GanttProps> = ({
 
     setScrollY(nextScrollY);
   }, []);
-
-  const [ignoreScrollEvent, setIgnoreScrollEvent] = useState(false);
 
   const mapTaskToRowIndex = useMemo(
     () => getMapTaskToRowIndex(visibleTasks),
@@ -563,7 +562,7 @@ export const Gantt: React.FC<GanttProps> = ({
     const handleWheel = (event: WheelEvent) => {
       if (event.shiftKey || event.deltaX) {
         const scrollMove = event.deltaX ? event.deltaX : event.deltaY;
-        let newScrollX = scrollX + scrollMove;
+        let newScrollX = (verticalGanttContainerRef.current?.scrollLeft || 0) + scrollMove;
         if (newScrollX < 0) {
           newScrollX = 0;
         } else if (newScrollX > svgWidth) {
@@ -572,19 +571,19 @@ export const Gantt: React.FC<GanttProps> = ({
         onChangeScrollX(newScrollX);
         event.preventDefault();
       } else if (ganttHeight) {
-        let newScrollY = scrollY + event.deltaY;
+        const prevScrollY = horizontalContainerRef.current?.scrollTop || 0;
+
+        let newScrollY = prevScrollY + event.deltaY;
         if (newScrollY < 0) {
           newScrollY = 0;
         } else if (newScrollY > ganttFullHeight - ganttHeight) {
           newScrollY = ganttFullHeight - ganttHeight;
         }
-        if (newScrollY !== scrollY) {
+        if (newScrollY !== prevScrollY) {
           onChangeScrollY(newScrollY);
           event.preventDefault();
         }
       }
-
-      setIgnoreScrollEvent(true);
     };
 
     const wrapperNode = wrapperRef.current;
@@ -606,30 +605,18 @@ export const Gantt: React.FC<GanttProps> = ({
     ganttFullHeight,
     onChangeScrollX,
     onChangeScrollY,
-    scrollX,
-    scrollY,
     svgWidth,
     rtl,
     wrapperRef,
   ]);
 
-  const handleScrollY = (event: SyntheticEvent<HTMLDivElement>) => {
-    if (scrollY !== event.currentTarget.scrollTop && !ignoreScrollEvent) {
-      onChangeScrollY(event.currentTarget.scrollTop);
-      setIgnoreScrollEvent(true);
-    } else {
-      setIgnoreScrollEvent(false);
-    }
-  };
+  const handleScrollY = useCallback((event: SyntheticEvent<HTMLDivElement>) => {
+    onChangeScrollY(event.currentTarget.scrollTop);
+  }, []);
 
-  const handleScrollX = (event: SyntheticEvent<HTMLDivElement>) => {
-    if (scrollX !== event.currentTarget.scrollLeft && !ignoreScrollEvent) {
-      onChangeScrollX(event.currentTarget.scrollLeft);
-      setIgnoreScrollEvent(true);
-    } else {
-      setIgnoreScrollEvent(false);
-    }
-  };
+  const handleScrollX = useCallback((event: SyntheticEvent<HTMLDivElement>) => {
+    onChangeScrollX(event.currentTarget.scrollLeft);
+  }, []);
 
   /**
    * Handles arrow keys events and transform it to new scroll
@@ -680,7 +667,6 @@ export const Gantt: React.FC<GanttProps> = ({
       }
       onChangeScrollY(newScrollY);
     }
-    setIgnoreScrollEvent(true);
   };
 
   const isFirstRenderRef = useRef(true);
