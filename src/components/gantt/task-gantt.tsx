@@ -44,6 +44,15 @@ const TaskGanttInner: React.FC<TaskGanttProps> = ({
   const containerStyle = useMemo(() => ({
     height: ganttHeight || ganttFullHeight,
     width: svgWidth,
+  }), [
+    ganttHeight,
+    ganttFullHeight,
+    svgWidth,
+  ]);
+
+  const gridStyle = useMemo(() => ({
+    height: ganttFullHeight,
+    width: svgWidth,
     backgroundSize: `${columnWidth}px ${fullRowHeight * 2}px`,
     backgroundImage: [
       `linear-gradient(to right, #ebeff2 1px, transparent 2px)`,
@@ -52,7 +61,6 @@ const TaskGanttInner: React.FC<TaskGanttProps> = ({
   }), [
     columnWidth,
     fullRowHeight,
-    ganttHeight,
     ganttFullHeight,
     svgWidth,
   ]);
@@ -77,16 +85,18 @@ const TaskGanttInner: React.FC<TaskGanttProps> = ({
         className={styles.horizontalContainer}
         style={containerStyle}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width={svgWidth}
-          height={ganttFullHeight}
-          fontFamily={barProps.fontFamily}
-          ref={ganttSVGRef}
-        >
-          <Grid {...gridProps} />
-          <TaskGanttContent {...barProps} />
-        </svg>
+        <div style={gridStyle}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={svgWidth}
+            height={ganttFullHeight}
+            fontFamily={barProps.fontFamily}
+            ref={ganttSVGRef}
+          >
+            <Grid {...gridProps} />
+            <TaskGanttContent {...barProps} />
+          </svg>
+        </div>
       </div>
     </div>
   );
