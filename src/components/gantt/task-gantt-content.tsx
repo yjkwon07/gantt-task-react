@@ -32,8 +32,10 @@ import {
 } from "../../types/gantt-task-actions";
 import { getMapTaskToCoordinatesOnLevel } from "../../helpers/get-task-coordinates";
 import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
+import { getTaskCoordinates as getTaskCoordinatesDefault } from "../../helpers/get-task-coordinates";
 
 export type TaskGanttContentProps = {
+  getTaskGlobalIndexByRef: (task: Task) => number;
   visibleTasks: readonly TaskOrEmpty[];
   visibleTasksMirror: Readonly<Record<string, true>>;
   childTasksMap: ChildMapByLevel;
@@ -74,6 +76,7 @@ export type TaskGanttContentProps = {
 } & Omit<EventOption, 'onArrowDoubleClick'>;
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
+  getTaskGlobalIndexByRef,
   visibleTasks,
   visibleTasksMirror,
   childTasksMap,
@@ -160,6 +163,14 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     mapTaskToGlobalIndex,
     dependentMap,
   ]);
+
+  const getTaskCoordinates = useCallback((task: Task) => {
+    if (changeInProgress && changeInProgress.task === task) {
+      return changeInProgress.coordinates;
+    }
+
+    return getTaskCoordinatesDefault(task, mapTaskToCoordinates);;
+  }, [mapTaskToCoordinates, changeInProgress]);
 
   return (
     <g className="content">
@@ -280,14 +291,14 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
 
           return (
             <TaskItem
+              coordinates={getTaskCoordinates(task)}
+              getTaskGlobalIndexByRef={getTaskGlobalIndexByRef}
               task={task}
               childTasksMap={childTasksMap}
               childOutOfParentWarnings={childOutOfParentWarnings}
               dependencyMarginsMap={dependencyMarginsMap}
               distances={distances}
               isShowDependencyWarnings={isShowDependencyWarnings}
-              mapTaskToGlobalIndex={mapTaskToGlobalIndex}
-              mapTaskToCoordinates={mapTaskToCoordinates}
               taskHeight={taskHeight}
               taskHalfHeight={taskHalfHeight}
               isRelationDrawMode={Boolean(ganttRelationEvent)}
@@ -304,7 +315,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               isSelected={selectedTask === task}
               isCritical={isCritical}
               rtl={rtl}
-              changeInProgress={changeInProgress}
               fixStartPosition={fixStartPosition}
               fixEndPosition={fixEndPosition}
               handleDeteleTask={handleDeteleTask}

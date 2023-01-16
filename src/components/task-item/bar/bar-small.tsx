@@ -5,12 +5,12 @@ import React, {
 import { getProgressPoint } from "../../../helpers/bar-helper";
 import { BarDisplay } from "./bar-display";
 import { BarProgressHandle } from "./bar-progress-handle";
-import { TaskItemExtendedProps } from "../task-item";
+import { TaskItemProps } from "../task-item";
 import { useHasChildren } from "../../../helpers/use-has-children";
 
 import styles from "./bar.module.css";
 
-export const BarSmall: React.FC<TaskItemExtendedProps> = ({
+export const BarSmall: React.FC<TaskItemProps> = ({
   task,
   coordinates,
 

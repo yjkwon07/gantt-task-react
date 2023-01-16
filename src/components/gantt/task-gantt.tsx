@@ -1,7 +1,5 @@
 import React, {
   memo,
-  useRef,
-  useEffect,
 } from "react";
 import type {
   RefObject,

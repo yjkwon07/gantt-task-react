@@ -7,10 +7,10 @@ import cx from "classnames";
 import { BarRelationHandle } from "../bar/bar-relation-handle";
 import stylesRelationHandle from "../bar/bar-relation-handle.module.css";
 
-import { TaskItemExtendedProps } from "../task-item";
+import { TaskItemProps } from "../task-item";
 import styles from "./milestone.module.css";
 
-export const Milestone: React.FC<TaskItemExtendedProps> = ({
+export const Milestone: React.FC<TaskItemProps> = ({
   task,
   coordinates,
 

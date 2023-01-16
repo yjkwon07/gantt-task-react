@@ -8,13 +8,10 @@ import React, {
 
 import { BarMoveAction, RelationMoveTarget } from "../../types/gantt-task-actions";
 import {
-  ChangeInProgress,
   ChildMapByLevel,
   ChildOutOfParentWarnings,
   DependencyMargins,
   FixPosition,
-  MapTaskToCoordinates,
-  MapTaskToGlobalIndex,
   Task,
   ColorStyles,
   TaskCoordinates,
@@ -28,17 +25,16 @@ import { TaskWarning } from "./task-warning";
 import { Project } from "./project/project";
 import style from "./task-list.module.css";
 import { BarFixWidth, fixWidthContainerClass } from "../other/bar-fix-width";
-import { getTaskCoordinates } from "../../helpers/get-task-coordinates";
 
 export type TaskItemProps = {
+  coordinates: TaskCoordinates;
+  getTaskGlobalIndexByRef: (task: Task) => number;
   task: Task;
   childTasksMap: ChildMapByLevel;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
   dependencyMarginsMap: DependencyMargins;
   distances: Distances;
   isShowDependencyWarnings: boolean;
-  mapTaskToGlobalIndex: MapTaskToGlobalIndex;
-  mapTaskToCoordinates: MapTaskToCoordinates;
   taskHeight: number;
   taskHalfHeight: number;
   isProgressChangeable: boolean;
@@ -49,7 +45,6 @@ export type TaskItemProps = {
   isCritical: boolean;
   isRelationDrawMode: boolean;
   rtl: boolean;
-  changeInProgress: ChangeInProgress | null;
   onDoubleClick?: (task: Task) => void;
   onClick?: (task: Task) => void;
   setTooltipTask: (task: Task | null) => void;
@@ -71,12 +66,11 @@ export type TaskItemProps = {
   colorStyles: ColorStyles;
 };
 
-export type TaskItemExtendedProps = TaskItemProps & {
-  coordinates: TaskCoordinates;
-};
-
-export const TaskItem: React.FC<TaskItemProps> = props => {
+export const TaskItem: React.FC<TaskItemProps> = (props) => {
   const {
+    coordinates,
+    getTaskGlobalIndexByRef,
+
     task,
     task: {
       styles: taskStyles,
@@ -93,15 +87,12 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     },
 
     isShowDependencyWarnings,
-    mapTaskToGlobalIndex,
-    mapTaskToCoordinates,
     isDelete,
     taskHeight,
     taskHalfHeight,
     isSelected,
     isRelationDrawMode,
     rtl,
-    changeInProgress,
     onClick = undefined,
     onDoubleClick = undefined,
     setTooltipTask,
@@ -122,14 +113,6 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
 
     return stylesProp;
   }, [taskStyles, stylesProp]);
-
-  const coordinates = useMemo(() => {
-    if (changeInProgress && changeInProgress.task === task) {
-      return changeInProgress.coordinates;
-    }
-
-    return getTaskCoordinates(task, mapTaskToCoordinates);;
-  }, [task, mapTaskToCoordinates, changeInProgress]);
 
   const outOfParentWarnings = useMemo(() => {
     const {
@@ -175,27 +158,6 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     return false;
   }, [dependencyMarginsForTask, isShowDependencyWarnings]);
 
-  const globalIndex = useMemo(() => {
-    const {
-      id,
-      comparisonLevel = 1,
-    } = task;
-
-    const indexesByLevel = mapTaskToGlobalIndex.get(comparisonLevel);
-
-    if (!indexesByLevel) {
-      return -1;
-    }
-
-    const res = indexesByLevel.get(id);
-
-    if (typeof res === 'number') {
-      return res;
-    }
-
-    return -1;
-  }, [task, mapTaskToGlobalIndex]);
-
   const handleFixStartPosition = useCallback(() => {
     if (!outOfParentWarnings || !fixStartPosition) {
       return;
@@ -209,12 +171,14 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
       return;
     }
 
+    const globalIndex = getTaskGlobalIndexByRef(task);
+
     fixStartPosition(
       task,
       start.date,
       globalIndex,
     );
-  }, [task, fixStartPosition, outOfParentWarnings, globalIndex]);
+  }, [task, fixStartPosition, outOfParentWarnings, getTaskGlobalIndexByRef]);
 
   const handleFixEndPosition = useCallback(() => {
     if (!outOfParentWarnings || !fixEndPosition) {
@@ -229,12 +193,14 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
       return;
     }
 
+    const globalIndex = getTaskGlobalIndexByRef(task);
+
     fixEndPosition(
       task,
       end.date,
       globalIndex,
     );
-  }, [task, fixEndPosition, outOfParentWarnings, globalIndex]);
+  }, [task, fixEndPosition, outOfParentWarnings, getTaskGlobalIndexByRef]);
 
   const handleClick = useCallback(() => {
     if (onClick) {

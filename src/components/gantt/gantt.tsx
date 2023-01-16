@@ -7,6 +7,8 @@ import React, {
   useState,
 } from "react";
 
+import useLatest from "use-latest";
+
 import enDateLocale from 'date-fns/locale/en-US';
 
 import {
@@ -231,6 +233,29 @@ export const Gantt: React.FC<GanttProps> = ({
     () => getMapTaskToGlobalIndex(tasks),
     [tasks],
   );
+
+  const mapTaskToGlobalIndexRef = useLatest(mapTaskToGlobalIndex);
+
+  const getTaskGlobalIndexByRef = useCallback((task: Task) => {
+    const {
+      id,
+      comparisonLevel = 1,
+    } = task;
+
+    const indexesByLevel = mapTaskToGlobalIndexRef.current.get(comparisonLevel);
+
+    if (!indexesByLevel) {
+      return -1;
+    }
+
+    const res = indexesByLevel.get(id);
+
+    if (typeof res === 'number') {
+      return res;
+    }
+
+    return -1;
+  }, [mapTaskToGlobalIndexRef]);
 
   const mapTaskToNestedIndex = useMemo(
     () => getMapTaskToNestedIndex(
@@ -1419,6 +1444,7 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   const barProps: TaskGanttContentProps = useMemo(() => ({
+    getTaskGlobalIndexByRef,
     visibleTasks,
     visibleTasksMirror,
     childTasksMap,
@@ -1460,6 +1486,7 @@ export const Gantt: React.FC<GanttProps> = ({
     comparisonLevels,
     colorStyles,
   }), [
+    getTaskGlobalIndexByRef,
     visibleTasks,
     visibleTasksMirror,
     childTasksMap,

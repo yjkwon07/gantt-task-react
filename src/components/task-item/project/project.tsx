@@ -2,10 +2,10 @@ import React, {
   useMemo,
 } from "react";
 
-import { TaskItemExtendedProps } from "../task-item";
+import { TaskItemProps } from "../task-item";
 import styles from "./project.module.css";
 
-export const Project: React.FC<TaskItemExtendedProps> = ({
+export const Project: React.FC<TaskItemProps> = ({
   coordinates,
 
   distances: {
