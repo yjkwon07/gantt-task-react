@@ -1,5 +1,6 @@
 import React, {
   memo,
+  useMemo,
 } from "react";
 import type {
   RefObject,
@@ -13,24 +14,49 @@ import styles from "./gantt.module.css";
 export type TaskGanttProps = {
   barProps: TaskGanttContentProps;
   calendarProps: CalendarProps;
+  fullRowHeight: number;
   ganttFullHeight: number;
   ganttHeight: number;
   ganttSVGRef: RefObject<SVGSVGElement>;
   gridProps: GridProps;
   horizontalContainerRef: RefObject<HTMLDivElement>;
+  svgWidth: number;
   verticalGanttContainerRef: RefObject<HTMLDivElement>;
 };
 
 const TaskGanttInner: React.FC<TaskGanttProps> = ({
   barProps,
   calendarProps,
+  fullRowHeight,
   ganttFullHeight,
   ganttHeight,
   ganttSVGRef,
   gridProps,
+  gridProps: {
+    distances: {
+      columnWidth,
+    },
+  },
   horizontalContainerRef,
+  svgWidth,
   verticalGanttContainerRef,
 }) => {
+  const containerStyle = useMemo(() => ({
+    height: ganttHeight || ganttFullHeight,
+    width: svgWidth,
+    backgroundSize: `${columnWidth}px ${fullRowHeight * 2}px`,
+    backgroundImage: [
+      `linear-gradient(to right, #ebeff2 1px, transparent 2px)`,
+      `linear-gradient(to bottom, transparent ${fullRowHeight}px, #f5f5f5 ${fullRowHeight}px)`,
+    ].join(', '),
+  }), [
+    columnWidth,
+    fullRowHeight,
+    ganttHeight,
+    ganttFullHeight,
+    svgWidth,
+  ]);
+
   return (
     <div
       className={styles.ganttVerticalContainer}
@@ -39,24 +65,21 @@ const TaskGanttInner: React.FC<TaskGanttProps> = ({
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width={gridProps.svgWidth}
+        width={svgWidth}
         height={calendarProps.distances.headerHeight}
         fontFamily={barProps.fontFamily}
       >
         <Calendar {...calendarProps} />
       </svg>
+
       <div
         ref={horizontalContainerRef}
         className={styles.horizontalContainer}
-        style={
-          ganttHeight
-            ? { height: ganttHeight, width: gridProps.svgWidth }
-            : { width: gridProps.svgWidth }
-        }
+        style={containerStyle}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width={gridProps.svgWidth}
+          width={svgWidth}
           height={ganttFullHeight}
           fontFamily={barProps.fontFamily}
           ref={ganttSVGRef}

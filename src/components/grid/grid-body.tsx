@@ -1,22 +1,15 @@
 import React, {
   memo,
-} from "react";
-import type {
-  ReactNode,
+  useMemo,
 } from "react";
 
-import addMilliseconds from 'date-fns/addMilliseconds';
-
-import styles from "./grid.module.css";
 import { Distances } from "../../types/public-types";
 
 export type GridBodyProps = {
   dates: Date[];
   distances: Distances;
+  ganttFullHeight: number;
   isUnknownDates: boolean;
-  svgWidth: number;
-  fullRowHeight: number;
-  maxLevelLength: number;
   todayColor: string;
   rtl: boolean;
 };
@@ -28,117 +21,63 @@ const GridBodyInner: React.FC<GridBodyProps> = ({
     columnWidth,
   },
 
+  ganttFullHeight,
+
   isUnknownDates,
-  fullRowHeight,
-  maxLevelLength,
-  svgWidth,
   todayColor,
   rtl,
 }) => {
-  let y = 0;
-  const gridRows: ReactNode[] = [];
-  const rowLines: ReactNode[] = [
-    <line
-      key="RowLineFirst"
-      x="0"
-      y1={0}
-      x2={svgWidth}
-      y2={0}
-      className={styles.gridRowLine}
-    />,
-  ];
-
-  for (let i = 0; i < maxLevelLength; ++i) {
-    gridRows.push(
-      <rect
-        key={i}
-        x="0"
-        y={y}
-        width={svgWidth}
-        height={fullRowHeight}
-        className={styles.gridRow}
-      />
-    );
-    rowLines.push(
-      <line
-        key={i}
-        x="0"
-        y1={y + fullRowHeight}
-        x2={svgWidth}
-        y2={y + fullRowHeight}
-        className={styles.gridRowLine}
-      />
-    );
-
-    y += fullRowHeight;
-  }
-
-  const now = new Date();
-  let tickX = 0;
-  const ticks: ReactNode[] = [];
-  let today: ReactNode | null = null;
-  for (let i = 0; i < dates.length; i++) {
-    const date = dates[i];
-    ticks.push(
-      <line
-        key={date.getTime()}
-        x1={tickX}
-        y1={0}
-        x2={tickX}
-        y2={y}
-        className={styles.gridTick}
-      />
-    );
-
-    if (!isUnknownDates) {
-      if (
-        (i + 1 !== dates.length &&
-          date.getTime() < now.getTime() &&
-          dates[i + 1].getTime() >= now.getTime()) ||
-        // if current date is last
-        (i !== 0 &&
-          i + 1 === dates.length &&
-          date.getTime() < now.getTime() &&
-          addMilliseconds(
-            date,
-            date.getTime() - dates[i - 1].getTime(),
-          ).getTime() >= now.getTime())
-      ) {
-        today = (
-          <rect
-            x={tickX}
-            y={0}
-            width={columnWidth}
-            height={y}
-            fill={todayColor}
-          />
-        );
-      }
-      // rtl for today
-      if (
-        rtl &&
-        i + 1 !== dates.length &&
-        date.getTime() >= now.getTime() &&
-        dates[i + 1].getTime() < now.getTime()
-      ) {
-        today = (
-          <rect
-            x={tickX + columnWidth}
-            y={0}
-            width={columnWidth}
-            height={y}
-            fill={todayColor}
-          />
-        );
-      }
+  const today = useMemo(() => {
+    if (isUnknownDates) {
+      return null;
     }
-    tickX += columnWidth;
-  }
+
+    const now = Date.now();
+
+    const todayIndex = dates.findIndex((date, index) => {
+      if (index === dates.length - 1) {
+        return false;
+      }
+
+      const nextDate = dates[index + 1];
+
+      if (rtl) {
+        return date.getTime() >= now && nextDate.getTime() < now;
+      }
+
+      return date.getTime() < now && nextDate.getTime() >= now;
+    });
+
+    if (todayIndex === -1) {
+      return null;
+    }
+
+    const tickX = todayIndex * columnWidth;
+
+    const x = rtl
+      ? tickX + columnWidth
+      : tickX;
+
+    return (
+      <rect
+        x={x}
+        y={0}
+        width={columnWidth}
+        height={ganttFullHeight}
+        fill={todayColor}
+      />
+    );
+  }, [
+    columnWidth,
+    dates,
+    ganttFullHeight,
+    isUnknownDates,
+    rtl,
+    todayColor,
+  ]);
+
   return (
     <g className="gridBody">
-      <g className="rows">{gridRows}</g>
-      <g className="rowLines">{rowLines}</g>
-      <g className="ticks">{ticks}</g>
       <g className="today">{today}</g>
     </g>
   );

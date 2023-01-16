@@ -1402,22 +1402,18 @@ export const Gantt: React.FC<GanttProps> = ({
   });
 
   const gridProps: GridProps = useMemo(() => ({
-    distances,
-    isUnknownDates,
-    svgWidth,
-    fullRowHeight,
-    maxLevelLength,
     dates: dateSetup.dates,
-    todayColor: colorStyles.todayColor,
-    rtl,
-  }), [
     distances,
+    ganttFullHeight,
     isUnknownDates,
-    svgWidth,
-    fullRowHeight,
-    maxLevelLength,
-    dateSetup.dates,
+    rtl,
+    todayColor: colorStyles.todayColor,
+  }), [
     colorStyles.todayColor,
+    dateSetup.dates,
+    distances,
+    ganttFullHeight,
+    isUnknownDates,
     rtl,
   ]);
 
@@ -1574,11 +1570,13 @@ export const Gantt: React.FC<GanttProps> = ({
         <TaskGantt
           barProps={barProps}
           calendarProps={calendarProps}
+          fullRowHeight={fullRowHeight}
           ganttFullHeight={ganttFullHeight}
           ganttHeight={distances.ganttHeight}
           ganttSVGRef={ganttSVGRef}
           gridProps={gridProps}
           horizontalContainerRef={horizontalContainerRef}
+          svgWidth={svgWidth}
           verticalGanttContainerRef={verticalGanttContainerRef}
         />
 
