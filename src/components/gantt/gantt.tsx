@@ -68,6 +68,7 @@ import { EditColumn } from "../task-list/columns/edit-column";
 import { AddColumn } from "../task-list/columns/add-column";
 import { useCreateRelation } from "./use-create-relation";
 import { useTaskDrag } from "./use-task-drag";
+import { useTaskTooltip } from "../../helpers/use-task-tooltip";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -200,9 +201,16 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const [taskListWidth, setTaskListWidth] = useState(0);
-  const [svgContainerWidth, setSvgContainerWidth] = useState(0);
 
-  const [tooltipTask, setTooltipTask] = useState<Task | null>(null);
+  const {
+    tooltipTask,
+    tooltipX,
+    tooltipY,
+    tooltipStrategy,
+    setFloatingRef,
+    getFloatingProps,
+    onChangeTooltipTask,
+  } = useTaskTooltip();
 
   const sortedTasks = useMemo<readonly TaskOrEmpty[]>(
     () => [...tasks].sort(sortTasks),
@@ -545,25 +553,6 @@ export const Gantt: React.FC<GanttProps> = ({
       setTaskListWidth(taskListRef.current.offsetWidth);
     }
   }, [taskListRef, distances]);
-
-  useEffect(() => {
-    if (wrapperRef.current) {
-      setSvgContainerWidth(wrapperRef.current.offsetWidth - taskListWidth);
-    }
-  }, [wrapperRef, taskListWidth]);
-
-  const svgContainerHeight = useMemo(() => {
-    const {
-      ganttHeight,
-      headerHeight,
-    } = distances;
-
-    if (ganttHeight) {
-      return ganttHeight + headerHeight;
-    }
-
-    return ganttFullHeight * fullRowHeight + headerHeight;
-  }, [distances, fullRowHeight, ganttFullHeight]);
 
   // scroll events
   useEffect(() => {
@@ -927,7 +916,7 @@ export const Gantt: React.FC<GanttProps> = ({
       return;
     }
 
-    setTooltipTask(null);
+    onChangeTooltipTask(null, null);
 
     const [
       dependentTasks,
@@ -977,7 +966,7 @@ export const Gantt: React.FC<GanttProps> = ({
     onChangeTasks,
     onDelete,
     prepareSuggestions,
-    setTooltipTask,
+    onChangeTooltipTask,
   ]);
 
   const handleMoveTaskAfter = useCallback((target: TaskOrEmpty, taskForMove: TaskOrEmpty) => {
@@ -985,7 +974,7 @@ export const Gantt: React.FC<GanttProps> = ({
       return;
     }
 
-    setTooltipTask(null);
+    onChangeTooltipTask(null, null);
 
     const [
       dependentTasks,
@@ -1048,7 +1037,7 @@ export const Gantt: React.FC<GanttProps> = ({
     onMoveTaskAfter,
     mapTaskToGlobalIndexRef,
     prepareSuggestions,
-    setTooltipTask,
+    onChangeTooltipTask,
   ]);
 
   const handleMoveTaskInside = useCallback((parent: Task, child: TaskOrEmpty) => {
@@ -1056,7 +1045,7 @@ export const Gantt: React.FC<GanttProps> = ({
       return;
     }
 
-    setTooltipTask(null);
+    onChangeTooltipTask(null, null);
 
     const [
       dependentTasks,
@@ -1119,7 +1108,7 @@ export const Gantt: React.FC<GanttProps> = ({
     onMoveTaskInside,
     mapTaskToGlobalIndexRef,
     prepareSuggestions,
-    setTooltipTask,
+    onChangeTooltipTask,
   ]);
 
   const xStep = useMemo(() => {
@@ -1477,7 +1466,7 @@ export const Gantt: React.FC<GanttProps> = ({
     svgWidth,
     rtl,
     handleTaskDragStart,
-    setTooltipTask,
+    setTooltipTask: onChangeTooltipTask,
     handleBarRelationStart,
     setSelectedTask,
     handleDeteleTask,
@@ -1520,16 +1509,16 @@ export const Gantt: React.FC<GanttProps> = ({
     rtl,
     changeInProgress,
     handleTaskDragStart,
-    setTooltipTask,
     handleBarRelationStart,
     setSelectedTask,
     handleDeteleTask,
-    onFixDependencyPosition,
-    onRelationChange,
-    onProgressChange,
-    onDoubleClick,
-    onClick,
     onArrowDoubleClick,
+    onChangeTooltipTask,
+    onClick,
+    onDoubleClick,
+    onFixDependencyPosition,
+    onProgressChange,
+    onRelationChange,
     fixStartPosition,
     fixEndPosition,
     comparisonLevels,
@@ -1593,21 +1582,15 @@ export const Gantt: React.FC<GanttProps> = ({
 
         {tooltipTaskFromMap && (
           <Tooltip
-            distances={distances}
-            getTaskCoordinates={getTaskCoordinates}
-            mapTaskToRowIndex={mapTaskToRowIndex}
-            fullRowHeight={fullRowHeight}
-            svgContainerHeight={svgContainerHeight}
-            svgContainerWidth={svgContainerWidth}
+            tooltipX={tooltipX}
+            tooltipY={tooltipY}
+            tooltipStrategy={tooltipStrategy}
+            setFloatingRef={setFloatingRef}
+            getFloatingProps={getFloatingProps}
             fontFamily={fontFamily}
             fontSize={fontSize}
-            scrollX={scrollX}
-            scrollY={scrollY}
             task={tooltipTaskFromMap}
-            taskListWidth={taskListWidth}
             TooltipContent={TooltipContent}
-            rtl={rtl}
-            svgWidth={svgWidth}
           />
         )}
 

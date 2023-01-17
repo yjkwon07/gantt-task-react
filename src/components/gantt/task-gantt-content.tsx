@@ -61,7 +61,7 @@ export type TaskGanttContentProps = {
     action: BarMoveAction,
     task: Task, event: React.MouseEvent<Element, MouseEvent>,
   ) => void;
-  setTooltipTask: (task: Task | null) => void;
+  setTooltipTask: (task: Task | null, element: Element | null) => void;
   handleBarRelationStart: (target: RelationMoveTarget, task: Task) => void;
   setSelectedTask: (task: Task | null) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;

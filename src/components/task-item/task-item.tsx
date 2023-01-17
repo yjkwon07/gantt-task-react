@@ -6,6 +6,9 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
+import type {
+  MouseEventHandler,
+} from 'react';
 
 import { BarMoveAction, RelationMoveTarget } from "../../types/gantt-task-actions";
 import {
@@ -51,7 +54,7 @@ export type TaskItemProps = {
   rtl: boolean;
   onDoubleClick?: (task: Task) => void;
   onClick?: (task: Task) => void;
-  setTooltipTask: (task: Task | null) => void;
+  setTooltipTask: (task: Task | null, element: Element | null) => void;
   onEventStart: (
     action: BarMoveAction,
     selectedTask: Task,
@@ -299,12 +302,12 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     setSelectedTask(task);
   }, [setSelectedTask, task]);
 
-  const onMouseEnter = useCallback(() => {
-    setTooltipTask(task);
+  const onMouseEnter = useCallback<MouseEventHandler<SVGGElement>>((event) => {
+    setTooltipTask(task, event.currentTarget);
   }, [setTooltipTask, task]);
 
   const onMouseLeave = useCallback(() => {
-    setTooltipTask(null);
+    setTooltipTask(null, null);
   }, [setTooltipTask]);
 
   return (
