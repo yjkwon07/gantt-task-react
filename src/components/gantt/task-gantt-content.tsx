@@ -4,7 +4,6 @@ import React, {
 } from "react";
 
 import {
-  ChangeInProgress,
   ChildMapByLevel,
   ChildOutOfParentWarnings,
   ColorStyles,
@@ -15,10 +14,10 @@ import {
   Distances,
   EventOption,
   FixPosition,
-  MapTaskToCoordinates,
   MapTaskToGlobalIndex,
   MapTaskToRowIndex,
   Task,
+  TaskCoordinates,
   TaskMapByLevel,
   TaskOrEmpty,
 } from "../../types/public-types";
@@ -31,9 +30,9 @@ import {
   RelationMoveTarget,
 } from "../../types/gantt-task-actions";
 import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
-import { getTaskCoordinates as getTaskCoordinatesDefault } from "../../helpers/get-task-coordinates";
 
 export type TaskGanttContentProps = {
+  getTaskCoordinates: (task: Task) => TaskCoordinates;
   getTaskGlobalIndexByRef: (task: Task) => number;
   taskYOffset: number;
   visibleTasks: readonly TaskOrEmpty[];
@@ -43,7 +42,6 @@ export type TaskGanttContentProps = {
   tasksMap: TaskMapByLevel;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   mapTaskToRowIndex: MapTaskToRowIndex;
-  mapTaskToCoordinates: MapTaskToCoordinates;
   childOutOfParentWarnings: ChildOutOfParentWarnings;
   dependencyMap: DependencyMap;
   dependentMap: DependentMap;
@@ -59,7 +57,6 @@ export type TaskGanttContentProps = {
   fontSize: string;
   fontFamily: string;
   rtl: boolean;
-  changeInProgress: ChangeInProgress | null;
   handleTaskDragStart: (
     action: BarMoveAction,
     task: Task, event: React.MouseEvent<Element, MouseEvent>,
@@ -76,6 +73,7 @@ export type TaskGanttContentProps = {
 } & Omit<EventOption, 'onArrowDoubleClick'>;
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
+  getTaskCoordinates,
   getTaskGlobalIndexByRef,
   svgWidth,
   taskYOffset,
@@ -86,7 +84,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   tasksMap,
   mapTaskToGlobalIndex,
   mapTaskToRowIndex,
-  mapTaskToCoordinates,
   childOutOfParentWarnings,
   dependencyMap,
   dependentMap,
@@ -101,7 +98,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   fontFamily,
   fontSize,
   rtl,
-  changeInProgress,
   handleTaskDragStart,
   setTooltipTask,
   handleBarRelationStart,
@@ -165,14 +161,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     mapTaskToGlobalIndex,
     dependentMap,
   ]);
-
-  const getTaskCoordinates = useCallback((task: Task) => {
-    if (changeInProgress && changeInProgress.task === task) {
-      return changeInProgress.coordinates;
-    }
-
-    return getTaskCoordinatesDefault(task, mapTaskToCoordinates);;
-  }, [mapTaskToCoordinates, changeInProgress]);
 
   return (
     <g className="content">

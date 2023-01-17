@@ -7,18 +7,17 @@ import React, {
 
 import {
   Distances,
-  MapTaskToCoordinates,
   MapTaskToRowIndex,
   Task,
+  TaskCoordinates,
 } from "../../types/public-types";
 import styles from "./tooltip.module.css";
-import { getTaskCoordinates } from "../../helpers/get-task-coordinates";
 import { getTaskRowIndex } from "../../helpers/get-task-row-index";
 
 export type TooltipProps = {
+  getTaskCoordinates: (task: Task) => TaskCoordinates;
   task: Task;
   distances: Distances;
-  mapTaskToCoordinates: MapTaskToCoordinates;
   mapTaskToRowIndex: MapTaskToRowIndex;
   rtl: boolean;
   svgContainerHeight: number;
@@ -38,6 +37,7 @@ export type TooltipProps = {
 };
 
 export const Tooltip: React.FC<TooltipProps> = ({
+  getTaskCoordinates,
   task,
   
   distances: {
@@ -46,7 +46,6 @@ export const Tooltip: React.FC<TooltipProps> = ({
     rowHeight,
   },
 
-  mapTaskToCoordinates,
   mapTaskToRowIndex,
   fullRowHeight,
   rtl,
@@ -64,7 +63,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const [relatedX, setRelatedX] = useState(0);
   useEffect(() => {
     if (tooltipRef.current) {
-      const coordinates = getTaskCoordinates(task, mapTaskToCoordinates);
+      const coordinates = getTaskCoordinates(task);
       const rowIndex = getTaskRowIndex(task, mapTaskToRowIndex);
 
       const tooltipHeight = tooltipRef.current.offsetHeight * 1.1;
@@ -112,9 +111,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
       setRelatedX(newRelatedX);
     }
   }, [
+    getTaskCoordinates,
     tooltipRef,
     task,
-    mapTaskToCoordinates,
     mapTaskToRowIndex,
     arrowIndent,
     scrollX,
@@ -152,8 +151,12 @@ export const StandardTooltipContent: React.FC<{
     fontSize,
     fontFamily,
   };
+
   return (
-    <div className={styles.tooltipDefaultContainer} style={style}>
+    <div
+      className={styles.tooltipDefaultContainer}
+      style={style}
+    >
       <b style={{ fontSize: fontSize + 6 }}>{`${
         task.name
       }: ${task.start.getDate()}-${

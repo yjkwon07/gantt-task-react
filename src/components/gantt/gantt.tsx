@@ -45,6 +45,7 @@ import { TaskGantt } from "./task-gantt";
 import { HorizontalScroll } from "../other/horizontal-scroll";
 import { sortTasks } from "../../helpers/sort-tasks";
 import { getChildsAndRoots } from "../../helpers/get-childs-and-roots";
+import { getTaskCoordinates as getTaskCoordinatesDefault } from "../../helpers/get-task-coordinates";
 import { getTasksMap } from "../../helpers/get-tasks-map";
 import { getMapTaskToGlobalIndex } from "../../helpers/get-map-task-to-global-index";
 import { getMapTaskToRowIndex } from "../../helpers/get-map-task-to-row-index";
@@ -55,7 +56,7 @@ import { getCriticalPath } from "../../helpers/get-critical-path";
 import { getMapTaskToNestedIndex } from "../../helpers/get-map-task-to-nested-index";
 import { getInitialClosedTasks } from "../../helpers/get-initial-closed-tasks";
 import { collectVisibleTasks } from "../../helpers/collect-visible-tasks";
-
+ 
 import styles from "./gantt.module.css";
 import { TitleColumn } from "../task-list/columns/title-column";
 import { DateStartColumn } from "../task-list/columns/date-start-column";
@@ -1400,6 +1401,14 @@ export const Gantt: React.FC<GanttProps> = ({
     visibleTasks,
   });
 
+  const getTaskCoordinates = useCallback((task: Task) => {
+    if (changeInProgress && changeInProgress.task === task) {
+      return changeInProgress.coordinates;
+    }
+
+    return getTaskCoordinatesDefault(task, mapTaskToCoordinates);;
+  }, [mapTaskToCoordinates, changeInProgress]);
+
   const gridProps: GridProps = useMemo(() => ({
     dates,
     distances,
@@ -1441,6 +1450,7 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   const barProps: TaskGanttContentProps = useMemo(() => ({
+    getTaskCoordinates,
     getTaskGlobalIndexByRef,
     taskYOffset,
     visibleTasks,
@@ -1450,7 +1460,6 @@ export const Gantt: React.FC<GanttProps> = ({
     tasksMap,
     mapTaskToGlobalIndex,
     mapTaskToRowIndex,
-    mapTaskToCoordinates,
     childOutOfParentWarnings,
     dependencyMap,
     dependentMap,
@@ -1467,7 +1476,6 @@ export const Gantt: React.FC<GanttProps> = ({
     fontSize,
     svgWidth,
     rtl,
-    changeInProgress,
     handleTaskDragStart,
     setTooltipTask,
     handleBarRelationStart,
@@ -1586,7 +1594,7 @@ export const Gantt: React.FC<GanttProps> = ({
         {tooltipTaskFromMap && (
           <Tooltip
             distances={distances}
-            mapTaskToCoordinates={mapTaskToCoordinates}
+            getTaskCoordinates={getTaskCoordinates}
             mapTaskToRowIndex={mapTaskToRowIndex}
             fullRowHeight={fullRowHeight}
             svgContainerHeight={svgContainerHeight}
