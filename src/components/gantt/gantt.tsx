@@ -335,34 +335,6 @@ export const Gantt: React.FC<GanttProps> = ({
     [tasks, childTasksMap, isShowChildOutOfParentWarnings],
   );
 
-  /**
-   * Prevent crash after task delete
-   */
-  const tooltipTaskFromMap = useMemo(() => {
-    if (!tooltipTask) {
-      return null;
-    }
-
-    const {
-      id,
-      comparisonLevel = 1,
-    } = tooltipTask;
-
-    const tasksMapOnLevel = tasksMap.get(comparisonLevel);
-
-    if (!tasksMapOnLevel) {
-      return null;
-    }
-
-    const resTask = tasksMapOnLevel.get(id);
-
-    if (!resTask || resTask.type === "empty") {
-      return null;
-    }
-
-    return resTask;
-  }, [tooltipTask, tasksMap]);
-
   const distances = useMemo<Distances>(() => ({
     ...defaultDistances,
     ...distancesProp,
@@ -1397,6 +1369,44 @@ export const Gantt: React.FC<GanttProps> = ({
 
     return getTaskCoordinatesDefault(task, mapTaskToCoordinates);;
   }, [mapTaskToCoordinates, changeInProgress]);
+
+  /**
+   * Prevent crash after task delete
+   */
+  const tooltipTaskFromMap = useMemo(() => {
+    if (!tooltipTask) {
+      return null;
+    }
+
+    const {
+      id,
+      comparisonLevel = 1,
+    } = tooltipTask;
+
+    if (changeInProgress) {
+      const {
+        changedTask,
+      } = changeInProgress;
+
+      if (changedTask.id === id && (changedTask.comparisonLevel || 1) === comparisonLevel) {
+        return changedTask;
+      }
+    }
+
+    const tasksMapOnLevel = tasksMap.get(comparisonLevel);
+
+    if (!tasksMapOnLevel) {
+      return null;
+    }
+
+    const resTask = tasksMapOnLevel.get(id);
+
+    if (!resTask || resTask.type === "empty") {
+      return null;
+    }
+
+    return resTask;
+  }, [tooltipTask, tasksMap, changeInProgress]);
 
   const gridProps: GridProps = useMemo(() => ({
     dates,

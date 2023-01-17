@@ -26,8 +26,107 @@ import {
   OnDateChange,
   OnProgressChange,
   Task,
+  TaskCoordinates,
   TaskMapByLevel,
 } from "../../types/public-types";
+
+const getNextCoordinates = (
+  task: Task,
+  prevValue: ChangeInProgress,
+  nextX: number,
+  rtl: boolean,
+): TaskCoordinates => {
+  const {
+    action,
+    initialCoordinates,
+    startX,
+  } = prevValue;
+
+  switch (action) {
+    case "end":
+      {
+        const nextX2 = Math.max(nextX, initialCoordinates.x1);
+        const progressWidth = (nextX2 - initialCoordinates.x1) * task.progress * 0.01;
+
+        if (rtl) {
+          return {
+            ...prevValue.coordinates,
+            progressWidth,
+            progressX: nextX2 - progressWidth,
+            x2: nextX2,
+          };
+        }
+
+        return {
+          ...prevValue.coordinates,
+          progressWidth,
+          x2: nextX2,
+        };
+      }
+
+    case "start":
+      {
+        const nextX1 = Math.min(nextX, initialCoordinates.x2);
+        const progressWidth = (initialCoordinates.x2 - nextX1) * task.progress * 0.01;
+
+        if (rtl) {
+
+          return {
+            ...prevValue.coordinates,
+            progressWidth,
+            progressX: initialCoordinates.x2 - progressWidth,
+            x1: Math.min(nextX, initialCoordinates.x2),
+          };
+        }
+
+        return {
+          ...prevValue.coordinates,
+          progressX: nextX1,
+          progressWidth,
+          x1: Math.min(nextX, initialCoordinates.x2),
+        };
+      }
+
+    case "progress":
+      {
+        const nextProgressEndX = Math.min(
+          Math.max(
+            nextX,
+            initialCoordinates.x1,
+          ),
+          initialCoordinates.x2,
+        );
+
+        if (rtl) {
+          return {
+            ...prevValue.coordinates,
+            progressX: nextProgressEndX,
+            progressWidth: initialCoordinates.x2 - nextProgressEndX,
+          };
+        }
+
+        return {
+          ...prevValue.coordinates,
+          progressWidth: nextProgressEndX - initialCoordinates.x1,
+        };
+      }
+
+    case "move":
+      {
+        const diff = nextX - startX;
+
+        return {
+          ...prevValue.coordinates,
+          x1: initialCoordinates.x1 + diff,
+          x2: initialCoordinates.x2 + diff,
+          progressX: initialCoordinates.progressX + diff,
+        };
+      }
+
+    default:
+      return prevValue.coordinates;
+  }
+};
 
 type UseTaskDragParams = {
   childTasksMap: ChildMapByLevel;
@@ -90,10 +189,11 @@ export const useTaskDrag = ({
 
     setChangeInProgress({
       action,
-      task,
-      startX: cursor.x,
+      changedTask: task,
       coordinates,
       initialCoordinates: coordinates,
+      startX: cursor.x,
+      task,
     });
   }, [
     ganttSVGRef,
@@ -137,118 +237,28 @@ export const useTaskDrag = ({
           return null;
         }
 
-        const {
-          action,
-          initialCoordinates,
-          startX,
-        } = prevValue;
+        const nextCoordinates = getNextCoordinates(
+          task,
+          prevValue,
+          nextX,
+          rtl,
+        );
 
-        switch (action) {
-          case "end":
-            {
-              const nextX2 = Math.max(nextX, initialCoordinates.x1);
-              const progressWidth = (nextX2 - initialCoordinates.x1) * task.progress * 0.01;
+        const { changedTask: newChangedTask } = handleTaskBySVGMouseEvent(
+          prevValue.action,
+          task,
+          prevValue.initialCoordinates,
+          nextCoordinates,
+          xStep,
+          timeStep,
+          rtl,
+        );
 
-              if (rtl) {
-
-                return {
-                  ...prevValue,
-                  coordinates: {
-                    ...prevValue.coordinates,
-                    progressWidth,
-                    progressX: nextX2 - progressWidth,
-                    x2: nextX2,
-                  },
-                };
-              }
-
-              return {
-                ...prevValue,
-                coordinates: {
-                  ...prevValue.coordinates,
-                  progressWidth,
-                  x2: nextX2,
-                },
-              };
-            }
-
-          case "start":
-            {
-              const nextX1 = Math.min(nextX, initialCoordinates.x2);
-              const progressWidth = (initialCoordinates.x2 - nextX1) * task.progress * 0.01;
-
-              if (rtl) {
-
-                return {
-                  ...prevValue,
-                  coordinates: {
-                    ...prevValue.coordinates,
-                    progressWidth,
-                    progressX: initialCoordinates.x2 - progressWidth,
-                    x1: Math.min(nextX, initialCoordinates.x2),
-                  },
-                };
-              }
-
-              return {
-                ...prevValue,
-                coordinates: {
-                  ...prevValue.coordinates,
-                  progressX: nextX1,
-                  progressWidth,
-                  x1: Math.min(nextX, initialCoordinates.x2),
-                },
-              };
-            }
-
-          case "progress":
-            {
-              const nextProgressEndX = Math.min(
-                Math.max(
-                  nextX,
-                  initialCoordinates.x1,
-                ),
-                initialCoordinates.x2,
-              );
-
-              if (rtl) {
-                return {
-                  ...prevValue,
-                  coordinates: {
-                    ...prevValue.coordinates,
-                    progressX: nextProgressEndX,
-                    progressWidth: initialCoordinates.x2 - nextProgressEndX,
-                  },
-                };
-              }
-
-              return {
-                ...prevValue,
-                coordinates: {
-                  ...prevValue.coordinates,
-                  progressWidth: nextProgressEndX - initialCoordinates.x1,
-                },
-              };
-            }
-
-          case "move":
-            {
-              const diff = nextX - startX;
-
-              return {
-                ...prevValue,
-                coordinates: {
-                  ...prevValue.coordinates,
-                  x1: initialCoordinates.x1 + diff,
-                  x2: initialCoordinates.x2 + diff,
-                  progressX: initialCoordinates.progressX + diff,
-                },
-              };
-            }
-
-          default:
-            return null;
-        }
+        return {
+          ...prevValue,
+          changedTask: newChangedTask,
+          coordinates: nextCoordinates,
+        };
       });
     };
 

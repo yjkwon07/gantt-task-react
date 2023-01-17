@@ -595,10 +595,11 @@ export type MapTaskToCoordinates = Map<number, Map<string, TaskCoordinates>>;
 
 export type ChangeInProgress = {
   action: BarMoveAction;
-  task: Task;
-  startX: number;
-  initialCoordinates: TaskCoordinates;
+  changedTask: Task;
   coordinates: TaskCoordinates;
+  initialCoordinates: TaskCoordinates;
+  startX: number;
+  task: Task;
 };
 
 export type GetMetadata = (task: TaskOrEmpty) => ChangeMetadata;

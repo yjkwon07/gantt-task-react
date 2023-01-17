@@ -61,7 +61,7 @@ const dateByX = (
   taskX: number,
   taskDate: Date,
   xStep: number,
-  timeStep: number
+  timeStep: number,
 ) => {
   let newDate = new Date(((x - taskX) / xStep) * timeStep + taskDate.getTime());
   newDate = new Date(
@@ -81,7 +81,7 @@ export const handleTaskBySVGMouseEvent = (
   coordinates: TaskCoordinates,
   xStep: number,
   timeStep: number,
-  rtl: boolean
+  rtl: boolean,
 ): { isChanged: boolean; changedTask: Task } => {
   let result: { isChanged: boolean; changedTask: Task };
   switch (selectedTask.type) {
