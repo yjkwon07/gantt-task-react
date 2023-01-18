@@ -15,6 +15,8 @@ import styles from "./bar.module.css";
 import stylesRelationHandle from "./bar-relation-handle.module.css";
 
 export const Bar: React.FC<TaskItemProps> = ({
+  colorStyles,
+
   distances: {
     barCornerRadius,
     handleWidth,
@@ -23,23 +25,22 @@ export const Bar: React.FC<TaskItemProps> = ({
   },
 
   hasChildren,
-  progressWidth,
-  progressX,
-
-  task,
-  taskYOffset,
-  taskHeight,
-  taskHalfHeight,
-  isProgressChangeable,
+  isCritical,
   isDateChangeable,
+  isProgressChangeable,
   isRelationChangeable,
   isRelationDrawMode,
-  rtl,
+  isSelected,
   onEventStart,
   onRelationStart,
-  isSelected,
-  isCritical,
-  colorStyles,
+  progressWidth,
+  progressX,
+  rtl,
+  task,
+  taskHalfHeight,
+  taskHeight,
+  taskYOffset,
+  width,
   x1,
   x2,
 }) => {
@@ -105,7 +106,7 @@ export const Bar: React.FC<TaskItemProps> = ({
       <BarDisplay
         x={x1}
         y={taskYOffset}
-        width={x2 - x1}
+        width={width}
         height={taskHeight}
         progressX={progressX}
         progressWidth={progressWidth}

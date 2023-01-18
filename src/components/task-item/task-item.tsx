@@ -35,6 +35,7 @@ export type TaskItemProps = {
   progressX: number;
   task: Task;
   taskYOffset: number;
+  width: number;
   x1: number;
   x2: number;
   childOutOfParentWarnings: ChildOutOfParentWarnings | null;
@@ -82,6 +83,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
 
     taskYOffset,
 
+    width,
     x1,
     x2,
 
@@ -217,7 +219,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
         );
 
       default:
-        if (x2 - x1 < handleWidth * 2) {
+        if (width < handleWidth * 2) {
           return (
             <BarSmall
               {...props}
@@ -241,21 +243,20 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     props,
     styles,
     task,
-    x1,
-    x2,
+    width,
   ]);
 
   useEffect(() => {
     if (textRef.current) {
-      setIsTextInside(textRef.current.getBBox().width < x2 - x1);
+      setIsTextInside(textRef.current.getBBox().width < width);
     }
-  }, [textRef, x1, x2]);
+  }, [textRef, width]);
 
   const x = useMemo(() => {
-    const width = x2 - x1;
     if (isTextInside) {
       return x1 + width * 0.5;
     }
+
     if (rtl && textRef.current) {
       return (
         x1 -
@@ -265,7 +266,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     }
 
     return x1 + width + arrowIndent * 1.2;
-  }, [x1, x2, isTextInside, rtl, arrowIndent]);
+  }, [x1, width, isTextInside, rtl, arrowIndent]);
 
   const onFocus = useCallback(() => {
     setSelectedTask(task);

@@ -18,6 +18,7 @@ export const Project: React.FC<TaskItemProps> = ({
   progressWidth,
   progressX,
   taskYOffset,
+  width,
   x1,
   x2,
 }) => {
@@ -53,8 +54,6 @@ export const Project: React.FC<TaskItemProps> = ({
     return colorStyles.projectProgressColor;
   }, [isSelected, isCritical, colorStyles]);
 
-  const projectWith = x2 - x1;
-
   const projectLeftTriangle = [
     x1,
     taskYOffset + taskHeight / 2 - 1,
@@ -77,7 +76,7 @@ export const Project: React.FC<TaskItemProps> = ({
       <rect
         fill={barColor}
         x={x1}
-        width={projectWith}
+        width={width}
         y={taskYOffset}
         height={taskHeight}
         rx={barCornerRadius}
@@ -96,7 +95,7 @@ export const Project: React.FC<TaskItemProps> = ({
       <rect
         fill={barColor}
         x={x1}
-        width={projectWith}
+        width={width}
         y={taskYOffset}
         height={taskHalfHeight}
         rx={barCornerRadius}

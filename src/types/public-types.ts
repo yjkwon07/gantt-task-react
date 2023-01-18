@@ -579,12 +579,50 @@ export type CriticalPath = {
 export type CriticalPaths = Map<number, CriticalPath>;
 
 export type TaskCoordinates = {
-  x1: number;
-  x2: number;
-  y: number;
+  /**
+   * Width of inner svg wrapper
+   */
+  containerWidth: number;
+  /**
+   * Left border of inner svg wrapper relative to the root svg
+   */
+  containerX: number;
+  /**
+   * Left border relative to the wrapper svg
+   */
+  innerX1: number;
+  /**
+   * Right border relative to the wrapper svg
+   */
+  innerX2: number;
+  /**
+   * Top border of inner svg wrapper relative to the root svg
+   */
   levelY: number;
+  /**
+   * Width of the progress bar
+   */
   progressWidth: number;
+  /**
+   * Left border of the progress bar relative to the root svg
+   */
   progressX: number;
+  /**
+   * Width of the task
+   */
+  width: number;
+  /**
+   * Left border of the task relative to the root svg
+   */
+  x1: number;
+  /**
+   * Right border of the task relative to the root svg
+   */
+  x2: number;
+  /**
+   * Top border of the task relative to the root svg
+   */
+  y: number;
 };
 
 /**

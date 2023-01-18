@@ -1,6 +1,5 @@
 import React, {
   Fragment,
-  useCallback,
 } from "react";
 
 import {
@@ -10,15 +9,12 @@ import {
   CriticalPaths,
   DependencyMap,
   DependencyMargins,
-  DependentMap,
   Distances,
   EventOption,
   FixPosition,
-  MapTaskToGlobalIndex,
   MapTaskToRowIndex,
   Task,
   TaskCoordinates,
-  TaskMapByLevel,
   TaskOrEmpty,
   TaskToHasDependencyWarningMap,
 } from "../../types/public-types";
@@ -30,32 +26,28 @@ import {
   GanttRelationEvent,
   RelationMoveTarget,
 } from "../../types/gantt-task-actions";
-import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
 import { checkHasChildren } from "../../helpers/check-has-children";
 import { checkTaskHasDependencyWarning } from "../../helpers/check-task-has-dependency-warning";
 
 export type TaskGanttContentProps = {
   getTaskCoordinates: (task: Task) => TaskCoordinates;
   getTaskGlobalIndexByRef: (task: Task) => number;
+  handleFixDependency: (task: Task, delta: number) => void;
   taskToHasDependencyWarningMap: TaskToHasDependencyWarningMap | null;
   taskYOffset: number;
   visibleTasks: readonly TaskOrEmpty[];
   visibleTasksMirror: Readonly<Record<string, true>>;
   childTasksMap: ChildMapByLevel;
   distances: Distances;
-  tasksMap: TaskMapByLevel;
-  mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   mapTaskToRowIndex: MapTaskToRowIndex;
   childOutOfParentWarnings: ChildOutOfParentWarnings | null;
   dependencyMap: DependencyMap;
-  dependentMap: DependentMap;
   dependencyMarginsMap: DependencyMargins;
   isShowDependencyWarnings: boolean;
   cirticalPaths: CriticalPaths | null;
   ganttRelationEvent: GanttRelationEvent | null;
   selectedTask: Task | null;
   fullRowHeight: number;
-  svgWidth: number;
   taskHeight: number;
   taskHalfHeight: number;
   fontSize: string;
@@ -77,21 +69,18 @@ export type TaskGanttContentProps = {
 } & Omit<EventOption, 'onArrowDoubleClick'>;
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
+  childTasksMap,
+  distances,
   getTaskCoordinates,
   getTaskGlobalIndexByRef,
-  svgWidth,
+  handleFixDependency,
   taskToHasDependencyWarningMap,
   taskYOffset,
   visibleTasks,
   visibleTasksMirror,
-  childTasksMap,
-  distances,
-  tasksMap,
-  mapTaskToGlobalIndex,
   mapTaskToRowIndex,
   childOutOfParentWarnings,
   dependencyMap,
-  dependentMap,
   dependencyMarginsMap,
   isShowDependencyWarnings,
   cirticalPaths,
@@ -108,7 +97,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   handleBarRelationStart,
   setSelectedTask,
   handleDeteleTask,
-  onFixDependencyPosition = undefined,
   onDoubleClick,
   onClick,
   onArrowDoubleClick = undefined,
@@ -117,55 +105,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   fixEndPosition = undefined,
   colorStyles,
 }) => {
-  const handleFixDependency = useCallback((task: Task, delta: number) => {
-    if (!onFixDependencyPosition) {
-      return;
-    }
-
-    const {
-      start,
-      end,
-    } = task;
-
-    const newStart = new Date(start.getTime() + delta);
-    const newEnd = new Date(end.getTime() + delta);
-
-    const newChangedTask = {
-      ...task,
-      start: newStart,
-      end: newEnd,
-    };
-
-    const [
-      dependentTasks,
-      taskIndex,
-      parents,
-      suggestions,
-    ] = getChangeTaskMetadata(
-      {
-        type: "change",
-        task: newChangedTask,
-      },
-      tasksMap,
-      childTasksMap,
-      mapTaskToGlobalIndex,
-      dependentMap,
-    );
-
-    onFixDependencyPosition(
-      newChangedTask,
-      dependentTasks,
-      taskIndex,
-      parents,
-      suggestions,
-    );
-  }, [
-    onFixDependencyPosition,
-    tasksMap,
-    childTasksMap,
-    mapTaskToGlobalIndex,
-    dependentMap,
-  ]);
+  const isRelationDrawMode = Boolean(ganttRelationEvent);
 
   return (
     <g className="content">
@@ -301,18 +241,20 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             : false;
 
           const {
-            x1,
-            x2,
+            containerX,
+            containerWidth,
+            innerX1,
+            innerX2,
+            width,
             levelY,
             progressWidth,
-            progressX,
           } = getTaskCoordinates(task);
 
           return (
             <svg
-              x={0}
+              x={containerX}
               y={levelY}
-              width={svgWidth}
+              width={containerWidth}
               height={fullRowHeight}
               key={key}
             >
@@ -325,16 +267,17 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                     : false
                 )}
                 progressWidth={progressWidth}
-                progressX={progressX}
+                progressX={rtl ? innerX2 : innerX1}
                 task={task}
                 taskYOffset={taskYOffset}
-                x1={x1}
-                x2={x2}
+                width={width}
+                x1={innerX1}
+                x2={innerX2}
                 childOutOfParentWarnings={childOutOfParentWarnings}
                 distances={distances}
                 taskHeight={taskHeight}
                 taskHalfHeight={taskHalfHeight}
-                isRelationDrawMode={Boolean(ganttRelationEvent)}
+                isRelationDrawMode={isRelationDrawMode}
                 isProgressChangeable={!task.isDisabled}
                 isDateChangeable={!task.isDisabled}
                 isRelationChangeable={!task.isDisabled}

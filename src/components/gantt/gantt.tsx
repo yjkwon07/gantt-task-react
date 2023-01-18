@@ -445,26 +445,6 @@ export const Gantt: React.FC<GanttProps> = ({
     return res;
   }, [visibleTasks, viewMode, preStepsCount, rtl]);
 
-  const mapTaskToCoordinates = useMemo(() => getMapTaskToCoordinates(
-    tasks,
-    mapTaskToRowIndex,
-    dates,
-    rtl,
-    fullRowHeight,
-    taskHeight,
-    taskYOffset,
-    distances,
-  ), [
-    distances,
-    tasks,
-    mapTaskToRowIndex,
-    dates,
-    rtl,
-    fullRowHeight,
-    taskHeight,
-    taskYOffset,
-  ]);
-
   const dateFormats = useMemo<DateFormats>(() => ({
     ...defaultDateFormats,
     ...dateFormatsProp,
@@ -485,6 +465,28 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   const svgWidth = dates.length * distances.columnWidth;
+
+  const mapTaskToCoordinates = useMemo(() => getMapTaskToCoordinates(
+    tasks,
+    mapTaskToRowIndex,
+    dates,
+    rtl,
+    fullRowHeight,
+    taskHeight,
+    taskYOffset,
+    distances,
+    svgWidth,
+  ), [
+    distances,
+    tasks,
+    mapTaskToRowIndex,
+    dates,
+    rtl,
+    fullRowHeight,
+    taskHeight,
+    taskYOffset,
+    svgWidth,
+  ]);
 
   useEffect(() => {
     if (rtl && scrollX === -1) {
@@ -1236,6 +1238,52 @@ export const Gantt: React.FC<GanttProps> = ({
     tasksRef,
   ]);
 
+  const handleFixDependency = useCallback((task: Task, delta: number) => {
+    const {
+      start,
+      end,
+    } = task;
+
+    const newStart = new Date(start.getTime() + delta);
+    const newEnd = new Date(end.getTime() + delta);
+
+    const newChangedTask = {
+      ...task,
+      start: newStart,
+      end: newEnd,
+    };
+
+    const [
+      dependentTasks,
+      taskIndex,
+      parents,
+      suggestions,
+    ] = getChangeTaskMetadata(
+      {
+        type: "change",
+        task: newChangedTask,
+      },
+      tasksMapRef.current,
+      childTasksMapRef.current,
+      mapTaskToGlobalIndexRef.current,
+      dependentMapRef.current,
+    );
+
+    onFixDependencyPosition(
+      newChangedTask,
+      dependentTasks,
+      taskIndex,
+      parents,
+      suggestions,
+    );
+  }, [
+    onFixDependencyPosition,
+    tasksMapRef,
+    childTasksMapRef,
+    mapTaskToGlobalIndexRef,
+    dependentMapRef,
+  ]);
+
   const onRelationChange = useCallback<OnRelationChange>((from, to, isOneDescendant) => {
     if (onRelationChangeProp) {
       onRelationChangeProp(from, to, isOneDescendant);
@@ -1355,6 +1403,7 @@ export const Gantt: React.FC<GanttProps> = ({
     onDateChange,
     onProgressChange,
     rtl,
+    svgWidth,
     tasksMap,
     timeStep,
     xStep,
@@ -1459,20 +1508,18 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   const barProps: TaskGanttContentProps = useMemo(() => ({
+    distances,
     getTaskCoordinates,
     getTaskGlobalIndexByRef,
+    handleFixDependency,
     taskToHasDependencyWarningMap,
     taskYOffset,
     visibleTasks,
     visibleTasksMirror,
     childTasksMap,
-    distances,
-    tasksMap,
-    mapTaskToGlobalIndex,
     mapTaskToRowIndex,
     childOutOfParentWarnings,
     dependencyMap,
-    dependentMap,
     dependencyMarginsMap,
     isShowDependencyWarnings,
     cirticalPaths,
@@ -1484,7 +1531,6 @@ export const Gantt: React.FC<GanttProps> = ({
     timeStep,
     fontFamily,
     fontSize,
-    svgWidth,
     rtl,
     handleTaskDragStart,
     setTooltipTask: onChangeTooltipTask,
@@ -1502,20 +1548,18 @@ export const Gantt: React.FC<GanttProps> = ({
     comparisonLevels,
     colorStyles,
   }), [
+    childTasksMap,
+    distances,
+    getTaskCoordinates,
     getTaskGlobalIndexByRef,
     taskToHasDependencyWarningMap,
     taskYOffset,
     visibleTasks,
     visibleTasksMirror,
-    childTasksMap,
-    distances,
-    tasksMap,
-    mapTaskToGlobalIndex,
     mapTaskToRowIndex,
     mapTaskToCoordinates,
     childOutOfParentWarnings,
     dependencyMap,
-    dependentMap,
     dependencyMarginsMap,
     isShowDependencyWarnings,
     cirticalPaths,
@@ -1527,7 +1571,6 @@ export const Gantt: React.FC<GanttProps> = ({
     timeStep,
     fontFamily,
     fontSize,
-    svgWidth,
     rtl,
     changeInProgress,
     handleTaskDragStart,

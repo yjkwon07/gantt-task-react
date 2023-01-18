@@ -35,6 +35,7 @@ const getNextCoordinates = (
   prevValue: ChangeInProgress,
   nextX: number,
   rtl: boolean,
+  svgWidth: number,
 ): TaskCoordinates => {
   const {
     action,
@@ -46,20 +47,30 @@ const getNextCoordinates = (
     case "end":
       {
         const nextX2 = Math.max(nextX, initialCoordinates.x1);
+        const x2Diff = nextX2 - initialCoordinates.x2;
+
         const progressWidth = (nextX2 - initialCoordinates.x1) * task.progress * 0.01;
 
         if (rtl) {
           return {
             ...prevValue.coordinates,
+            containerX: 0,
+            containerWidth: svgWidth,
+            innerX2: nextX2,
             progressWidth,
-            progressX: nextX2 - progressWidth,
+            progressX: initialCoordinates.progressX + x2Diff,
+            width: initialCoordinates.width + x2Diff,
             x2: nextX2,
           };
         }
 
         return {
           ...prevValue.coordinates,
+          containerX: 0,
+          containerWidth: svgWidth,
+          innerX2: nextX2,
           progressWidth,
+          width: initialCoordinates.width + x2Diff,
           x2: nextX2,
         };
       }
@@ -67,23 +78,33 @@ const getNextCoordinates = (
     case "start":
       {
         const nextX1 = Math.min(nextX, initialCoordinates.x2);
+        const x1Diff = nextX1 - initialCoordinates.x1;
+
         const progressWidth = (initialCoordinates.x2 - nextX1) * task.progress * 0.01;
 
         if (rtl) {
 
           return {
             ...prevValue.coordinates,
+            containerX: 0,
+            containerWidth: svgWidth,
+            innerX1: nextX1,
             progressWidth,
-            progressX: initialCoordinates.x2 - progressWidth,
-            x1: Math.min(nextX, initialCoordinates.x2),
+            progressX: initialCoordinates.progressX - x1Diff,
+            width: initialCoordinates.width - x1Diff,
+            x1: nextX1,
           };
         }
 
         return {
           ...prevValue.coordinates,
+          containerX: 0,
+          containerWidth: svgWidth,
+          innerX1: nextX1,
           progressX: nextX1,
           progressWidth,
-          x1: Math.min(nextX, initialCoordinates.x2),
+          width: initialCoordinates.width - x1Diff,
+          x1: nextX1,
         };
       }
 
@@ -115,11 +136,18 @@ const getNextCoordinates = (
       {
         const diff = nextX - startX;
 
+        const nextX1 = initialCoordinates.x1 + diff;
+        const nextX2 = initialCoordinates.x2 + diff;
+
         return {
           ...prevValue.coordinates,
-          x1: initialCoordinates.x1 + diff,
-          x2: initialCoordinates.x2 + diff,
+          containerX: 0,
+          containerWidth: svgWidth,
+          innerX1: nextX1,
+          innerX2: nextX2,
           progressX: initialCoordinates.progressX + diff,
+          x1: nextX1,
+          x2: nextX2,
         };
       }
 
@@ -138,6 +166,7 @@ type UseTaskDragParams = {
   onDateChange?: OnDateChange;
   onProgressChange?: OnProgressChange;
   rtl: boolean;
+  svgWidth: number;
   tasksMap: TaskMapByLevel;
   timeStep: number;
   xStep: number;
@@ -153,6 +182,7 @@ export const useTaskDrag = ({
   onDateChange,
   onProgressChange,
   rtl,
+  svgWidth,
   tasksMap,
   timeStep,
   xStep,
@@ -181,9 +211,7 @@ export const useTaskDrag = ({
     const point = svgNode.createSVGPoint();
 
     point.x = event.clientX;
-    const cursor = point.matrixTransform(
-      svgNode.getScreenCTM()?.inverse()
-    );
+    const cursor = point.matrixTransform(svgNode.getScreenCTM()?.inverse());
 
     const coordinates = getTaskCoordinates(task, mapTaskToCoordinatesRef.current);
 
@@ -242,6 +270,7 @@ export const useTaskDrag = ({
           prevValue,
           nextX,
           rtl,
+          svgWidth,
         );
 
         const { changedTask: newChangedTask } = handleTaskBySVGMouseEvent(
@@ -335,19 +364,20 @@ export const useTaskDrag = ({
       svgNode.removeEventListener("mouseup", handleMouseUp);
     };
   }, [
+    dependentMap,
+    changeInProgressTask,
     childTasksMap,
     mapTaskToGlobalIndex,
-    dependentMap,
     xStep,
     onProgressChange,
     timeStep,
     onDateChange,
     ganttSVGRef,
     getMetadata,
-    changeInProgressTask,
     rtl,
-    tasksMap,
     setChangeInProgress,
+    svgWidth,
+    tasksMap,
     changeInProgressLatestRef,
   ]);
 

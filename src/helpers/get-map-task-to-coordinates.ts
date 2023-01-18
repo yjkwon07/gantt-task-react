@@ -24,6 +24,7 @@ export const getMapTaskToCoordinates = (
   taskHeight: number,
   taskYOffset: number,
   distances: Distances,
+  svgWidth: number,
 ): MapTaskToCoordinates => {
   const res = new Map<number, Map<string, TaskCoordinates>>();
 
@@ -79,17 +80,36 @@ export const getMapTaskToCoordinates = (
         rtl,
       );
 
+    const taskX1 = type === 'milestone'
+      ? x1 - taskHeight * 0.5
+      : x1;
+
+    const taskX2 = type === 'milestone'
+      ? x2 + taskHeight * 0.5
+      : x2;
+
+    const taskWidth = type === 'milestone'
+      ? taskHeight
+      : taskX2 - taskX1;
+
+    const containerX = taskX1 - columnWidth;
+    const containerWidth = svgWidth - containerX;
+
+    const innerX1 = columnWidth;
+    const innerX2 = columnWidth + taskWidth;
+
     const taskCoordinates: TaskCoordinates = {
-      x1: type === 'milestone'
-        ? x1 - taskHeight * 0.5
-        : x1,
-      x2: type === 'milestone'
-        ? x2 + taskHeight * 0.5
-        : x2,
-      y,
+      containerWidth,
+      containerX,
+      innerX1,
+      innerX2,
       levelY,
       progressWidth,
       progressX,
+      width: taskWidth,
+      x1: taskX1,
+      x2: taskX2,
+      y,
     };
 
     const resByLevel = res.get(comparisonLevel) || new Map<string, TaskCoordinates>();
