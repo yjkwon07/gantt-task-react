@@ -567,6 +567,9 @@ export type DependentMap = Map<number, Map<string, ExpandedDependent[]>>;
 // comparisson level -> task id -> dependency id -> difference in milliseconds between edges of dependency
 export type DependencyMargins = Map<number, Map<string, Map<string, number>>>;
 
+// comparisson level -> task id -> task has a dependency with a warning
+export type TaskToHasDependencyWarningMap = Map<number, Set<string>>;
+
 export type CriticalPath = {
   tasks: Set<string>;
   dependencies: Map<string, Set<string>>;

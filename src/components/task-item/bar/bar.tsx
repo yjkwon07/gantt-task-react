@@ -10,7 +10,6 @@ import { BarDateHandle } from "./bar-date-handle";
 import { BarRelationHandle } from "./bar-relation-handle";
 import { BarProgressHandle } from "./bar-progress-handle";
 import { TaskItemProps } from "../task-item";
-import { useHasChildren } from "../../../helpers/use-has-children";
 
 import styles from "./bar.module.css";
 import stylesRelationHandle from "./bar-relation-handle.module.css";
@@ -23,12 +22,12 @@ export const Bar: React.FC<TaskItemProps> = ({
     relationCircleRadius,
   },
 
+  hasChildren,
   progressWidth,
   progressX,
 
   task,
   taskYOffset,
-  childTasksMap,
   taskHeight,
   taskHalfHeight,
   isProgressChangeable,
@@ -44,8 +43,6 @@ export const Bar: React.FC<TaskItemProps> = ({
   x1,
   x2,
 }) => {
-  const hasChildren = useHasChildren(task, childTasksMap);
-
   const canChangeDates = isDateChangeable && !hasChildren;
 
   const onLeftRelationTriggerMouseDown = useCallback(() => {
@@ -99,6 +96,7 @@ export const Bar: React.FC<TaskItemProps> = ({
     taskHeight,
   );
   const handleHeight = taskHeight - 2;
+
   return (
     <g
       className={cx(styles.barWrapper, stylesRelationHandle.barRelationHandleWrapper)}

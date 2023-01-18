@@ -1,5 +1,3 @@
-import { useMemo } from "react";
-
 import { ChildMapByLevel, TaskOrEmpty } from "../types/public-types";
 
 export const checkHasChildren = (
@@ -25,11 +23,3 @@ export const checkHasChildren = (
 
   return childs.length > 0;
 };
-
-export const useHasChildren = (
-  task: TaskOrEmpty,
-  childTasksMap: ChildMapByLevel,
-) => useMemo(() => checkHasChildren(task, childTasksMap), [
-  task,
-  childTasksMap,
-]);

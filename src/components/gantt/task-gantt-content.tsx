@@ -20,6 +20,7 @@ import {
   TaskCoordinates,
   TaskMapByLevel,
   TaskOrEmpty,
+  TaskToHasDependencyWarningMap,
 } from "../../types/public-types";
 import { Arrow } from "../other/arrow";
 import { RelationLine } from "../other/relation-line";
@@ -30,10 +31,13 @@ import {
   RelationMoveTarget,
 } from "../../types/gantt-task-actions";
 import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
+import { checkHasChildren } from "../../helpers/check-has-children";
+import { checkTaskHasDependencyWarning } from "../../helpers/check-task-has-dependency-warning";
 
 export type TaskGanttContentProps = {
   getTaskCoordinates: (task: Task) => TaskCoordinates;
   getTaskGlobalIndexByRef: (task: Task) => number;
+  taskToHasDependencyWarningMap: TaskToHasDependencyWarningMap | null;
   taskYOffset: number;
   visibleTasks: readonly TaskOrEmpty[];
   visibleTasksMirror: Readonly<Record<string, true>>;
@@ -42,12 +46,12 @@ export type TaskGanttContentProps = {
   tasksMap: TaskMapByLevel;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
   mapTaskToRowIndex: MapTaskToRowIndex;
-  childOutOfParentWarnings: ChildOutOfParentWarnings;
+  childOutOfParentWarnings: ChildOutOfParentWarnings | null;
   dependencyMap: DependencyMap;
   dependentMap: DependentMap;
   dependencyMarginsMap: DependencyMargins;
   isShowDependencyWarnings: boolean;
-  cirticalPaths: CriticalPaths;
+  cirticalPaths: CriticalPaths | null;
   ganttRelationEvent: GanttRelationEvent | null;
   selectedTask: Task | null;
   fullRowHeight: number;
@@ -76,6 +80,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   getTaskCoordinates,
   getTaskGlobalIndexByRef,
   svgWidth,
+  taskToHasDependencyWarningMap,
   taskYOffset,
   visibleTasks,
   visibleTasksMirror,
@@ -210,7 +215,9 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             throw new Error(`Row indexes are not found for level ${comparisonLevel}`);
           }
 
-          const criticalPathOnLevel = cirticalPaths.get(comparisonLevel);
+          const criticalPathOnLevel = cirticalPaths
+            ? cirticalPaths.get(comparisonLevel)
+            : null;
 
           const criticalPathForTask = criticalPathOnLevel
             ? criticalPathOnLevel.dependencies.get(task.id)
@@ -285,7 +292,9 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             );
           }
 
-          const criticalPathOnLevel = cirticalPaths.get(comparisonLevel);
+          const criticalPathOnLevel = cirticalPaths
+            ? cirticalPaths.get(comparisonLevel)
+            : undefined;
 
           const isCritical = criticalPathOnLevel
             ? criticalPathOnLevel.tasks.has(task.id)
@@ -309,17 +318,20 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             >
               <TaskItem
                 getTaskGlobalIndexByRef={getTaskGlobalIndexByRef}
+                hasChildren={checkHasChildren(task, childTasksMap)}
+                hasDependencyWarning={(
+                  taskToHasDependencyWarningMap
+                    ? checkTaskHasDependencyWarning(task, taskToHasDependencyWarningMap)
+                    : false
+                )}
                 progressWidth={progressWidth}
                 progressX={progressX}
                 task={task}
                 taskYOffset={taskYOffset}
                 x1={x1}
                 x2={x2}
-                childTasksMap={childTasksMap}
                 childOutOfParentWarnings={childOutOfParentWarnings}
-                dependencyMarginsMap={dependencyMarginsMap}
                 distances={distances}
-                isShowDependencyWarnings={isShowDependencyWarnings}
                 taskHeight={taskHeight}
                 taskHalfHeight={taskHalfHeight}
                 isRelationDrawMode={Boolean(ganttRelationEvent)}

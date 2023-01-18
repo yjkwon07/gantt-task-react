@@ -2,7 +2,7 @@ import React, {
   memo,
 } from "react";
 
-import { checkHasChildren } from "../../helpers/use-has-children";
+import { checkHasChildren } from "../../helpers/check-has-children";
 import { TaskListTableProps } from "../../types/public-types";
 import { TaskListTableRow } from "./task-list-table-row";
 

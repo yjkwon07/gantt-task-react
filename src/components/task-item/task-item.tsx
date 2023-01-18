@@ -12,9 +12,7 @@ import type {
 
 import { BarMoveAction, RelationMoveTarget } from "../../types/gantt-task-actions";
 import {
-  ChildMapByLevel,
   ChildOutOfParentWarnings,
-  DependencyMargins,
   FixPosition,
   Task,
   ColorStyles,
@@ -31,17 +29,16 @@ import { BarFixWidth, fixWidthContainerClass } from "../other/bar-fix-width";
 
 export type TaskItemProps = {
   getTaskGlobalIndexByRef: (task: Task) => number;
+  hasChildren: boolean;
+  hasDependencyWarning: boolean;
   progressWidth: number;
   progressX: number;
   task: Task;
   taskYOffset: number;
   x1: number;
   x2: number;
-  childTasksMap: ChildMapByLevel;
-  childOutOfParentWarnings: ChildOutOfParentWarnings;
-  dependencyMarginsMap: DependencyMargins;
+  childOutOfParentWarnings: ChildOutOfParentWarnings | null;
   distances: Distances;
-  isShowDependencyWarnings: boolean;
   taskHeight: number;
   taskHalfHeight: number;
   isProgressChangeable: boolean;
@@ -76,6 +73,7 @@ export type TaskItemProps = {
 const TaskItemInner: React.FC<TaskItemProps> = (props) => {
   const {
     getTaskGlobalIndexByRef,
+    hasDependencyWarning,
 
     task,
     task: {
@@ -87,9 +85,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     x1,
     x2,
 
-    childTasksMap,
     childOutOfParentWarnings,
-    dependencyMarginsMap,
 
     distances: {
       arrowIndent,
@@ -97,7 +93,6 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
       taskWarningOffset,
     },
 
-    isShowDependencyWarnings,
     isDelete,
     taskHeight,
     taskHalfHeight,
@@ -126,6 +121,10 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
   }, [taskStyles, stylesProp]);
 
   const outOfParentWarnings = useMemo(() => {
+    if (!childOutOfParentWarnings) {
+      return undefined;
+    }
+
     const {
       id,
       comparisonLevel = 1,
@@ -134,40 +133,11 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     const warningsByLevel = childOutOfParentWarnings.get(comparisonLevel);
 
     if (!warningsByLevel) {
-      return;
+      return undefined;
     }
 
     return warningsByLevel.get(id);
   }, [task, childOutOfParentWarnings]);
-
-  const dependencyMarginsForTask = useMemo(() => {
-    const {
-      id,
-      comparisonLevel = 1,
-    } = task;
-
-    const marginsByLevel = dependencyMarginsMap.get(comparisonLevel);
-
-    if (!marginsByLevel) {
-      return;
-    }
-
-    return marginsByLevel.get(id);
-  }, [task, dependencyMarginsMap]);
-
-  const hasDependencyWarning = useMemo(() => {
-    if (!isShowDependencyWarnings || !dependencyMarginsForTask) {
-      return false;
-    }
-
-    for (let value of dependencyMarginsForTask.values()) {
-      if (value < 0) {
-        return true;
-      }
-    }
-
-    return false;
-  }, [dependencyMarginsForTask, isShowDependencyWarnings]);
 
   const handleFixStartPosition = useCallback(() => {
     if (!outOfParentWarnings || !fixStartPosition) {
@@ -264,7 +234,6 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
         );
     }
   }, [
-    childTasksMap,
     handleWidth,
     isRelationDrawMode,
     isSelected,

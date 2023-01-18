@@ -45,7 +45,7 @@ export const getDependencyMapAndWarnings = (
       || new Map<string, Map<string, number>>();
 
     const dependenciesByTask = dependenciesByLevel.get(id) || [];
-    const warningsByTask = marginsByLevel.get(id) || new Map<string, number>();
+    const marginsByTask = marginsByLevel.get(id) || new Map<string, number>();
 
     dependencies.forEach(({
       sourceId,
@@ -86,7 +86,7 @@ export const getDependencyMapAndWarnings = (
           ? source.start.getTime()
           : source.end.getTime();
 
-        warningsByTask.set(sourceId, taskTime - sourceTime);
+        marginsByTask.set(sourceId, taskTime - sourceTime);
       }
     });
 
@@ -94,7 +94,7 @@ export const getDependencyMapAndWarnings = (
     dependencyRes.set(comparisonLevel, dependenciesByLevel);
 
     if (isCollectMargins) {
-      marginsByLevel.set(id, warningsByTask);
+      marginsByLevel.set(id, marginsByTask);
       marginsRes.set(comparisonLevel, marginsByLevel);
     }
   });
