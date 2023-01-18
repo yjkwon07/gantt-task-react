@@ -42,9 +42,14 @@ export interface Dependency {
 }
 
 export interface ExpandedDependency {
+  containerHeight: number;
+  containerY: number;
+  innerFromY: number;
+  innerToY: number;
+  marginBetweenTasks: number | null;
+  ownTarget: RelationMoveTarget;
   source: Task;
   sourceTarget: RelationMoveTarget;
-  ownTarget: RelationMoveTarget;
 }
 
 export interface ExpandedDependent {

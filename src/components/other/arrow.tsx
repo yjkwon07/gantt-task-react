@@ -30,11 +30,7 @@ type ArrowProps = {
   toX1: number;
   toX2: number;
   toY: number;
-  /**
-   * dependency margins for task `taskTo`
-   */
-  marginsByTask?: Map<string, number>;
-  mapTaskRowIndexByLevel: Map<string, number>;
+  marginBetweenTasks?: number | null;
   fullRowHeight: number;
   taskHeight: number;
   isShowDependencyWarnings: boolean;
@@ -71,8 +67,7 @@ const ArrowInner: React.FC<ArrowProps> = ({
   toX1,
   toX2,
   toY,
-  marginsByTask = undefined,
-  mapTaskRowIndexByLevel,
+  marginBetweenTasks = undefined,
   fullRowHeight,
   taskHeight,
   isShowDependencyWarnings,
@@ -81,6 +76,9 @@ const ArrowInner: React.FC<ArrowProps> = ({
   onArrowDoubleClick = undefined,
   handleFixDependency,
 }) => {
+  const indexFrom = useMemo(() => Math.floor(fromY / fullRowHeight), [fromY, fullRowHeight]);
+  const indexTo = useMemo(() => Math.floor(toY / fullRowHeight), [toY, fullRowHeight]);
+
   const onDoubleClick = useCallback(() => {
     if (onArrowDoubleClick) {
       onArrowDoubleClick(
@@ -93,34 +91,6 @@ const ArrowInner: React.FC<ArrowProps> = ({
     taskTo,
     onArrowDoubleClick,
   ]);
-
-  const indexFrom = useMemo(() => {
-    const {
-      id,
-    } = taskFrom;
-
-    const res = mapTaskRowIndexByLevel.get(id);
-
-    if (!res) {
-      throw new Error(`Row index for task ${id} is not found`);
-    }
-
-    return res;
-  }, [taskFrom, mapTaskRowIndexByLevel]);
-
-  const indexTo = useMemo(() => {
-    const {
-      id,
-    } = taskTo;
-
-    const res = mapTaskRowIndexByLevel.get(id);
-
-    if (!res) {
-      throw new Error(`Row index for task ${id} is not found`);
-    }
-
-    return res;
-  }, [taskTo, mapTaskRowIndexByLevel]);
 
   const [path, trianglePoints] = useMemo(
     () => drownPathAndTriangle(
@@ -186,17 +156,6 @@ const ArrowInner: React.FC<ArrowProps> = ({
     targetTo,
     rtl,
     dependencyFixIndent,
-  ]);
-
-  const marginBetweenTasks = useMemo(() => {
-    if (!marginsByTask) {
-      return undefined;
-    }
-
-    return marginsByTask.get(taskFrom.id);
-  }, [
-    taskFrom,
-    marginsByTask,
   ]);
 
   const fixDependencyTaskFrom = useCallback(() => {

@@ -1,16 +1,21 @@
-import {
+import type {
   DependencyMap,
   DependencyMargins,
   DependentMap,
   ExpandedDependency,
   ExpandedDependent,
-  TaskOrEmpty,
+  MapTaskToCoordinates,
   TaskMapByLevel,
+  TaskOrEmpty,
 } from "../types/public-types";
+import { getCoordinatesOnLevel, getMapTaskToCoordinatesOnLevel } from "./get-task-coordinates";
 
 export const getDependencyMapAndWarnings = (
   tasks: readonly TaskOrEmpty[],
+  visibleTasksMirror: Readonly<Record<string, true>>,
   tasksMap: TaskMapByLevel,
+  mapTaskToCoordinates: MapTaskToCoordinates,
+  fullRowHeight: number,
   isShowDependencyWarnings: boolean,
   isShowCriticalPath: boolean,
 ): [DependencyMap, DependentMap, DependencyMargins] => {
@@ -31,11 +36,17 @@ export const getDependencyMapAndWarnings = (
       comparisonLevel = 1,
     } = task;
 
+    if (!visibleTasksMirror[id]) {
+      return;
+    }
+
     const tasksByLevel = tasksMap.get(comparisonLevel);
     
     if (!dependencies || !tasksByLevel) {
       return;
     }
+
+    const coordinatesOnLevelMap = getMapTaskToCoordinatesOnLevel(task, mapTaskToCoordinates);
 
     const dependenciesByLevel = dependencyRes.get(comparisonLevel)
       || new Map<string, ExpandedDependency[]>();
@@ -47,11 +58,19 @@ export const getDependencyMapAndWarnings = (
     const dependenciesByTask = dependenciesByLevel.get(id) || [];
     const marginsByTask = marginsByLevel.get(id) || new Map<string, number>();
 
+    const {
+      y: toY,
+    } = getCoordinatesOnLevel(id, coordinatesOnLevelMap);
+
     dependencies.forEach(({
       sourceId,
       sourceTarget,
       ownTarget,
     }) => {
+      if (!visibleTasksMirror[sourceId]) {
+        return;
+      }
+
       const source = tasksByLevel.get(sourceId);
 
       if (!source) {
@@ -63,7 +82,36 @@ export const getDependencyMapAndWarnings = (
         return;
       }
 
+      const {
+        y: fromY,
+      } = getCoordinatesOnLevel(sourceId, coordinatesOnLevelMap);
+
+      const minY = Math.min(fromY, toY);
+      const maxY = Math.max(fromY, toY);
+      const containerY = (Math.floor(minY / fullRowHeight) - 1) * fullRowHeight;
+      const containerHeight = maxY - containerY + fullRowHeight;
+
+      let marginBetweenTasks = null;
+
+      if (isCollectMargins) {
+        const taskTime = ownTarget === "startOfTask"
+          ? task.start.getTime()
+          : task.end.getTime();
+
+        const sourceTime = sourceTarget === "startOfTask"
+          ? source.start.getTime()
+          : source.end.getTime();
+
+        marginBetweenTasks = taskTime - sourceTime;
+        marginsByTask.set(sourceId, marginBetweenTasks);
+      }
+
       dependenciesByTask.push({
+        containerHeight,
+        containerY,
+        innerFromY: fromY - containerY,
+        innerToY: toY - containerY,
+        marginBetweenTasks,
         source,
         sourceTarget,
         ownTarget,
@@ -76,18 +124,6 @@ export const getDependencyMapAndWarnings = (
         ownTarget: sourceTarget,
       });
       dependentsByLevel.set(sourceId, dependentsByTask);
-
-      if (isCollectMargins) {
-        const taskTime = ownTarget === "startOfTask"
-          ? task.start.getTime()
-          : task.end.getTime();
-
-        const sourceTime = sourceTarget === "startOfTask"
-          ? source.start.getTime()
-          : source.end.getTime();
-
-        marginsByTask.set(sourceId, taskTime - sourceTime);
-      }
     });
 
     dependenciesByLevel.set(id, dependenciesByTask);

@@ -11,7 +11,7 @@ export const getMapTaskToCoordinatesOnLevel = (
   const mapTaskToCoordinatesOnLevel = mapTaskToCoordinates.get(comparisonLevel);
 
   if (!mapTaskToCoordinatesOnLevel) {
-    throw new Error(`Warning: tasks by level ${comparisonLevel} are not found`);
+    throw new Error(`Coordinates on level ${comparisonLevel} are not found`);
   }
 
   return mapTaskToCoordinatesOnLevel;

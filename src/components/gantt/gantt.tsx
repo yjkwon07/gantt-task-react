@@ -282,44 +282,6 @@ export const Gantt: React.FC<GanttProps> = ({
     ],
   );
 
-  const [dependencyMap, dependentMap, dependencyMarginsMap] = useMemo(
-    () => getDependencyMapAndWarnings(
-      tasks,
-      tasksMap,
-      isShowDependencyWarnings,
-      isShowCriticalPath,
-    ),
-    [
-      tasks,
-      tasksMap,
-      isShowDependencyWarnings,
-      isShowCriticalPath,
-    ],
-  );
-
-  const dependentMapRef = useLatest(dependentMap);
-
-  const cirticalPaths = useMemo(() => {
-    if (isShowCriticalPath) {
-      return getCriticalPath(
-        rootTasksMap,
-        childTasksMap,
-        tasksMap,
-        dependencyMarginsMap,
-        dependencyMap,
-      );
-    }
-
-    return null;
-  }, [
-    isShowCriticalPath,
-    rootTasksMap,
-    childTasksMap,
-    tasksMap,
-    dependencyMarginsMap,
-    dependencyMap,
-  ]);
-
   const childOutOfParentWarnings = useMemo(
     () => {
       if (!isShowChildOutOfParentWarnings) {
@@ -332,17 +294,6 @@ export const Gantt: React.FC<GanttProps> = ({
       );
     },
     [tasks, childTasksMap, isShowChildOutOfParentWarnings],
-  );
-
-  const taskToHasDependencyWarningMap = useMemo(
-    () => {
-      if (!isShowDependencyWarnings) {
-        return null;
-      }
-
-      return getTaskToHasDependencyWarningMap(dependencyMarginsMap);
-    },
-    [dependencyMarginsMap, isShowDependencyWarnings],
   );
 
   const distances = useMemo<Distances>(() => ({
@@ -487,6 +438,61 @@ export const Gantt: React.FC<GanttProps> = ({
     taskYOffset,
     svgWidth,
   ]);
+
+  const [dependencyMap, dependentMap, dependencyMarginsMap] = useMemo(
+    () => getDependencyMapAndWarnings(
+      tasks,
+      visibleTasksMirror,
+      tasksMap,
+      mapTaskToCoordinates,
+      fullRowHeight,
+      isShowDependencyWarnings,
+      isShowCriticalPath,
+    ),
+    [
+      tasks,
+      visibleTasksMirror,
+      tasksMap,
+      mapTaskToCoordinates,
+      fullRowHeight,
+      isShowDependencyWarnings,
+      isShowCriticalPath,
+    ],
+  );
+
+  const dependentMapRef = useLatest(dependentMap);
+
+  const cirticalPaths = useMemo(() => {
+    if (isShowCriticalPath) {
+      return getCriticalPath(
+        rootTasksMap,
+        childTasksMap,
+        tasksMap,
+        dependencyMarginsMap,
+        dependencyMap,
+      );
+    }
+
+    return null;
+  }, [
+    isShowCriticalPath,
+    rootTasksMap,
+    childTasksMap,
+    tasksMap,
+    dependencyMarginsMap,
+    dependencyMap,
+  ]);
+
+  const taskToHasDependencyWarningMap = useMemo(
+    () => {
+      if (!isShowDependencyWarnings) {
+        return null;
+      }
+
+      return getTaskToHasDependencyWarningMap(dependencyMarginsMap);
+    },
+    [dependencyMarginsMap, isShowDependencyWarnings],
+  );
 
   useEffect(() => {
     if (rtl && scrollX === -1) {
@@ -1342,7 +1348,7 @@ export const Gantt: React.FC<GanttProps> = ({
         comparisonLevel = 1,
       } = taskFrom;
 
-      const indexesOnLevel = mapTaskToGlobalIndex.get(comparisonLevel);
+      const indexesOnLevel = mapTaskToGlobalIndexRef.current.get(comparisonLevel);
 
       if (!indexesOnLevel) {
         throw new Error(`Indexes are not found for level ${comparisonLevel}`);
@@ -1386,7 +1392,7 @@ export const Gantt: React.FC<GanttProps> = ({
     },
     [
       isDeleteDependencyOnDoubleClick,
-      mapTaskToGlobalIndex,
+      mapTaskToGlobalIndexRef,
       onArrowDoubleClickProp,
       onChangeTasks,
       tasksRef,
@@ -1520,7 +1526,6 @@ export const Gantt: React.FC<GanttProps> = ({
     mapTaskToRowIndex,
     childOutOfParentWarnings,
     dependencyMap,
-    dependencyMarginsMap,
     isShowDependencyWarnings,
     cirticalPaths,
     ganttRelationEvent,
@@ -1560,7 +1565,6 @@ export const Gantt: React.FC<GanttProps> = ({
     mapTaskToCoordinates,
     childOutOfParentWarnings,
     dependencyMap,
-    dependencyMarginsMap,
     isShowDependencyWarnings,
     cirticalPaths,
     ganttRelationEvent,
