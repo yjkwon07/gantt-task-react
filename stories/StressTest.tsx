@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useEffect,
   useState,
 } from "react";
 
@@ -22,14 +23,12 @@ import {
 
 import "../dist/index.css";
 
-const NUMBER_OF_ROOTS = 4;
-const NUMBER_OF_SUBTASKS = 4;
-const DEPTH = 4;
-
 // 4 * ()
 
 type AppProps = {
-  ganttHeight?: number;
+  numberOfRoots: number;
+  numberOfSubtasks: number;
+  depth: number;
 };
 
 const initSubtasks = (
@@ -38,13 +37,15 @@ const initSubtasks = (
   parentStartDate: Date,
   parentName: string,
   currentDepth: number,
+  numberOfSubtasks: number,
+  depth: number,
 ) => {
-  const restDepth = DEPTH - currentDepth;
-  const taskDuration = Math.pow(NUMBER_OF_SUBTASKS, restDepth);
+  const restDepth = depth - currentDepth;
+  const taskDuration = Math.pow(numberOfSubtasks, restDepth);
 
   let prevTaskId: string | null = null;
 
-  for (let j = 0; j < NUMBER_OF_SUBTASKS; ++j) {
+  for (let j = 0; j < numberOfSubtasks; ++j) {
     const taskId = `${parentId}/task_${j + 1}`;
     const taskName = `${parentName}.${j + 1}`;
 
@@ -80,18 +81,24 @@ const initSubtasks = (
         startDate,
         taskName,
         currentDepth + 1,
+        numberOfSubtasks,
+        depth,
       );
     }
   }
 };
 
-const initTasks = () => {
+const initTasks = (
+  numberOfRoots: number,
+  numberOfSubtasks: number,
+  depth: number,
+) => {
   const res: Task[] = [];
 
   const firstStartDate = new Date();
-  const firstEndDate = addDays(firstStartDate, Math.pow(NUMBER_OF_SUBTASKS, DEPTH));
+  const firstEndDate = addDays(firstStartDate, Math.pow(numberOfSubtasks, depth));
 
-  for (let i = 0; i < NUMBER_OF_ROOTS; ++i) {
+  for (let i = 0; i < numberOfRoots; ++i) {
     const projectStartDate = addDays(firstStartDate, i);
     const projectEndDate = addDays(firstEndDate, i);
 
@@ -115,14 +122,36 @@ const initTasks = () => {
       projectStartDate,
       `Task #${i + 1}`,
       1,
+      numberOfSubtasks,
+      depth,
     );
   }
 
   return res;
 };
 
-export const StressTest: React.FC<AppProps> = (props) => {
-  const [tasks, setTasks] = useState<readonly TaskOrEmpty[]>(initTasks);
+export const StressTest: React.FC<AppProps> = ({
+  numberOfRoots,
+  numberOfSubtasks,
+  depth,
+}) => {
+  const [tasks, setTasks] = useState<readonly TaskOrEmpty[]>(() => initTasks(
+    numberOfRoots,
+    numberOfSubtasks,
+    depth,
+  ));
+
+  useEffect(() => {
+    setTasks(initTasks(
+      numberOfRoots,
+      numberOfSubtasks,
+      depth,
+    ));
+  }, [
+    numberOfRoots,
+    numberOfSubtasks,
+    depth,
+  ]);
 
   const onChangeTasks = useCallback<OnChangeTasks>((nextTasks, action) => {
     switch (action.type) {
@@ -155,7 +184,6 @@ export const StressTest: React.FC<AppProps> = (props) => {
   return (
     <DndProvider backend={HTML5Backend}>
       <Gantt
-        {...props}
         onAddTask={onAddTask}
         onChangeTasks={onChangeTasks}
         onDoubleClick={handleDblClick}
