@@ -1,10 +1,9 @@
 import React, {
   memo,
-  useEffect,
-  useRef,
 } from "react";
 import type {
   ComponentType,
+  RefObject,
 } from "react";
 
 import {
@@ -23,74 +22,71 @@ import {
 
 export type TaskListProps = {
   canMoveTasks: boolean;
-  dateSetup: DateSetup;
-  distances: Distances;
-  handleAddTask: (task: Task) => void;
-  handleEditTask: (task: TaskOrEmpty) => void;
-  handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
-  handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
-  icons?: Partial<Icons>;
+  canResizeColumns: boolean;
+  childTasksMap: ChildMapByLevel;
+  closedTasks: Readonly<Record<string, true>>;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
-  onResizeStart: (columnIndex: number, event: React.MouseEvent) => void;
-  canResizeColumns: boolean;
+  dateSetup: DateSetup;
+  distances: Distances;
   fontFamily: string;
   fontSize: string;
   fullRowHeight: number;
-  scrollY: number;
-  tasks: readonly TaskOrEmpty[];
-  taskListRef: React.RefObject<HTMLDivElement>;
-  horizontalContainerClass?: string;
-  selectedTask: Task | null;
-  childTasksMap: ChildMapByLevel;
-  mapTaskToNestedIndex: MapTaskToNestedIndex;
-  isShowTaskNumbers: boolean;
-  setSelectedTask: (task: Task) => void;
-  closedTasks: Readonly<Record<string, true>>;
-  onExpanderClick: (task: Task) => void;
+  ganttFullHeight: number;
+  handleAddTask: (task: Task) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;
+  handleEditTask: (task: TaskOrEmpty) => void;
+  handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
+  handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
+  horizontalContainerClass?: string;
+  icons?: Partial<Icons>;
+  isShowTaskNumbers: boolean;
+  mapTaskToNestedIndex: MapTaskToNestedIndex;
+  onExpanderClick: (task: Task) => void;
+  onResizeStart: (columnIndex: number, event: React.MouseEvent) => void;
+  selectedTask: Task | null;
+  setSelectedTask: (task: Task) => void;
+  taskListContainerRef: RefObject<HTMLDivElement>;
+  taskListRef: RefObject<HTMLDivElement>;
+  taskListWidth: number;
+  tasks: readonly TaskOrEmpty[];
   TaskListHeader: ComponentType<TaskListHeaderProps>;
   TaskListTable: ComponentType<TaskListTableProps>;
 };
 
 const TaskListInner: React.FC<TaskListProps> = ({
   canMoveTasks,
+  canResizeColumns,
+  childTasksMap,
+  closedTasks,
+  columnResizeEvent,
+  columns,
   dateSetup,
   distances,
+  fontFamily,
+  fontSize,
+  fullRowHeight,
+  ganttFullHeight,
   handleAddTask,
+  handleDeteleTask,
   handleEditTask,
   handleMoveTaskAfter,
   handleMoveTaskInside,
-  icons = undefined,
-  fontFamily,
-  fontSize,
-  columns,
-  columnResizeEvent,
-  onResizeStart,
-  canResizeColumns,
-  fullRowHeight,
-  scrollY,
-  tasks,
-  selectedTask,
-  childTasksMap,
-  mapTaskToNestedIndex,
-  isShowTaskNumbers,
-  setSelectedTask,
-  closedTasks,
-  onExpanderClick,
-  handleDeteleTask,
-  taskListRef,
   horizontalContainerClass,
+  icons = undefined,
+  isShowTaskNumbers,
+  mapTaskToNestedIndex,
+  onExpanderClick,
+  onResizeStart,
+  selectedTask,
+  setSelectedTask,
+  taskListContainerRef,
+  taskListRef,
+  taskListWidth,
+  tasks,
   TaskListHeader,
   TaskListTable,
 }) => {
-  const horizontalContainerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (horizontalContainerRef.current) {
-      horizontalContainerRef.current.scrollTop = scrollY;
-    }
-  }, [scrollY]);
-
   const selectedTaskId = selectedTask ? selectedTask.id : "";
 
   return (
@@ -106,34 +102,45 @@ const TaskListInner: React.FC<TaskListProps> = ({
       />
 
       <div
-        ref={horizontalContainerRef}
+        ref={taskListContainerRef}
         className={horizontalContainerClass}
         style={distances.ganttHeight ? { height: distances.ganttHeight } : {}}
       >
-        <TaskListTable
-          canMoveTasks={canMoveTasks}
-          dateSetup={dateSetup}
-          distances={distances}
-          handleAddTask={handleAddTask}
-          handleEditTask={handleEditTask}
-          handleMoveTaskAfter={handleMoveTaskAfter}
-          handleMoveTaskInside={handleMoveTaskInside}
-          icons={icons}
-          fullRowHeight={fullRowHeight}
-          columns={columns}
-          columnResizeEvent={columnResizeEvent}
-          fontFamily={fontFamily}
-          fontSize={fontSize}
-          tasks={tasks}
-          selectedTaskId={selectedTaskId}
-          childTasksMap={childTasksMap}
-          closedTasks={closedTasks}
-          mapTaskToNestedIndex={mapTaskToNestedIndex}
-          isShowTaskNumbers={isShowTaskNumbers}
-          setSelectedTask={setSelectedTask}
-          onExpanderClick={onExpanderClick}
-          handleDeteleTask={handleDeteleTask}
-        />
+        <div
+          style={{
+            height: ganttFullHeight,
+            backgroundSize: `100% ${fullRowHeight * 2}px`,
+            backgroundImage: `linear-gradient(to bottom, transparent ${fullRowHeight}px, #f5f5f5 ${fullRowHeight}px)`,
+          }}
+        >
+          <TaskListTable
+            canMoveTasks={canMoveTasks}
+            childTasksMap={childTasksMap}
+            closedTasks={closedTasks}
+            columnResizeEvent={columnResizeEvent}
+            columns={columns}
+            dateSetup={dateSetup}
+            distances={distances}
+            fontFamily={fontFamily}
+            fontSize={fontSize}
+            fullRowHeight={fullRowHeight}
+            ganttFullHeight={ganttFullHeight}
+            handleAddTask={handleAddTask}
+            handleDeteleTask={handleDeteleTask}
+            handleEditTask={handleEditTask}
+            handleMoveTaskAfter={handleMoveTaskAfter}
+            handleMoveTaskInside={handleMoveTaskInside}
+            taskListContainerRef={taskListContainerRef}
+            icons={icons}
+            isShowTaskNumbers={isShowTaskNumbers}
+            mapTaskToNestedIndex={mapTaskToNestedIndex}
+            onExpanderClick={onExpanderClick}
+            selectedTaskId={selectedTaskId}
+            setSelectedTask={setSelectedTask}
+            taskListWidth={taskListWidth}
+            tasks={tasks}
+          />
+        </div>
       </div>
     </div>
   );

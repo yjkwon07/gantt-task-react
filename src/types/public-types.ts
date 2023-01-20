@@ -1,4 +1,9 @@
-import type { ComponentType, ReactNode } from "react";
+import type {
+  ComponentType,
+  ReactNode,
+  RefObject,
+} from "react";
+
 import type { Locale as DateLocale } from "date-fns";
 
 import type { BarMoveAction, RelationMoveTarget } from "./gantt-task-actions";
@@ -487,27 +492,30 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
 
 export interface TaskListTableProps {
   canMoveTasks: boolean;
+  childTasksMap: ChildMapByLevel;
+  closedTasks: Readonly<Record<string, true>>;
+  columnResizeEvent: ColumnResizeEvent | null;
+  columns: readonly Column[];
   dateSetup: DateSetup;
   distances: Distances;
+  fontFamily: string;
+  fontSize: string;
   fullRowHeight: number;
+  ganttFullHeight: number;
   handleAddTask: (task: Task) => void;
+  handleDeteleTask: (task: TaskOrEmpty) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
   handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
   icons?: Partial<Icons>;
-  columns: readonly Column[];
-  columnResizeEvent: ColumnResizeEvent | null;
-  fontFamily: string;
-  fontSize: string;
-  tasks: readonly TaskOrEmpty[];
-  selectedTaskId: string;
-  childTasksMap: ChildMapByLevel;
-  mapTaskToNestedIndex: MapTaskToNestedIndex;
   isShowTaskNumbers: boolean;
-  setSelectedTask: (task: Task) => void;
-  closedTasks: Readonly<Record<string, true>>;
+  mapTaskToNestedIndex: MapTaskToNestedIndex;
   onExpanderClick: (task: Task) => void;
-  handleDeteleTask: (task: TaskOrEmpty) => void;
+  selectedTaskId: string;
+  setSelectedTask: (task: Task) => void;
+  taskListContainerRef: RefObject<Element>;
+  taskListWidth: number;
+  tasks: readonly TaskOrEmpty[];
 }
 
 export interface TaskListHeaderProps {
@@ -520,22 +528,25 @@ export interface TaskListHeaderProps {
   onResizeStart: (columnIndex: number, event: React.MouseEvent) => void;
 }
 
-// comparisson level -> task id -> index in array of tasks
+// comparison level -> task id -> index in array of tasks
 export type MapTaskToGlobalIndex = Map<number, Map<string, number>>;
 
-// comparisson level -> task id -> index of the row containing the task
+// comparison level -> task id -> index of the row containing the task
 export type MapTaskToRowIndex = Map<number, Map<string, number>>;
 
-// comparisson level -> task id -> array of child tasks
+// row index (tasks at different comparison levels have different indexes) -> the task
+export type MapRowIndexToTask = Map<number, TaskOrEmpty>;
+
+// comparison level -> task id -> array of child tasks
 export type ChildMapByLevel = Map<number, Map<string, TaskOrEmpty[]>>;
 
-// comparisson level -> tasks that don't have parent
+// comparison level -> tasks that don't have parent
 export type RootMapByLevel = Map<number, TaskOrEmpty[]>;
 
-// comparisson level -> task id -> the task
+// comparison level -> task id -> the task
 export type TaskMapByLevel = Map<number, Map<string, TaskOrEmpty>>;
 
-// comparisson level -> task id -> depth of nesting and task number in format like `1.2.1.1.3`
+// comparison level -> task id -> depth of nesting and task number in format like `1.2.1.1.3`
 export type MapTaskToNestedIndex = Map<number, Map<string, [number, string]>>;
 
 export interface TaskOutOfParentWarning {
@@ -549,7 +560,7 @@ export interface TaskOutOfParentWarnings {
 };
 
 /**
- * comparisson level -> task id -> {
+ * comparison level -> task id -> {
  *   start: {
  *     isOutsie: false,
  *     date: Date,
@@ -563,16 +574,16 @@ export interface TaskOutOfParentWarnings {
  */
 export type ChildOutOfParentWarnings = Map<number, Map<string, TaskOutOfParentWarnings>>;
 
-// comparisson level -> task id -> expanded dependencies
+// comparison level -> task id -> expanded dependencies
 export type DependencyMap = Map<number, Map<string, ExpandedDependency[]>>;
 
-// comparisson level -> task id -> expanded dependents
+// comparison level -> task id -> expanded dependents
 export type DependentMap = Map<number, Map<string, ExpandedDependent[]>>;
 
-// comparisson level -> task id -> dependency id -> difference in milliseconds between edges of dependency
+// comparison level -> task id -> dependency id -> difference in milliseconds between edges of dependency
 export type DependencyMargins = Map<number, Map<string, Map<string, number>>>;
 
-// comparisson level -> task id -> task has a dependency with a warning
+// comparison level -> task id -> task has a dependency with a warning
 export type TaskToHasDependencyWarningMap = Map<number, Set<string>>;
 
 export type CriticalPath = {
@@ -580,7 +591,7 @@ export type CriticalPath = {
   dependencies: Map<string, Set<string>>;
 };
 
-// comparisson level -> critical path
+// comparison level -> critical path
 export type CriticalPaths = Map<number, CriticalPath>;
 
 export type TaskCoordinates = {
@@ -631,7 +642,7 @@ export type TaskCoordinates = {
 };
 
 /**
- * comparisson level -> task id -> {
+ * comparison level -> task id -> {
  *   x1: number;
  *   x2: number;
  *   y: number;

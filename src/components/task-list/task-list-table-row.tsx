@@ -2,6 +2,9 @@ import React, {
   memo,
   useMemo,
 } from "react";
+import type {
+  CSSProperties,
+} from 'react';
 
 import { useDrop } from "react-dnd";
 
@@ -23,46 +26,50 @@ import { ROW_DRAG_TYPE } from "../../constants";
 
 type TaskListTableRowProps = {
   canMoveTasks: boolean;
+  columnResizeEvent: ColumnResizeEvent | null;
+  columns: readonly Column[];
   dateSetup: DateSetup;
   depth: number;
   distances: Distances;
-  task: TaskOrEmpty;
   fullRowHeight: number;
   handleAddTask: (task: Task) => void;
+  handleDeteleTask: (task: TaskOrEmpty) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
   handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
   hasChildren: boolean;
   icons?: Partial<Icons>;
-  columns: readonly Column[];
-  columnResizeEvent: ColumnResizeEvent | null;
   indexStr: string;
   isClosed: boolean;
+  isEven: boolean;
   isShowTaskNumbers: boolean;
   onExpanderClick: (task: Task) => void;
-  handleDeteleTask: (task: TaskOrEmpty) => void;
+  style?: CSSProperties;
+  task: TaskOrEmpty;
 };
 
 const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   canMoveTasks,
+  columnResizeEvent,
+  columns,
   dateSetup,
   depth,
   distances,
-  task,
   fullRowHeight,
   handleAddTask,
+  handleDeteleTask,
   handleEditTask,
   handleMoveTaskAfter,
   handleMoveTaskInside,
   hasChildren,
   icons = undefined,
-  columns,
-  columnResizeEvent,
   indexStr,
   isClosed,
+  isEven,
   isShowTaskNumbers,
   onExpanderClick,
-  handleDeteleTask,
+  style = undefined,
+  task,
 }) => {
   const {
     id,
@@ -139,11 +146,12 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   return (
     <div
       className={cx(styles.taskListTableRow, {
-        [styles.taskListTableRowLighten]: dropInsideProps.isLighten
-          && !dropAfterProps.isLighten,
+        [styles.lighten]: dropInsideProps.isLighten && !dropAfterProps.isLighten,
+        [styles.even]: isEven,
       })}
       style={{
         height: fullRowHeight,
+        ...style,
       }}
       ref={dropInside}
     >

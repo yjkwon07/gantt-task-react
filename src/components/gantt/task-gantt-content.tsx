@@ -1,6 +1,9 @@
 import React, {
-  Fragment,
+  useMemo,
 } from "react";
+import type {
+  ReactNode,
+} from 'react';
 
 import {
   ChildMapByLevel,
@@ -11,6 +14,7 @@ import {
   Distances,
   EventOption,
   FixPosition,
+  MapRowIndexToTask,
   Task,
   TaskCoordinates,
   TaskOrEmpty,
@@ -31,6 +35,8 @@ export type TaskGanttContentProps = {
   getTaskCoordinates: (task: Task) => TaskCoordinates;
   getTaskGlobalIndexByRef: (task: Task) => number;
   handleFixDependency: (task: Task, delta: number) => void;
+  mapRowIndexToTask: MapRowIndexToTask;
+  renderedIndexes: [number, number] | null;
   taskToHasDependencyWarningMap: TaskToHasDependencyWarningMap | null;
   taskYOffset: number;
   visibleTasks: readonly TaskOrEmpty[];
@@ -70,6 +76,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   getTaskCoordinates,
   getTaskGlobalIndexByRef,
   handleFixDependency,
+  mapRowIndexToTask,
+  renderedIndexes,
   taskToHasDependencyWarningMap,
   taskYOffset,
   visibleTasks,
@@ -100,6 +108,104 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   colorStyles,
 }) => {
   const isRelationDrawMode = Boolean(ganttRelationEvent);
+
+  const renderedTasks = useMemo(() => {
+    if (!renderedIndexes) {
+      return null;
+    }
+
+    const [start, end] = renderedIndexes;
+
+    const res: ReactNode[] = [];
+
+    for (let index = start; index <= end; ++index) {
+      const task = mapRowIndexToTask.get(index);
+
+      if (!task || task.type === 'empty') {
+        continue;
+      }
+
+      const {
+        comparisonLevel = 1,
+      } = task;
+
+
+      if (comparisonLevel > comparisonLevels) {
+        continue;
+      }
+
+      const key = `${comparisonLevel}_${task.id}`;
+
+      const criticalPathOnLevel = cirticalPaths
+        ? cirticalPaths.get(comparisonLevel)
+        : undefined;
+
+      const isCritical = criticalPathOnLevel
+        ? criticalPathOnLevel.tasks.has(task.id)
+        : false;
+
+      const {
+        containerX,
+        containerWidth,
+        innerX1,
+        innerX2,
+        width,
+        levelY,
+        progressWidth,
+      } = getTaskCoordinates(task);
+
+      res.push(
+        <svg
+          x={containerX}
+          y={levelY}
+          width={containerWidth}
+          height={fullRowHeight}
+          key={key}
+        >
+          <TaskItem
+            getTaskGlobalIndexByRef={getTaskGlobalIndexByRef}
+            hasChildren={checkHasChildren(task, childTasksMap)}
+            hasDependencyWarning={(
+              taskToHasDependencyWarningMap
+                ? checkTaskHasDependencyWarning(task, taskToHasDependencyWarningMap)
+                : false
+            )}
+            progressWidth={progressWidth}
+            progressX={rtl ? innerX2 : innerX1}
+            task={task}
+            taskYOffset={taskYOffset}
+            width={width}
+            x1={innerX1}
+            x2={innerX2}
+            childOutOfParentWarnings={childOutOfParentWarnings}
+            distances={distances}
+            taskHeight={taskHeight}
+            taskHalfHeight={taskHalfHeight}
+            isRelationDrawMode={isRelationDrawMode}
+            isProgressChangeable={!task.isDisabled}
+            isDateChangeable={!task.isDisabled}
+            isRelationChangeable={!task.isDisabled}
+            isDelete={!task.isDisabled}
+            onDoubleClick={onDoubleClick}
+            onClick={onClick}
+            onEventStart={handleTaskDragStart}
+            setTooltipTask={setTooltipTask}
+            onRelationStart={handleBarRelationStart}
+            setSelectedTask={setSelectedTask}
+            isSelected={selectedTask === task}
+            isCritical={isCritical}
+            rtl={rtl}
+            fixStartPosition={fixStartPosition}
+            fixEndPosition={fixEndPosition}
+            handleDeteleTask={handleDeteleTask}
+            colorStyles={colorStyles}
+          />
+        </svg>,
+      );
+    }
+
+    return res;
+  }, [renderedIndexes, mapRowIndexToTask]);
 
   return (
     <g className="content">
@@ -204,7 +310,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       </g>
 
       <g className="bar" fontFamily={fontFamily} fontSize={fontSize}>
-        {visibleTasks.map(task => {
+        {renderedTasks}
+        {/* visibleTasks.map(task => {
           const {
             comparisonLevel = 1,
           } = task;
@@ -285,7 +392,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               />
             </svg>
           );
-        })}
+        }) */}
       </g>
 
       {ganttRelationEvent && (
