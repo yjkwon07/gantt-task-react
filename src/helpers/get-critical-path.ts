@@ -61,7 +61,7 @@ const getLatestTasks = (
 
 const collectCriticalPath = (
   criticalPathTasks: Set<string>,
-  cirticalPathDependencies: Map<string, Set<string>>,
+  criticalPathDependencies: Map<string, Set<string>>,
   task: Task,
   target: RelationMoveTarget,
   criticalTs: number,
@@ -79,7 +79,7 @@ const collectCriticalPath = (
   if (!taskChilds || taskChilds.length === 0) {
     collectCriticalPathForTask(
       criticalPathTasks,
-      cirticalPathDependencies,
+      criticalPathDependencies,
       task,
       tasksMap,
       childsOnLevel,
@@ -99,7 +99,7 @@ const collectCriticalPath = (
     if (taskTs >= criticalTs) {
       collectCriticalPath(
         criticalPathTasks,
-        cirticalPathDependencies,
+        criticalPathDependencies,
         childTask,
         target,
         criticalTs,
@@ -114,7 +114,7 @@ const collectCriticalPath = (
 
 const collectCriticalPathForTask = (
   criticalPathTasks: Set<string>,
-  cirticalPathDependencies: Map<string, Set<string>>,
+  criticalPathDependencies: Map<string, Set<string>>,
   task: Task,
   tasksMap: TaskMapByLevel,
   childsOnLevel: Map<string, TaskOrEmpty[]>,
@@ -136,7 +136,7 @@ const collectCriticalPathForTask = (
   const startTs = start.getTime();
   const endTs = end.getTime();
 
-  const cirticalPathDependenciesForTask = cirticalPathDependencies.get(taskId)
+  const criticalPathDependenciesForTask = criticalPathDependencies.get(taskId)
     || new Set<string>();
 
   const marginsForTask = dependencyMarginsOnLevel.get(taskId);
@@ -159,16 +159,16 @@ const collectCriticalPathForTask = (
         return;
       }
 
-      if (cirticalPathDependenciesForTask.has(source.id)) {
+      if (criticalPathDependenciesForTask.has(source.id)) {
         return;
       }
 
-      cirticalPathDependenciesForTask.add(source.id);
-      cirticalPathDependencies.set(taskId, cirticalPathDependenciesForTask);
+      criticalPathDependenciesForTask.add(source.id);
+      criticalPathDependencies.set(taskId, criticalPathDependenciesForTask);
 
       collectCriticalPath(
         criticalPathTasks,
-        cirticalPathDependencies,
+        criticalPathDependencies,
         source,
         sourceTarget,
         ownTarget === "startOfTask" ? startTs : endTs,
@@ -196,7 +196,7 @@ const collectCriticalPathForTask = (
       return;
     }
 
-    const cirticalPathDependenciesForParent = cirticalPathDependencies.get(parentId)
+    const criticalPathDependenciesForParent = criticalPathDependencies.get(parentId)
       || new Set<string>();
 
     const isCheckStart = parentTask.start.getTime() >= startTs;
@@ -215,12 +215,12 @@ const collectCriticalPathForTask = (
         return;
       }
 
-      if (cirticalPathDependenciesForTask.has(source.id)) {
+      if (criticalPathDependenciesForTask.has(source.id)) {
         return;
       }
 
-      cirticalPathDependenciesForTask.add(source.id);
-      cirticalPathDependencies.set(parentId, cirticalPathDependenciesForParent);
+      criticalPathDependenciesForTask.add(source.id);
+      criticalPathDependencies.set(parentId, criticalPathDependenciesForParent);
 
       const targetTs = ownTarget === "startOfTask"
         ? parentTask.start.getTime()
@@ -228,7 +228,7 @@ const collectCriticalPathForTask = (
 
       collectCriticalPath(
         criticalPathTasks,
-        cirticalPathDependencies,
+        criticalPathDependencies,
         source,
         sourceTarget,
         targetTs,
@@ -252,7 +252,7 @@ export const getCriticalPath = (
 
   for (const [comparisonLevel, rootTasks] of rootTasksMap.entries()) {
     const criticalPathTasks = new Set<string>();
-    const cirticalPathDependencies = new Map<string, Set<string>>();
+    const criticalPathDependencies = new Map<string, Set<string>>();
 
     const childsOnLevel = childTasksMap.get(comparisonLevel);
     if (childsOnLevel) {
@@ -283,7 +283,7 @@ export const getCriticalPath = (
         latestTasks.forEach((task) => {
           collectCriticalPathForTask(
             criticalPathTasks,
-            cirticalPathDependencies,
+            criticalPathDependencies,
             task,
             tasksMap,
             childsOnLevel,
@@ -296,7 +296,7 @@ export const getCriticalPath = (
 
     res.set(comparisonLevel, {
       tasks: criticalPathTasks,
-      dependencies: cirticalPathDependencies,
+      dependencies: criticalPathDependencies,
     });
   }
 

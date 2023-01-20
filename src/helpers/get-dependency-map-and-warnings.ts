@@ -106,11 +106,14 @@ export const getDependencyMapAndWarnings = (
         marginsByTask.set(sourceId, marginBetweenTasks);
       }
 
+      const innerFromY = fromY - containerY;
+      const innerToY = toY - containerY;
+
       dependenciesByTask.push({
         containerHeight,
         containerY,
-        innerFromY: fromY - containerY,
-        innerToY: toY - containerY,
+        innerFromY,
+        innerToY,
         marginBetweenTasks,
         source,
         sourceTarget,
@@ -119,6 +122,11 @@ export const getDependencyMapAndWarnings = (
 
       const dependentsByTask = dependentsByLevel.get(sourceId) || [];
       dependentsByTask.push({
+        containerHeight,
+        containerY,
+        innerFromY,
+        innerToY,
+        marginBetweenTasks,
         dependent: task,
         dependentTarget: ownTarget,
         ownTarget: sourceTarget,
@@ -128,6 +136,7 @@ export const getDependencyMapAndWarnings = (
 
     dependenciesByLevel.set(id, dependenciesByTask);
     dependencyRes.set(comparisonLevel, dependenciesByLevel);
+    dependentRes.set(comparisonLevel, dependentsByLevel);
 
     if (isCollectMargins) {
       marginsByLevel.set(id, marginsByTask);

@@ -470,7 +470,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const dependentMapRef = useLatest(dependentMap);
 
-  const cirticalPaths = useMemo(() => {
+  const criticalPaths = useMemo(() => {
     if (isShowCriticalPath) {
       return getCriticalPath(
         rootTasksMap,
@@ -1514,6 +1514,8 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   const barProps: TaskGanttContentProps = useMemo(() => ({
+    childTasksMap,
+    dependentMap,
     distances,
     getTaskCoordinates,
     getTaskGlobalIndexByRef,
@@ -1522,14 +1524,12 @@ export const Gantt: React.FC<GanttProps> = ({
     renderedIndexes,
     taskToHasDependencyWarningMap,
     taskYOffset,
-    visibleTasks,
     visibleTasksMirror,
-    childTasksMap,
     mapTaskToRowIndex,
     childOutOfParentWarnings,
     dependencyMap,
     isShowDependencyWarnings,
-    cirticalPaths,
+    criticalPaths,
     ganttRelationEvent,
     selectedTask,
     fullRowHeight,
@@ -1556,6 +1556,7 @@ export const Gantt: React.FC<GanttProps> = ({
     colorStyles,
   }), [
     childTasksMap,
+    dependentMap,
     distances,
     getTaskCoordinates,
     getTaskGlobalIndexByRef,
@@ -1570,7 +1571,7 @@ export const Gantt: React.FC<GanttProps> = ({
     childOutOfParentWarnings,
     dependencyMap,
     isShowDependencyWarnings,
-    cirticalPaths,
+    criticalPaths,
     ganttRelationEvent,
     selectedTask,
     fullRowHeight,

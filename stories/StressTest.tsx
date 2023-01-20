@@ -141,6 +141,8 @@ export const StressTest: React.FC<AppProps> = ({
     depth,
   ));
 
+  console.info(tasks.length)
+
   useEffect(() => {
     setTasks(initTasks(
       numberOfRoots,
