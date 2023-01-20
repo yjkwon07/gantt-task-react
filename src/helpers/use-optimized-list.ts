@@ -8,30 +8,31 @@ import type {
 
 const getStartAndEnd = (
   containerEl: Element | null,
-  rowHeight: number,
-  listHeight: number,
+  property: 'scrollTop' | 'scrollLeft',
+  cellSize: number,
 ): [number, number] | null => {
   if (!containerEl) {
     return null;
   }
 
-  const {
-    scrollTop,
-  } = containerEl;
+  const scrollValue = containerEl[property];
+  const fullValue = property === 'scrollLeft'
+    ? containerEl.clientWidth
+    : containerEl.clientHeight;
 
-  const firstIndex = Math.floor(scrollTop / rowHeight);
-  const lastIndex = Math.ceil((scrollTop + listHeight) / rowHeight) - 1;
+  const firstIndex = Math.floor(scrollValue / cellSize);
+  const lastIndex = Math.ceil((scrollValue + fullValue) / cellSize) - 1;
 
   return [firstIndex, lastIndex];
 };
 
 export const useOptimizedList = (
   containerRef: RefObject<Element>,
-  rowHeight: number,
-  listHeight: number,
+  property: 'scrollTop' | 'scrollLeft',
+  cellSize: number,
 ) => {
   const [indexes, setIndexes] = useState(
-    () => getStartAndEnd(containerRef.current, rowHeight, listHeight),
+    () => getStartAndEnd(containerRef.current, property, cellSize),
   );
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export const useOptimizedList = (
     let prevIndexes = indexes;
 
     const handler = () => {
-      const nextIndexes = getStartAndEnd(containerRef.current, rowHeight, listHeight);
+      const nextIndexes = getStartAndEnd(containerRef.current, property, cellSize);
 
       const isChanged = prevIndexes
         ? nextIndexes
@@ -49,6 +50,7 @@ export const useOptimizedList = (
         : Boolean(nextIndexes);
 
       if (isChanged) {
+        prevIndexes = nextIndexes;
         setIndexes(nextIndexes);
       }
 
@@ -64,8 +66,7 @@ export const useOptimizedList = (
     };
   }, [
     containerRef,
-    rowHeight,
-    listHeight,
+    cellSize,
   ]);
 
   return indexes;

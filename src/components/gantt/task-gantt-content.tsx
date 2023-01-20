@@ -40,7 +40,7 @@ export type TaskGanttContentProps = {
   getTaskGlobalIndexByRef: (task: Task) => number;
   handleFixDependency: (task: Task, delta: number) => void;
   mapRowIndexToTask: MapRowIndexToTask;
-  renderedIndexes: [number, number] | null;
+  renderedRowIndexes: [number, number] | null;
   taskToHasDependencyWarningMap: TaskToHasDependencyWarningMap | null;
   taskYOffset: number;
   visibleTasksMirror: Readonly<Record<string, true>>;
@@ -79,7 +79,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   getTaskGlobalIndexByRef,
   handleFixDependency,
   mapRowIndexToTask,
-  renderedIndexes,
+  renderedRowIndexes,
   taskToHasDependencyWarningMap,
   taskYOffset,
   visibleTasksMirror,
@@ -111,11 +111,11 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   const isRelationDrawMode = Boolean(ganttRelationEvent);
 
   const [renderedTasks, renderedArrows] = useMemo(() => {
-    if (!renderedIndexes) {
+    if (!renderedRowIndexes) {
       return [null, null];
     }
 
-    const [start, end] = renderedIndexes;
+    const [start, end] = renderedRowIndexes;
 
     const tasksRes: ReactNode[] = [];
     const arrowsRes: ReactNode[] = [];
@@ -387,8 +387,9 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   }, [
     dependencyMap,
     dependentMap,
+    getTaskCoordinates,
     mapRowIndexToTask,
-    renderedIndexes,
+    renderedRowIndexes,
     visibleTasksMirror,
   ]);
 

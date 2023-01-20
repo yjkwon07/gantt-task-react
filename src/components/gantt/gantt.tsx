@@ -316,10 +316,10 @@ export const Gantt: React.FC<GanttProps> = ({
     [distances, comparisonLevels],
   );
 
-  const renderedIndexes = useOptimizedList(
+  const renderedRowIndexes = useOptimizedList(
     horizontalContainerRef,
+    'scrollTop',
     distances.rowHeight,
-    distances.ganttHeight,
   );
 
   const colorStyles = useMemo<ColorStyles>(() => ({
@@ -423,7 +423,16 @@ export const Gantt: React.FC<GanttProps> = ({
     viewMode,
   ]);
 
-  const svgWidth = dates.length * distances.columnWidth;
+  const svgWidth = useMemo(
+    () => dates.length * distances.columnWidth,
+    [dates, distances],
+  );
+
+  const renderedColumnIndexes = useOptimizedList(
+    verticalGanttContainerRef,
+    'scrollLeft',
+    distances.columnWidth,
+  );
 
   const mapTaskToCoordinates = useMemo(() => getMapTaskToCoordinates(
     tasks,
@@ -1499,6 +1508,7 @@ export const Gantt: React.FC<GanttProps> = ({
     fontSize,
     rtl,
     renderBottomHeader,
+    renderedColumnIndexes,
     renderTopHeader,
   }), [
     dateSetup,
@@ -1510,6 +1520,7 @@ export const Gantt: React.FC<GanttProps> = ({
     fontSize,
     rtl,
     renderBottomHeader,
+    renderedColumnIndexes,
     renderTopHeader,
   ]);
 
@@ -1521,7 +1532,7 @@ export const Gantt: React.FC<GanttProps> = ({
     getTaskGlobalIndexByRef,
     handleFixDependency,
     mapRowIndexToTask,
-    renderedIndexes,
+    renderedRowIndexes,
     taskToHasDependencyWarningMap,
     taskYOffset,
     visibleTasksMirror,
@@ -1561,7 +1572,7 @@ export const Gantt: React.FC<GanttProps> = ({
     getTaskCoordinates,
     getTaskGlobalIndexByRef,
     mapRowIndexToTask,
-    renderedIndexes,
+    renderedRowIndexes,
     taskToHasDependencyWarningMap,
     taskYOffset,
     visibleTasks,

@@ -24,7 +24,6 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   fontFamily,
   fontSize,
   fullRowHeight,
-  ganttFullHeight,
   handleAddTask,
   handleDeteleTask,
   handleEditTask,
@@ -37,7 +36,11 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   taskListContainerRef,
   tasks,
 }) => {
-  const indexes = useOptimizedList(taskListContainerRef, fullRowHeight, distances.ganttHeight || ganttFullHeight);
+  const indexes = useOptimizedList(
+    taskListContainerRef,
+    'scrollTop',
+    fullRowHeight,
+  );
 
   const renderedTasks = useMemo(
     /**
