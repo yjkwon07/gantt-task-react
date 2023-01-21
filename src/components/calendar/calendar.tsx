@@ -18,6 +18,7 @@ import {
 } from "../../helpers/date-helper";
 import { defaultRenderBottomHeader } from "./default-render-bottom-header";
 import { defaultRenderTopHeader } from "./default-render-top-header";
+import type { OptimizedListParams } from "../../helpers/use-optimized-list";
 
 import styles from "./calendar.module.css";
 
@@ -31,7 +32,7 @@ export type CalendarProps = {
   fontFamily: string;
   fontSize: string;
   renderBottomHeader?: RenderBottomHeader;
-  renderedColumnIndexes: [number, number] | null;
+  renderedColumnIndexes: OptimizedListParams | null;
   renderTopHeader?: RenderTopHeader;
 };
 

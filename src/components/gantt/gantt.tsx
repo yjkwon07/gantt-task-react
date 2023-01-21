@@ -202,7 +202,23 @@ export const Gantt: React.FC<GanttProps> = ({
     setScrollYProgrammatically,
     onVerticalScrollbarScrollY,
   ] = useVerticalScrollbars();
-  
+
+  const scrollYRef = useLatest(scrollY);
+
+  const scrollToTopStep = useCallback(() => {
+    setScrollYProgrammatically(scrollYRef.current - 10);
+  }, [
+    setScrollYProgrammatically,
+    scrollYRef,
+  ]);
+
+  const scrollToBottomStep = useCallback(() => {
+    setScrollYProgrammatically(scrollYRef.current + 10);
+  }, [
+    setScrollYProgrammatically,
+    scrollYRef,
+  ]);
+
   const [closedTasks, setClosedTasks] = useState(() => getInitialClosedTasks(tasks));
 
   const tasksRef = useLatest(tasks);
@@ -1634,6 +1650,8 @@ export const Gantt: React.FC<GanttProps> = ({
     mapTaskToNestedIndex,
     onExpanderClick: handleExpanderClick,
     onResizeStart,
+    scrollToBottomStep,
+    scrollToTopStep,
     selectedTask,
     setSelectedTask,
     taskListContainerRef,

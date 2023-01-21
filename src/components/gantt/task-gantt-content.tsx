@@ -31,6 +31,7 @@ import {
 } from "../../types/gantt-task-actions";
 import { checkHasChildren } from "../../helpers/check-has-children";
 import { checkTaskHasDependencyWarning } from "../../helpers/check-task-has-dependency-warning";
+import type { OptimizedListParams } from "../../helpers/use-optimized-list";
 
 export type TaskGanttContentProps = {
   criticalPaths: CriticalPaths | null;
@@ -40,7 +41,7 @@ export type TaskGanttContentProps = {
   getTaskGlobalIndexByRef: (task: Task) => number;
   handleFixDependency: (task: Task, delta: number) => void;
   mapRowIndexToTask: MapRowIndexToTask;
-  renderedRowIndexes: [number, number] | null;
+  renderedRowIndexes: OptimizedListParams | null;
   taskToHasDependencyWarningMap: TaskToHasDependencyWarningMap | null;
   taskYOffset: number;
   visibleTasksMirror: Readonly<Record<string, true>>;

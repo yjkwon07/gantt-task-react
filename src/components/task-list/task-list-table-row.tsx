@@ -78,7 +78,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
 
   const [dropInsideProps, dropInside] = useDrop({
     accept: ROW_DRAG_TYPE,
-    
+
     drop: (item: TaskOrEmpty, monitor) => {
       if (
         monitor.didDrop()

@@ -7,7 +7,6 @@ import type {
 } from 'react';
 
 import { checkHasChildren } from "../../helpers/check-has-children";
-import { useOptimizedList } from "../../helpers/use-optimized-list";
 import { TaskListTableProps } from "../../types/public-types";
 import { TaskListTableRow } from "./task-list-table-row";
 
@@ -33,15 +32,9 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   isShowTaskNumbers,
   mapTaskToNestedIndex,
   onExpanderClick,
-  taskListContainerRef,
+  renderedIndexes,
   tasks,
 }) => {
-  const indexes = useOptimizedList(
-    taskListContainerRef,
-    'scrollTop',
-    fullRowHeight,
-  );
-
   const renderedTasks = useMemo(
     /**
      * TO DO: maybe consider tasks on other levels?
@@ -51,11 +44,11 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   );
 
   const renderedListWithOffset = useMemo(() => {
-    if (!indexes) {
+    if (!renderedIndexes) {
       return null;
     }
 
-    const [start, end] = indexes;
+    const [start, end] = renderedIndexes;
 
     const renderedList: ReactNode[] = [];
 
@@ -123,7 +116,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
         {renderedList}
       </>
     );
-  }, [indexes, fullRowHeight, renderedTasks]);
+  }, [renderedIndexes, fullRowHeight, renderedTasks]);
 
   return (
     <div

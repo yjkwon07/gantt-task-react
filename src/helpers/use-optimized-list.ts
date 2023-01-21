@@ -6,16 +6,40 @@ import type {
   RefObject,
 } from 'react';
 
+export type OptimizedListParams = [
+  /**
+   * start index
+   */
+  number,
+  /**
+   * end index
+   */
+  number,
+  /**
+   * is scrolled to start
+   */
+  boolean,
+  /**
+   * is scrolled to end
+   */
+  boolean,
+];
+
+const DELTA = 5;
+
 const getStartAndEnd = (
   containerEl: Element | null,
   property: 'scrollTop' | 'scrollLeft',
   cellSize: number,
-): [number, number] | null => {
+): OptimizedListParams | null => {
   if (!containerEl) {
     return null;
   }
 
   const scrollValue = containerEl[property];
+  const maxScrollValue = property === 'scrollLeft'
+  ? containerEl.scrollWidth
+  : containerEl.scrollHeight;
   const fullValue = property === 'scrollLeft'
     ? containerEl.clientWidth
     : containerEl.clientHeight;
@@ -23,7 +47,10 @@ const getStartAndEnd = (
   const firstIndex = Math.floor(scrollValue / cellSize);
   const lastIndex = Math.ceil((scrollValue + fullValue) / cellSize) - 1;
 
-  return [firstIndex, lastIndex];
+  const isStartOfScroll = scrollValue < DELTA;
+  const isEndOfScroll = scrollValue + fullValue > maxScrollValue - DELTA;
+
+  return [firstIndex, lastIndex, isStartOfScroll, isEndOfScroll];
 };
 
 export const useOptimizedList = (
@@ -45,7 +72,7 @@ export const useOptimizedList = (
 
       const isChanged = prevIndexes
         ? nextIndexes
-          ? nextIndexes[0] !== prevIndexes[0] || nextIndexes[1] !== prevIndexes[1]
+          ? nextIndexes.some((value, index) => !prevIndexes || prevIndexes[index] !== value)
           : true
         : Boolean(nextIndexes);
 

@@ -1,12 +1,12 @@
 import type {
   ComponentType,
   ReactNode,
-  RefObject,
 } from "react";
 
 import type { Locale as DateLocale } from "date-fns";
 
 import type { BarMoveAction, RelationMoveTarget } from "./gantt-task-actions";
+import { OptimizedListParams } from "../helpers/use-optimized-list";
 
 export enum ViewMode {
   Hour = "Hour",
@@ -516,9 +516,9 @@ export interface TaskListTableProps {
   isShowTaskNumbers: boolean;
   mapTaskToNestedIndex: MapTaskToNestedIndex;
   onExpanderClick: (task: Task) => void;
+  renderedIndexes: OptimizedListParams | null;
   selectedTaskId: string;
   setSelectedTask: (task: Task) => void;
-  taskListContainerRef: RefObject<Element>;
   taskListWidth: number;
   tasks: readonly TaskOrEmpty[];
 }
