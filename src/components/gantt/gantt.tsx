@@ -1,5 +1,4 @@
 import React, {
-  SyntheticEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -67,9 +66,11 @@ import { useCreateRelation } from "./use-create-relation";
 import { useTaskDrag } from "./use-task-drag";
 import { useTaskTooltip } from "../../helpers/use-task-tooltip";
 
-import styles from "./gantt.module.css";
 import { useOptimizedList } from "../../helpers/use-optimized-list";
 import { useVerticalScrollbars } from "./use-vertical-scrollbars";
+import { useHorizontalScrollbars } from "./use-horizontal-scrollbars";
+
+import styles from "./gantt.module.css";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -190,9 +191,6 @@ export const Gantt: React.FC<GanttProps> = ({
   const ganttSVGRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
-  const verticalGanttContainerRef = useRef<HTMLDivElement>(null);
-
-  const [scrollX, setScrollX] = useState(-1);
 
   const [
     horizontalContainerRef,
@@ -201,23 +199,19 @@ export const Gantt: React.FC<GanttProps> = ({
     scrollY,
     setScrollYProgrammatically,
     onVerticalScrollbarScrollY,
+    scrollToTopStep,
+    scrollToBottomStep,
   ] = useVerticalScrollbars();
 
-  const scrollYRef = useLatest(scrollY);
-
-  const scrollToTopStep = useCallback(() => {
-    setScrollYProgrammatically(scrollYRef.current - 10);
-  }, [
-    setScrollYProgrammatically,
-    scrollYRef,
-  ]);
-
-  const scrollToBottomStep = useCallback(() => {
-    setScrollYProgrammatically(scrollYRef.current + 10);
-  }, [
-    setScrollYProgrammatically,
-    scrollYRef,
-  ]);
+  const [
+    verticalGanttContainerRef,
+    horizontalScrollbarRef,
+    scrollX,
+    setScrollXProgrammatically,
+    onVerticalScrollbarScrollX,
+    // scrollToLeftStep,
+    // scrollToRightStep,
+  ] = useHorizontalScrollbars();
 
   const [closedTasks, setClosedTasks] = useState(() => getInitialClosedTasks(tasks));
 
@@ -388,14 +382,6 @@ export const Gantt: React.FC<GanttProps> = ({
     [maxLevelLength, fullRowHeight],
   );
 
-  const onChangeScrollX = useCallback((nextScrollX: number) => {
-    if (verticalGanttContainerRef.current) {
-      verticalGanttContainerRef.current.scrollLeft = nextScrollX;
-    }
-
-    setScrollX(nextScrollX);
-  }, []);
-
   const [mapTaskToRowIndex, mapRowIndexToTask] = useMemo(
     () => getMapTaskToRowIndex(
       visibleTasks,
@@ -472,6 +458,19 @@ export const Gantt: React.FC<GanttProps> = ({
     svgWidth,
   ]);
 
+  const mapTaskToCoordinatesRef = useLatest(mapTaskToCoordinates);
+
+  const scrollToTask = useCallback((task: Task) => {
+    const {
+      x1,
+    } = getTaskCoordinatesDefault(task, mapTaskToCoordinatesRef.current);
+
+    setScrollXProgrammatically(x1 - 100);
+  }, [
+    mapTaskToCoordinatesRef,
+    setScrollXProgrammatically,
+  ]);
+
   const [dependencyMap, dependentMap, dependencyMarginsMap] = useMemo(
     () => getDependencyMapAndWarnings(
       tasks,
@@ -528,14 +527,14 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   useEffect(() => {
-    if (rtl && scrollX === -1) {
-      onChangeScrollX(dates.length * distances.columnWidth);
+    if (rtl) {
+      setScrollXProgrammatically(dates.length * distances.columnWidth);
     }
   }, [
     dates,
     distances,
-    onChangeScrollX,
     rtl,
+    setScrollXProgrammatically,
     scrollX,
   ]);
 
@@ -555,15 +554,15 @@ export const Gantt: React.FC<GanttProps> = ({
         return;
       }
       setCurrentViewDate(viewDate);
-      onChangeScrollX(distances.columnWidth * index);
+      setScrollXProgrammatically(distances.columnWidth * index);
     }
   }, [
     currentViewDate,
     dates,
     dateSetup.viewMode,
     distances,
-    onChangeScrollX,
     setCurrentViewDate,
+    setScrollXProgrammatically,
     viewDate,
     viewMode,
   ]);
@@ -583,7 +582,7 @@ export const Gantt: React.FC<GanttProps> = ({
         } else if (newScrollX > svgWidth) {
           newScrollX = svgWidth;
         }
-        onChangeScrollX(newScrollX);
+        setScrollXProgrammatically(newScrollX);
         event.preventDefault();
       } else if (ganttHeight) {
         const prevScrollY = horizontalContainerRef.current?.scrollTop || 0;
@@ -618,16 +617,12 @@ export const Gantt: React.FC<GanttProps> = ({
   }, [
     distances,
     ganttFullHeight,
-    onChangeScrollX,
+    setScrollXProgrammatically,
     setScrollYProgrammatically,
     svgWidth,
     rtl,
     wrapperRef,
   ]);
-
-  const handleScrollX = useCallback((event: SyntheticEvent<HTMLDivElement>) => {
-    onChangeScrollX(event.currentTarget.scrollLeft);
-  }, [onChangeScrollX]);
 
   /**
    * Handles arrow keys events and transform it to new scroll
@@ -669,7 +664,7 @@ export const Gantt: React.FC<GanttProps> = ({
       } else if (newScrollX > svgWidth) {
         newScrollX = svgWidth;
       }
-      onChangeScrollX(newScrollX);
+      setScrollXProgrammatically(newScrollX);
     } else {
       if (newScrollY < 0) {
         newScrollY = 0;
@@ -1653,6 +1648,7 @@ export const Gantt: React.FC<GanttProps> = ({
     scrollToBottomStep,
     scrollToTopStep,
     selectedTask,
+    scrollToTask,
     setSelectedTask,
     taskListContainerRef,
     taskListRef,
@@ -1712,9 +1708,9 @@ export const Gantt: React.FC<GanttProps> = ({
       <HorizontalScroll
         svgWidth={svgWidth}
         taskListWidth={taskListWidth}
-        scroll={scrollX}
         rtl={rtl}
-        onScroll={handleScrollX}
+        onScroll={onVerticalScrollbarScrollX}
+        horizontalScrollbarRef={horizontalScrollbarRef}
       />
     </div>
   );

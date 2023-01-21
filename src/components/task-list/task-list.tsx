@@ -56,6 +56,7 @@ export type TaskListProps = {
   onExpanderClick: (task: Task) => void;
   onResizeStart: (columnIndex: number, event: React.MouseEvent) => void;
   scrollToBottomStep: () => void;
+  scrollToTask: (task: Task) => void;
   scrollToTopStep: () => void;
   selectedTask: Task | null;
   setSelectedTask: (task: Task) => void;
@@ -92,6 +93,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
   onExpanderClick,
   onResizeStart,
   scrollToBottomStep,
+  scrollToTask,
   scrollToTopStep,
   selectedTask,
   setSelectedTask,
@@ -205,6 +207,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
               mapTaskToNestedIndex={mapTaskToNestedIndex}
               onExpanderClick={onExpanderClick}
               renderedIndexes={renderedIndexes}
+              scrollToTask={scrollToTask}
               selectedTaskId={selectedTaskId}
               setSelectedTask={setSelectedTask}
               taskListWidth={taskListWidth}

@@ -1,44 +1,24 @@
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
+import React from "react";
 import type {
+  RefObject,
   SyntheticEvent,
 } from "react";
 
 import styles from "./horizontal-scroll.module.css";
 
 export const HorizontalScroll: React.FC<{
-  scroll: number;
+  horizontalScrollbarRef: RefObject<HTMLDivElement>;
+  onScroll: (event: SyntheticEvent<HTMLDivElement>) => void;
+  rtl: boolean;
   svgWidth: number;
   taskListWidth: number;
-  rtl: boolean;
-  onScroll: (event: SyntheticEvent<HTMLDivElement>) => void;
 }> = ({
-  scroll,
+  horizontalScrollbarRef,
   svgWidth,
   taskListWidth,
   rtl,
-  onScroll: onScrollProp,
+  onScroll,
 }) => {
-  const isLockedRef = useRef(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const onScroll = useCallback((event: SyntheticEvent<HTMLDivElement>) => {
-    if (!isLockedRef.current) {
-      onScrollProp(event);
-    }
-  }, [onScrollProp]);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      isLockedRef.current = true;
-//      scrollRef.current.scrollLeft = scroll;
-      isLockedRef.current = false;
-    }
-  }, [scroll]);
-
   return (
     <div
       dir="ltr"
@@ -49,7 +29,7 @@ export const HorizontalScroll: React.FC<{
       }}
       className={styles.scrollWrapper}
       onScroll={onScroll}
-      ref={scrollRef}
+      ref={horizontalScrollbarRef}
     >
       <div style={{ width: svgWidth }} className={styles.scroll} />
     </div>

@@ -8,6 +8,8 @@ import type {
   SyntheticEvent,
 } from 'react';
 
+import useLatest from 'use-latest';
+
 export const useVerticalScrollbars = (): [
   RefObject<HTMLDivElement>,
   RefObject<HTMLDivElement>,
@@ -15,8 +17,11 @@ export const useVerticalScrollbars = (): [
   number,
   (nextScrollY: number) => void,
   (event: SyntheticEvent<HTMLDivElement>) => void,
+  () => void,
+  () => void,
 ] => {
   const [scrollY, setScrollY] = useState(0);
+  const scrollYRef = useLatest(scrollY);
 
   const horizontalContainerRef = useRef<HTMLDivElement>(null);
   const taskListContainerRef = useRef<HTMLDivElement>(null);
@@ -64,6 +69,20 @@ export const useVerticalScrollbars = (): [
     setScrollY(nextScrollY);
   }, []);
 
+  const scrollToTopStep = useCallback(() => {
+    setScrollYProgrammatically(scrollYRef.current - 10);
+  }, [
+    setScrollYProgrammatically,
+    scrollYRef,
+  ]);
+
+  const scrollToBottomStep = useCallback(() => {
+    setScrollYProgrammatically(scrollYRef.current + 10);
+  }, [
+    setScrollYProgrammatically,
+    scrollYRef,
+  ]);
+
   return [
     horizontalContainerRef,
     taskListContainerRef,
@@ -71,5 +90,7 @@ export const useVerticalScrollbars = (): [
     scrollY,
     setScrollYProgrammatically,
     onVerticalScrollbarScrollY,
+    scrollToTopStep,
+    scrollToBottomStep,
   ];
 };

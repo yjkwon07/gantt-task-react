@@ -517,6 +517,7 @@ export interface TaskListTableProps {
   mapTaskToNestedIndex: MapTaskToNestedIndex;
   onExpanderClick: (task: Task) => void;
   renderedIndexes: OptimizedListParams | null;
+  scrollToTask: (task: Task) => void;
   selectedTaskId: string;
   setSelectedTask: (task: Task) => void;
   taskListWidth: number;

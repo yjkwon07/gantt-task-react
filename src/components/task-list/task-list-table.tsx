@@ -33,6 +33,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   mapTaskToNestedIndex,
   onExpanderClick,
   renderedIndexes,
+  scrollToTask,
   tasks,
 }) => {
   const renderedTasks = useMemo(
@@ -99,6 +100,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
           isEven={index % 2 === 1}
           isShowTaskNumbers={isShowTaskNumbers}
           onExpanderClick={onExpanderClick}
+          scrollToTask={scrollToTask}
           task={task}
           key={id}
         />,

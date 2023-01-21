@@ -1,5 +1,6 @@
 import React, {
   memo,
+  useCallback,
   useMemo,
 } from "react";
 import type {
@@ -44,6 +45,7 @@ type TaskListTableRowProps = {
   isEven: boolean;
   isShowTaskNumbers: boolean;
   onExpanderClick: (task: Task) => void;
+  scrollToTask: (task: Task) => void;
   style?: CSSProperties;
   task: TaskOrEmpty;
 };
@@ -68,6 +70,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   isEven,
   isShowTaskNumbers,
   onExpanderClick,
+  scrollToTask,
   style = undefined,
   task,
 }) => {
@@ -75,6 +78,14 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     id,
     comparisonLevel = 1,
   } = task;
+
+  const onRootClick = useCallback(() => {
+    if (task.type === 'empty') {
+      return;
+    }
+
+    scrollToTask(task);
+  }, [scrollToTask, task]);
 
   const [dropInsideProps, dropInside] = useDrop({
     accept: ROW_DRAG_TYPE,
@@ -149,6 +160,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
         [styles.lighten]: dropInsideProps.isLighten && !dropAfterProps.isLighten,
         [styles.even]: isEven,
       })}
+      onClick={onRootClick}
       style={{
         height: fullRowHeight,
         ...style,
