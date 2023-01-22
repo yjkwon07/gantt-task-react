@@ -13,12 +13,16 @@ import startOfDay from "date-fns/startOfDay";
 import startOfHour from "date-fns/startOfHour";
 
 import { TaskOrEmpty, ViewMode } from "../types/public-types";
+import { getDatesDiff } from "./get-dates-diff";
 
 export const ganttDateRange = (
   tasks: readonly TaskOrEmpty[],
   viewMode: ViewMode,
   preStepsCount: number,
-) => {
+): [
+  Date,
+  number,
+] => {
   let newStartDate: Date | null = null;
   let newEndDate: Date | null = null;
   for (const task of tasks) {
@@ -34,7 +38,7 @@ export const ganttDateRange = (
   }
 
   if (!newStartDate || !newEndDate) {
-    return [new Date(), new Date()];
+    return [new Date(), 2];
   }
 
   switch (viewMode) {
@@ -81,43 +85,8 @@ export const ganttDateRange = (
       newEndDate = addDays(newEndDate, 1);
       break;
   }
-  return [newStartDate, newEndDate];
-};
 
-export const seedDates = (
-  startDate: Date,
-  endDate: Date,
-  viewMode: ViewMode
-) => {
-  let currentDate: Date = new Date(startDate);
-  const dates: Date[] = [currentDate];
-  while (currentDate < endDate) {
-    switch (viewMode) {
-      case ViewMode.Year:
-        currentDate = addYears(currentDate, 1);
-        break;
-      case ViewMode.Month:
-        currentDate = addMonths(currentDate, 1);
-        break;
-      case ViewMode.Week:
-        currentDate = addDays(currentDate, 7);
-        break;
-      case ViewMode.Day:
-        currentDate = addDays(currentDate, 1);
-        break;
-      case ViewMode.HalfDay:
-        currentDate = addHours(currentDate, 12);
-        break;
-      case ViewMode.QuarterDay:
-        currentDate = addHours(currentDate, 6);
-        break;
-      case ViewMode.Hour:
-        currentDate = addHours(currentDate, 1);
-        break;
-    }
-    dates.push(currentDate);
-  }
-  return dates;
+  return [newStartDate, getDatesDiff(newEndDate, newStartDate, viewMode)];
 };
 
 /**

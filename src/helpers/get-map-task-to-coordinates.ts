@@ -4,12 +4,12 @@ import {
   MapTaskToRowIndex,
   TaskCoordinates,
   TaskOrEmpty,
+  ViewMode,
 } from "../types/public-types";
 
 import {
   progressWithByParams,
   taskXCoordinate,
-  taskXCoordinateRTL,
 } from "./bar-helper";
 
 /**
@@ -18,7 +18,8 @@ import {
 export const getMapTaskToCoordinates = (
   tasks: readonly TaskOrEmpty[],
   mapTaskToRowIndex: MapTaskToRowIndex,
-  dates: Date[],
+  startDate: Date,
+  viewMode: ViewMode,
   rtl: boolean,
   fullRowHeight: number,
   taskHeight: number,
@@ -60,12 +61,12 @@ export const getMapTaskToCoordinates = (
     }
 
     const x1 = rtl
-      ? taskXCoordinateRTL(task.end, dates, columnWidth)
-      : taskXCoordinate(task.start, dates, columnWidth);
+      ? svgWidth - taskXCoordinate(task.end, startDate, viewMode, columnWidth)
+      : taskXCoordinate(task.start, startDate, viewMode, columnWidth);
 
     const x2 = rtl
-      ? taskXCoordinateRTL(task.start, dates, columnWidth)
-      : taskXCoordinate(task.end, dates, columnWidth);
+      ? svgWidth - taskXCoordinate(task.start, startDate, viewMode, columnWidth)
+      : taskXCoordinate(task.end, startDate, viewMode, columnWidth);
 
     const levelY = rowIndex * fullRowHeight + rowHeight * (comparisonLevel - 1);
 

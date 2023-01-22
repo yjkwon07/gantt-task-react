@@ -1,25 +1,22 @@
-import { Task, TaskCoordinates } from "../types/public-types";
+import { Task, TaskCoordinates, ViewMode } from "../types/public-types";
 import { BarMoveAction } from "../types/gantt-task-actions";
+import { getDatesDiff } from "./get-dates-diff";
+import { getDateByOffset } from "./get-date-by-offset";
 
-export const taskXCoordinate = (xDate: Date, dates: Date[], columnWidth: number) => {
-  const index = dates.findIndex(d => d.getTime() >= xDate.getTime()) - 1;
-
-  const remainderMillis = xDate.getTime() - dates[index].getTime();
-  const percentOfInterval =
-    remainderMillis / (dates[index + 1].getTime() - dates[index].getTime());
-  const x = index * columnWidth + percentOfInterval * columnWidth;
-  return x;
-};
-export const taskXCoordinateRTL = (
+export const taskXCoordinate = (
   xDate: Date,
-  dates: Date[],
-  columnWidth: number
+  startDate: Date,
+  viewMode: ViewMode,
+  columnWidth: number,
 ) => {
-  const index = dates.findIndex(d => d.getTime() <= xDate.getTime()) - 1;
+  const index = getDatesDiff(xDate, startDate, viewMode);
 
-  const remainderMillis = dates[index].getTime() - xDate.getTime();
+  const currentDate = getDateByOffset(startDate, index, viewMode);
+  const nextDate = getDateByOffset(startDate, index + 1, viewMode);
+
+  const remainderMillis = xDate.getTime() - currentDate.getTime();
   const percentOfInterval =
-    remainderMillis / (dates[index + 1].getTime() - dates[index].getTime());
+    remainderMillis / (nextDate.getTime() - currentDate.getTime());
   const x = index * columnWidth + percentOfInterval * columnWidth;
   return x;
 };

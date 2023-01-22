@@ -29,7 +29,7 @@ import {
   ViewMode,
 } from "../../types/public-types";
 import { GridProps } from "../grid/grid";
-import { ganttDateRange, seedDates } from "../../helpers/date-helper";
+import { ganttDateRange } from "../../helpers/date-helper";
 import { CalendarProps } from "../calendar/calendar";
 import { TaskGanttContentProps } from "./task-gantt-content";
 import { TaskListHeaderDefault } from "../task-list/task-list-header";
@@ -71,6 +71,8 @@ import { useVerticalScrollbars } from "./use-vertical-scrollbars";
 import { useHorizontalScrollbars } from "./use-horizontal-scrollbars";
 
 import styles from "./gantt.module.css";
+import { getDateByOffset } from "../../helpers/get-date-by-offset";
+import { getDatesDiff } from "../../helpers/get-dates-diff";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -392,21 +394,11 @@ export const Gantt: React.FC<GanttProps> = ({
     [visibleTasks, comparisonLevels],
   );
 
-  const dates = useMemo(() => {
-    const [startDate, endDate] = ganttDateRange(
-      visibleTasks,
-      viewMode,
-      preStepsCount,
-    );
-
-    const res = seedDates(startDate, endDate, viewMode);
-
-    if (rtl) {
-      return res.reverse();
-    }
-
-    return res;
-  }, [visibleTasks, viewMode, preStepsCount, rtl]);
+  const [startDate, datesLength] = useMemo(() =>  ganttDateRange(
+    visibleTasks,
+    viewMode,
+    preStepsCount,
+  ), [visibleTasks, viewMode, preStepsCount]);
 
   const dateFormats = useMemo<DateFormats>(() => ({
     ...defaultDateFormats,
@@ -428,8 +420,8 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   const svgWidth = useMemo(
-    () => dates.length * distances.columnWidth,
-    [dates, distances],
+    () => datesLength * distances.columnWidth,
+    [datesLength, distances],
   );
 
   const renderedColumnIndexes = useOptimizedList(
@@ -443,7 +435,8 @@ export const Gantt: React.FC<GanttProps> = ({
   const mapTaskToCoordinates = useMemo(() => getMapTaskToCoordinates(
     tasks,
     mapTaskToRowIndex,
-    dates,
+    startDate,
+    viewMode,
     rtl,
     fullRowHeight,
     taskHeight,
@@ -452,14 +445,15 @@ export const Gantt: React.FC<GanttProps> = ({
     svgWidth,
   ), [
     distances,
-    tasks,
-    mapTaskToRowIndex,
-    dates,
-    rtl,
     fullRowHeight,
-    taskHeight,
-    taskYOffset,
+    mapTaskToRowIndex,
+    rtl,
+    startDate,
     svgWidth,
+    taskHeight,
+    tasks,
+    taskYOffset,
+    viewMode,
   ]);
 
   const mapTaskToCoordinatesRef = useLatest(mapTaskToCoordinates);
@@ -532,10 +526,10 @@ export const Gantt: React.FC<GanttProps> = ({
 
   useEffect(() => {
     if (rtl) {
-      setScrollXProgrammatically(dates.length * distances.columnWidth);
+      setScrollXProgrammatically(datesLength * distances.columnWidth);
     }
   }, [
-    dates,
+    datesLength,
     distances,
     rtl,
     setScrollXProgrammatically,
@@ -544,17 +538,12 @@ export const Gantt: React.FC<GanttProps> = ({
 
   useEffect(() => {
     if (
-      viewMode === dateSetup.viewMode &&
       ((viewDate && !currentViewDate) ||
         (viewDate && currentViewDate?.valueOf() !== viewDate.valueOf()))
     ) {
-      const index = dates.findIndex(
-        (d, i) =>
-          viewDate.valueOf() >= d.valueOf() &&
-          i + 1 !== dates.length &&
-          viewDate.valueOf() < dates[i + 1].valueOf()
-      );
-      if (index === -1) {
+      const index = getDatesDiff(viewDate, startDate, viewMode);
+
+      if (index < 0) {
         return;
       }
       setCurrentViewDate(viewDate);
@@ -562,11 +551,10 @@ export const Gantt: React.FC<GanttProps> = ({
     }
   }, [
     currentViewDate,
-    dates,
-    dateSetup.viewMode,
     distances,
     setCurrentViewDate,
     setScrollXProgrammatically,
+    startDate,
     viewDate,
     viewMode,
   ]);
@@ -1126,16 +1114,23 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   const xStep = useMemo(() => {
+    const secondDate = getDateByOffset(startDate, 1, viewMode);
+
     const dateDelta =
-      dates[1].getTime() -
-      dates[0].getTime() -
-      dates[1].getTimezoneOffset() * 60 * 1000 +
-      dates[0].getTimezoneOffset() * 60 * 1000;
+      secondDate.getTime() -
+      startDate.getTime() -
+      secondDate.getTimezoneOffset() * 60 * 1000 +
+      startDate.getTimezoneOffset() * 60 * 1000;
 
     const newXStep = (timeStep * distances.columnWidth) / dateDelta;
 
     return newXStep;
-  }, [distances, dates, timeStep]);
+  }, [
+    distances,
+    startDate,
+    timeStep,
+    viewMode,
+  ]);
 
   const onDateChange = useCallback<OnDateChange>((
     task,
@@ -1502,24 +1497,25 @@ export const Gantt: React.FC<GanttProps> = ({
   }, [tooltipTask, tasksMap, changeInProgress]);
 
   const gridProps: GridProps = useMemo(() => ({
-    dates,
     distances,
     ganttFullHeight,
     isUnknownDates,
     rtl,
+    startDate,
     todayColor: colorStyles.todayColor,
+    viewMode,
   }), [
     colorStyles.todayColor,
-    dates,
     distances,
     ganttFullHeight,
     isUnknownDates,
     rtl,
+    startDate,
+    viewMode,
   ]);
 
   const calendarProps: CalendarProps = useMemo(() => ({
     dateSetup,
-    dates,
     distances,
     isUnknownDates,
     preStepsCount,
@@ -1529,9 +1525,10 @@ export const Gantt: React.FC<GanttProps> = ({
     renderBottomHeader,
     renderedColumnIndexes,
     renderTopHeader,
+    startDate,
+    svgWidth,
   }), [
     dateSetup,
-    dates,
     distances,
     isUnknownDates,
     preStepsCount,
@@ -1541,6 +1538,8 @@ export const Gantt: React.FC<GanttProps> = ({
     renderBottomHeader,
     renderedColumnIndexes,
     renderTopHeader,
+    startDate,
+    svgWidth,
   ]);
 
   const barProps: TaskGanttContentProps = useMemo(() => ({

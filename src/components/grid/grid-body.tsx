@@ -2,21 +2,24 @@ import React, {
   memo,
   useMemo,
 } from "react";
+import { getDatesDiff } from "../../helpers/get-dates-diff";
 
-import { Distances } from "../../types/public-types";
+import type {
+  Distances,
+  ViewMode,
+} from "../../types/public-types";
 
 export type GridBodyProps = {
-  dates: Date[];
   distances: Distances;
   ganttFullHeight: number;
   isUnknownDates: boolean;
+  startDate: Date;
   todayColor: string;
   rtl: boolean;
+  viewMode: ViewMode;
 };
 
 const GridBodyInner: React.FC<GridBodyProps> = ({
-  dates,
-
   distances: {
     columnWidth,
   },
@@ -26,31 +29,15 @@ const GridBodyInner: React.FC<GridBodyProps> = ({
   isUnknownDates,
   todayColor,
   rtl,
+  startDate,
+  viewMode,
 }) => {
   const today = useMemo(() => {
     if (isUnknownDates) {
       return null;
     }
 
-    const now = Date.now();
-
-    const todayIndex = dates.findIndex((date, index) => {
-      if (index === dates.length - 1) {
-        return false;
-      }
-
-      const nextDate = dates[index + 1];
-
-      if (rtl) {
-        return date.getTime() >= now && nextDate.getTime() < now;
-      }
-
-      return date.getTime() < now && nextDate.getTime() >= now;
-    });
-
-    if (todayIndex === -1) {
-      return null;
-    }
+    const todayIndex = getDatesDiff(new Date(), startDate, viewMode);
 
     const tickX = todayIndex * columnWidth;
 
@@ -69,11 +56,11 @@ const GridBodyInner: React.FC<GridBodyProps> = ({
     );
   }, [
     columnWidth,
-    dates,
     ganttFullHeight,
     isUnknownDates,
     rtl,
     todayColor,
+    viewMode,
   ]);
 
   return (
