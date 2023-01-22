@@ -207,6 +207,7 @@ export const useTaskDrag = ({
   const [changeInProgress, setChangeInProgress] = useState<ChangeInProgress | null>(null);
 
   const mapTaskToCoordinatesRef = useLatest(mapTaskToCoordinates);
+  const svgWidthRef = useLatest(svgWidth);
 
   /**
    * Method is Start point of task change
@@ -247,6 +248,52 @@ export const useTaskDrag = ({
 
   const isChangeInProgress = Boolean(changeInProgress);
 
+  const recountOnMove = useCallback((nextX: number) => {
+    const changeInProgressLatest = changeInProgressLatestRef.current;
+
+    if (!changeInProgressLatest) {
+      return;
+    }
+
+    const {
+      task,
+    } = changeInProgressLatest;
+
+    setChangeInProgress((prevValue) => {
+      if (!prevValue) {
+        return null;
+      }
+
+      const nextCoordinates = getNextCoordinates(
+        task,
+        prevValue,
+        nextX,
+        rtl,
+        svgWidthRef.current,
+      );
+
+      const { changedTask: newChangedTask } = handleTaskBySVGMouseEvent(
+        prevValue.action,
+        task,
+        prevValue.initialCoordinates,
+        nextCoordinates,
+        xStep,
+        timeStep,
+        rtl,
+      );
+
+      return {
+        ...prevValue,
+        changedTask: newChangedTask,
+        coordinates: nextCoordinates,
+      };
+    });
+  }, [
+    changeInProgressLatestRef,
+    rtl,
+    svgWidthRef,
+  ]);
+
   useEffect(() => {
     if (!isChangeInProgress) {
       return undefined;
@@ -261,7 +308,11 @@ export const useTaskDrag = ({
       }
      
       if (scrollX > coordinates.x1) {
-        scrollToLeftStep();
+        if (scrollX > 0) {
+          recountOnMove(scrollX);
+          scrollToLeftStep();
+        }
+
         return;
       }
 
@@ -272,7 +323,10 @@ export const useTaskDrag = ({
       }
 
       if (scrollX + svgClientWidth < coordinates.x2) {
-        scrollToRightStep();
+        if (svgWidthRef.current > scrollX + svgClientWidth) {
+          recountOnMove(scrollX + svgClientWidth);
+          scrollToRightStep();
+        }
       }
     }, SCROLL_DELAY);
 
@@ -282,10 +336,12 @@ export const useTaskDrag = ({
   }, [
     changeInProgressLatestRef,
     isChangeInProgress,
+    recountOnMove,
     scrollToLeftStep,
     scrollToRightStep,
     scrollXRef,
     svgClientWidthRef,
+    svgWidthRef,
   ]);
 
   useEffect(() => {
@@ -298,15 +354,9 @@ export const useTaskDrag = ({
     const point = svgNode.createSVGPoint();
 
     const handleMouseMove = (event: MouseEvent) => {
-      const changeInProgressLatest = changeInProgressLatestRef.current;
-
-      if (!point || !changeInProgressLatest) {
+      if (!point) {
         return;
       }
-
-      const {
-        task,
-      } = changeInProgressLatest;
 
       event.preventDefault();
 
@@ -317,35 +367,7 @@ export const useTaskDrag = ({
 
       const nextX = cursor.x;
 
-      setChangeInProgress((prevValue) => {
-        if (!prevValue) {
-          return null;
-        }
-
-        const nextCoordinates = getNextCoordinates(
-          task,
-          prevValue,
-          nextX,
-          rtl,
-          svgWidth,
-        );
-
-        const { changedTask: newChangedTask } = handleTaskBySVGMouseEvent(
-          prevValue.action,
-          task,
-          prevValue.initialCoordinates,
-          nextCoordinates,
-          xStep,
-          timeStep,
-          rtl,
-        );
-
-        return {
-          ...prevValue,
-          changedTask: newChangedTask,
-          coordinates: nextCoordinates,
-        };
-      });
+      recountOnMove(nextX);
     };
 
     const handleMouseUp = async (event: MouseEvent) => {
@@ -431,9 +453,9 @@ export const useTaskDrag = ({
     onDateChange,
     ganttSVGRef,
     getMetadata,
+    recountOnMove,
     rtl,
     setChangeInProgress,
-    svgWidth,
     tasksMap,
     changeInProgressLatestRef,
   ]);

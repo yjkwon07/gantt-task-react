@@ -28,6 +28,12 @@ export const useHorizontalScrollbars = (): [
   const isLockedRef = useRef(false);
 
   const setScrollXProgrammatically = useCallback((nextScrollX: number) => {
+    const scrollEl = verticalGanttContainerRef.current || horizontalScrollbarRef.current;
+
+    if (!scrollEl) {
+      return;
+    }
+
     isLockedRef.current = true;
 
     if (verticalGanttContainerRef.current) {
@@ -38,7 +44,12 @@ export const useHorizontalScrollbars = (): [
       horizontalScrollbarRef.current.scrollLeft = nextScrollX;
     }
 
-    setScrollX(nextScrollX);
+    setScrollX(
+      Math.min(
+        Math.max(nextScrollX, 0),
+        scrollEl.scrollWidth,
+      ),
+    );
 
     setTimeout(() => {
       isLockedRef.current = false;
