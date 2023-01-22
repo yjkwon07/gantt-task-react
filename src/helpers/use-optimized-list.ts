@@ -23,6 +23,10 @@ export type OptimizedListParams = [
    * is scrolled to end
    */
   boolean,
+  /**
+   * client width/height of element
+   */
+  number,
 ];
 
 const DELTA = 5;
@@ -50,7 +54,13 @@ const getStartAndEnd = (
   const isStartOfScroll = scrollValue < DELTA;
   const isEndOfScroll = scrollValue + fullValue > maxScrollValue - DELTA;
 
-  return [firstIndex, lastIndex, isStartOfScroll, isEndOfScroll];
+  return [
+    firstIndex,
+    lastIndex,
+    isStartOfScroll,
+    isEndOfScroll,
+    fullValue,
+  ];
 };
 
 export const useOptimizedList = (

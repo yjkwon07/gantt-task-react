@@ -209,9 +209,11 @@ export const Gantt: React.FC<GanttProps> = ({
     scrollX,
     setScrollXProgrammatically,
     onVerticalScrollbarScrollX,
-    // scrollToLeftStep,
-    // scrollToRightStep,
+    scrollToLeftStep,
+    scrollToRightStep,
   ] = useHorizontalScrollbars();
+
+  const scrollXRef = useLatest(scrollX);
 
   const [closedTasks, setClosedTasks] = useState(() => getInitialClosedTasks(tasks));
 
@@ -435,6 +437,8 @@ export const Gantt: React.FC<GanttProps> = ({
     'scrollLeft',
     distances.columnWidth,
   );
+
+  const svgClientWidthRef = useLatest(renderedColumnIndexes && renderedColumnIndexes[4]);
 
   const mapTaskToCoordinates = useMemo(() => getMapTaskToCoordinates(
     tasks,
@@ -1429,6 +1433,10 @@ export const Gantt: React.FC<GanttProps> = ({
     onDateChange,
     onProgressChange,
     rtl,
+    scrollToLeftStep,
+    scrollToRightStep,
+    scrollXRef,
+    svgClientWidthRef,
     svgWidth,
     tasksMap,
     timeStep,
@@ -1699,6 +1707,7 @@ export const Gantt: React.FC<GanttProps> = ({
           ganttFullHeight={ganttFullHeight}
           ganttHeight={distances.ganttHeight}
           headerHeight={distances.headerHeight}
+          isChangeInProgress={Boolean(changeInProgress)}
           onScroll={onVerticalScrollbarScrollY}
           rtl={rtl}
           verticalScrollbarRef={verticalScrollbarRef}

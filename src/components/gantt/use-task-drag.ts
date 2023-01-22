@@ -30,6 +30,8 @@ import {
   TaskMapByLevel,
 } from "../../types/public-types";
 
+const SCROLL_DELAY = 25;
+
 const getNextCoordinates = (
   task: Task,
   prevValue: ChangeInProgress,
@@ -170,6 +172,10 @@ type UseTaskDragParams = {
   onDateChange?: OnDateChange;
   onProgressChange?: OnProgressChange;
   rtl: boolean;
+  scrollToLeftStep: () => void;
+  scrollToRightStep: () => void;
+  scrollXRef: RefObject<number>;
+  svgClientWidthRef: RefObject<number | null>;
   svgWidth: number;
   tasksMap: TaskMapByLevel;
   timeStep: number;
@@ -186,6 +192,10 @@ export const useTaskDrag = ({
   onDateChange,
   onProgressChange,
   rtl,
+  scrollToLeftStep,
+  scrollToRightStep,
+  scrollXRef,
+  svgClientWidthRef,
   svgWidth,
   tasksMap,
   timeStep,
@@ -234,6 +244,49 @@ export const useTaskDrag = ({
 
   const changeInProgressTask = changeInProgress?.task;
   const changeInProgressLatestRef = useLatest(changeInProgress);
+
+  const isChangeInProgress = Boolean(changeInProgress);
+
+  useEffect(() => {
+    if (!isChangeInProgress) {
+      return undefined;
+    }
+
+    const intervalId = setInterval(() => {
+      const coordinates = changeInProgressLatestRef.current?.coordinates;
+      const scrollX = scrollXRef.current;
+
+      if (!coordinates || scrollX === null) {
+        return;
+      }
+     
+      if (scrollX > coordinates.x1) {
+        scrollToLeftStep();
+        return;
+      }
+
+      const svgClientWidth = svgClientWidthRef.current;
+
+      if (svgClientWidth === null) {
+        return;
+      }
+
+      if (scrollX + svgClientWidth < coordinates.x2) {
+        scrollToRightStep();
+      }
+    }, SCROLL_DELAY);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [
+    changeInProgressLatestRef,
+    isChangeInProgress,
+    scrollToLeftStep,
+    scrollToRightStep,
+    scrollXRef,
+    svgClientWidthRef,
+  ]);
 
   useEffect(() => {
     const svgNode = ganttSVGRef.current;
