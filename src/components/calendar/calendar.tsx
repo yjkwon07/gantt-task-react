@@ -27,7 +27,6 @@ export type CalendarProps = {
   dateSetup: DateSetup;
   distances: Distances;
   isUnknownDates: boolean;
-  preStepsCount: number;
   rtl: boolean;
   fontFamily: string;
   fontSize: string;
@@ -50,7 +49,6 @@ export const Calendar: React.FC<CalendarProps> = ({
   },
 
   isUnknownDates,
-  preStepsCount,
   rtl,
   fontFamily,
   fontSize,
@@ -90,7 +88,7 @@ export const Calendar: React.FC<CalendarProps> = ({
 
     const topValues: ReactNode[] = [];
     const bottomValues: ReactNode[] = [];
-    const topDefaultHeight = headerHeight * 0.5;
+
     for (let i = start; i <= end; i++) {
       const date = getDate(i);
 
@@ -113,21 +111,16 @@ export const Calendar: React.FC<CalendarProps> = ({
         )
       ) {
         const topValue = date.getFullYear().toString();
-        let xText: number;
-        if (rtl) {
-          xText = (6 + i + date.getFullYear() + 1) * columnWidth;
-        } else {
-          xText = (6 + i - date.getFullYear()) * columnWidth;
-        }
+
         topValues.push(
           <TopPartOfCalendar
             key={topValue}
-            value={topValue}
+            value={null}
             x1Line={columnWidth * i}
             y1Line={0}
             y2Line={headerHeight}
-            xText={xText}
-            yText={topDefaultHeight * 0.9}
+            xText={0}
+            yText={0}
           />
         );
       }
@@ -284,10 +277,12 @@ export const Calendar: React.FC<CalendarProps> = ({
         </text>
       );
 
+      const monthKey = `${month}/${fullYear}`;
+
       if (
-        !isUnknownDates && !renderedMonths.has(`${month}/${fullYear}`)
+        !isUnknownDates && !renderedMonths.has(monthKey)
       ) {
-        renderedMonths.add(`${month}/${fullYear}`);
+        renderedMonths.add(monthKey);
         const topValue = renderTopHeaderByDate(date);
 
         const startIndex = i + 1 - date.getDate();
@@ -342,21 +337,19 @@ export const Calendar: React.FC<CalendarProps> = ({
       );
 
       const dayOfMonth = date.getDate();
+      const prevDate = getDate(i - 1);
 
       if (
         !isUnknownDates && (
-          i === start || dayOfMonth !== getDate(i - 1).getDate()
+          dayOfMonth !== prevDate.getDate()
         )
       ) {
         const topValue = renderTopHeaderByDate(date);
-
-        const widthMultiplier = i === 0
-          ? (preStepsCount - ticks) % ticks
-          : i;
+        const widthMultiplier = i - 1;
 
         topValues.push(
           <TopPartOfCalendar
-            key={`${dayOfMonth}_${date.getMonth()}_${date.getFullYear() }`}
+            key={`${prevDate.getDate()}_${prevDate.getMonth()}_${prevDate.getFullYear() }`}
             value={topValue}
             x1Line={columnWidth * widthMultiplier + ticks * columnWidth}
             y1Line={0}
@@ -381,12 +374,11 @@ export const Calendar: React.FC<CalendarProps> = ({
     const topValues: ReactNode[] = [];
     const bottomValues: ReactNode[] = [];
     const topDefaultHeight = headerHeight * 0.5;
+
+    const renderedDates = new Set<string>();
+
     for (let i = start; i <= end; i++) {
       const date = getDate(i);
-
-      if (!date) {
-        continue;
-      }
 
       const bottomValue = renderBottomHeaderByDate(date, i);
 
@@ -404,18 +396,18 @@ export const Calendar: React.FC<CalendarProps> = ({
 
       const dayOfMonth = date.getDate();
 
-      if (
-        !isUnknownDates && (
-          i !== start && dayOfMonth !== getDate(i - 1).getDate()
-        )
-      ) {
-        const displayDate = getDate(i - 1);
-        const topValue = renderTopHeaderByDate(displayDate);
+      const dateKey = `${dayOfMonth}/${date.getMonth()}/${date.getFullYear()}`;
 
-        const topPosition = (date.getHours() - 24) / 2;
+      if (!isUnknownDates && !renderedDates.has(dateKey)) {
+        renderedDates.add(dateKey);
+
+        const topValue = renderTopHeaderByDate(date);
+
+        const topPosition = date.getHours() / 2;
+        console.log(date.getHours());
         topValues.push(
           <TopPartOfCalendar
-            key={`${displayDate.getDate()}_${displayDate.getMonth()}_${displayDate.getFullYear()}`}
+            key={dateKey}
             value={topValue}
             x1Line={columnWidth * i}
             y1Line={0}

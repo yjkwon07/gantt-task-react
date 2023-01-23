@@ -6,7 +6,7 @@ import type {
 import styles from "./calendar.module.css";
 
 type TopPartOfCalendarProps = {
-  value: ReactNode;
+  value: ReactNode | null;
   x1Line: number;
   y1Line: number;
   y2Line: number;
@@ -32,13 +32,15 @@ export const TopPartOfCalendar: React.FC<TopPartOfCalendarProps> = ({
         className={styles.calendarTopTick}
       />
 
-      <text
-        y={yText}
-        x={xText}
-        className={styles.calendarTopText}
-      >
-        {value}
-      </text>
+      {value !== null && (
+        <text
+          y={yText}
+          x={xText}
+          className={styles.calendarTopText}
+        >
+          {value}
+        </text>
+      )}
     </g>
   );
 };
