@@ -126,6 +126,7 @@ export interface Distances {
   barFill: number;
   columnWidth: number;
   dateCellWidth: number;
+  dependenciesCellWidth: number;
   dependencyFixHeight: number;
   dependencyFixIndent: number;
   dependencyFixWidth: number;
@@ -502,6 +503,7 @@ export interface TaskListTableProps {
   columnResizeEvent: ColumnResizeEvent | null;
   columns: readonly Column[];
   dateSetup: DateSetup;
+  dependencyMap: DependencyMap;
   distances: Distances;
   fontFamily: string;
   fontSize: string;
@@ -681,18 +683,19 @@ export type GetMetadata = (task: TaskOrEmpty) => ChangeMetadata;
 export type ColumnData = {
   canMoveTasks: boolean;
   dateSetup: DateSetup;
-  distances: Distances;
-  isShowTaskNumbers: boolean;
-  hasChildren: boolean;
-  isClosed: boolean;
   depth: number;
-  icons?: Partial<Icons>;
-  indexStr: string;
-  task: TaskOrEmpty;
-  onExpanderClick: (task: Task) => void;
+  dependencies: Task[];
+  distances: Distances;
   handleAddTask: (task: Task) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
+  hasChildren: boolean;
+  icons?: Partial<Icons>;
+  indexStr: string;
+  isClosed: boolean;
+  isShowTaskNumbers: boolean;
+  onExpanderClick: (task: Task) => void;
+  task: TaskOrEmpty;
 };
 
 export type ColumnProps = {

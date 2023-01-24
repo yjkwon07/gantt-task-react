@@ -16,6 +16,7 @@ import {
   ColumnData,
   ColumnResizeEvent,
   DateSetup,
+  DependencyMap,
   Distances,
   Icons,
   Task,
@@ -30,6 +31,7 @@ type TaskListTableRowProps = {
   columnResizeEvent: ColumnResizeEvent | null;
   columns: readonly Column[];
   dateSetup: DateSetup;
+  dependencyMap: DependencyMap;
   depth: number;
   distances: Distances;
   fullRowHeight: number;
@@ -55,6 +57,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   columnResizeEvent,
   columns,
   dateSetup,
+  dependencyMap,
   depth,
   distances,
   fullRowHeight,
@@ -122,9 +125,26 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     }),
   }, [id, comparisonLevel, handleMoveTaskAfter, task]);
 
+  const dependencies = useMemo<Task[]>(() => {
+    const dependenciesAtLevel = dependencyMap.get(comparisonLevel);
+
+    if (!dependenciesAtLevel) {
+      return [];
+    }
+
+    const dependenciesByTask = dependenciesAtLevel.get(id);
+
+    if (!dependenciesByTask) {
+      return [];
+    }
+
+    return dependenciesByTask.map(({ source }) => source);
+  }, [comparisonLevel, dependencyMap, id]);
+
   const columnData: ColumnData = useMemo(() => ({
     canMoveTasks,
     dateSetup,
+    dependencies,
     depth,
     distances,
     handleDeteleTask,
@@ -140,6 +160,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   }), [
     canMoveTasks,
     dateSetup,
+    dependencies,
     depth,
     distances,
     handleDeteleTask,

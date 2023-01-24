@@ -16,6 +16,7 @@ import {
   Column,
   ColumnResizeEvent,
   DateSetup,
+  DependencyMap,
   Distances,
   Icons,
   MapTaskToNestedIndex,
@@ -39,6 +40,7 @@ export type TaskListProps = {
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
   dateSetup: DateSetup;
+  dependencyMap: DependencyMap;
   distances: Distances;
   fontFamily: string;
   fontSize: string;
@@ -76,6 +78,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
   columnResizeEvent,
   columns,
   dateSetup,
+  dependencyMap,
   distances,
   fontFamily,
   fontSize,
@@ -192,6 +195,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
               columnResizeEvent={columnResizeEvent}
               columns={columns}
               dateSetup={dateSetup}
+              dependencyMap={dependencyMap}
               distances={distances}
               fontFamily={fontFamily}
               fontSize={fontSize}

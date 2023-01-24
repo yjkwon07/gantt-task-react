@@ -19,6 +19,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   columns,
   columnResizeEvent,
   dateSetup,
+  dependencyMap,
   distances,
   fontFamily,
   fontSize,
@@ -85,6 +86,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
           columnResizeEvent={columnResizeEvent}
           columns={columns}
           dateSetup={dateSetup}
+          dependencyMap={dependencyMap}
           depth={depth}
           distances={distances}
           fullRowHeight={fullRowHeight}

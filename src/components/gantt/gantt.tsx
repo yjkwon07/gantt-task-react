@@ -73,6 +73,7 @@ import { useHorizontalScrollbars } from "./use-horizontal-scrollbars";
 import styles from "./gantt.module.css";
 import { getDateByOffset } from "../../helpers/get-date-by-offset";
 import { getDatesDiff } from "../../helpers/get-dates-diff";
+import { DependenciesColumn } from "../task-list/columns/dependencies-column";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -125,6 +126,7 @@ const defaultDistances: Distances = {
   barFill: 60,
   columnWidth: 60,
   dateCellWidth: 220,
+  dependenciesCellWidth: 120,
   dependencyFixHeight: 20,
   dependencyFixIndent: 50,
   dependencyFixWidth: 20,
@@ -695,6 +697,7 @@ export const Gantt: React.FC<GanttProps> = ({
     const {
       titleCellWidth,
       dateCellWidth,
+      dependenciesCellWidth,
       actionColumnWidth,
     } = distances;
 
@@ -715,6 +718,12 @@ export const Gantt: React.FC<GanttProps> = ({
         component: DateEndColumn,
         width: dateCellWidth,
         title: "To",
+      },
+
+      {
+        component: DependenciesColumn,
+        width: dependenciesCellWidth,
+        title: "Dependencies",
       },
 
       {
@@ -1652,6 +1661,7 @@ export const Gantt: React.FC<GanttProps> = ({
     columnResizeEvent,
     columns,
     dateSetup,
+    dependencyMap,
     distances,
     fontFamily,
     fontSize,
