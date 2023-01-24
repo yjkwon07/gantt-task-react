@@ -1496,7 +1496,20 @@ export const Gantt: React.FC<GanttProps> = ({
     return resTask;
   }, [tooltipTask, tasksMap, changeInProgress]);
 
+  const additionalLeftSpace = changeInProgress?.additionalLeftSpace || 0;
+  const additionalRightSpace = changeInProgress?.additionalRightSpace || 0;
+
+  const fullSvgWidth = useMemo(
+    () => svgWidth + additionalLeftSpace + additionalRightSpace,
+    [
+      additionalLeftSpace,
+      additionalRightSpace,
+      svgWidth,
+    ],
+  );
+
   const gridProps: GridProps = useMemo(() => ({
+    additionalLeftSpace,
     distances,
     ganttFullHeight,
     isUnknownDates,
@@ -1505,6 +1518,7 @@ export const Gantt: React.FC<GanttProps> = ({
     todayColor: colorStyles.todayColor,
     viewMode,
   }), [
+    additionalLeftSpace,
     colorStyles.todayColor,
     distances,
     ganttFullHeight,
@@ -1515,32 +1529,36 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   const calendarProps: CalendarProps = useMemo(() => ({
+    additionalLeftSpace,
     dateSetup,
     distances,
     isUnknownDates,
     fontFamily,
     fontSize,
+    fullSvgWidth,
     rtl,
     renderBottomHeader,
     renderedColumnIndexes,
     renderTopHeader,
     startDate,
-    svgWidth,
   }), [
+    additionalLeftSpace,
     dateSetup,
     distances,
     isUnknownDates,
     fontFamily,
     fontSize,
+    fullSvgWidth,
     rtl,
     renderBottomHeader,
     renderedColumnIndexes,
     renderTopHeader,
     startDate,
-    svgWidth,
   ]);
 
   const barProps: TaskGanttContentProps = useMemo(() => ({
+    additionalLeftSpace: changeInProgress?.additionalLeftSpace || null,
+    additionalRightSpace: changeInProgress?.additionalRightSpace || null,
     childTasksMap,
     dependentMap,
     distances,
@@ -1677,12 +1695,12 @@ export const Gantt: React.FC<GanttProps> = ({
           barProps={barProps}
           calendarProps={calendarProps}
           fullRowHeight={fullRowHeight}
+          fullSvgWidth={fullSvgWidth}
           ganttFullHeight={ganttFullHeight}
           ganttHeight={distances.ganttHeight}
           ganttSVGRef={ganttSVGRef}
           gridProps={gridProps}
           horizontalContainerRef={horizontalContainerRef}
-          svgWidth={svgWidth}
           verticalGanttContainerRef={verticalGanttContainerRef}
         />
 

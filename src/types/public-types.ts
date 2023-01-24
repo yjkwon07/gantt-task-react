@@ -658,10 +658,20 @@ export type MapTaskToCoordinates = Map<number, Map<string, TaskCoordinates>>;
 
 export type ChangeInProgress = {
   action: BarMoveAction;
+  additionalLeftSpace: number;
+  additionalRightSpace: number;
   changedTask: Task;
   coordinates: TaskCoordinates;
   initialCoordinates: TaskCoordinates;
+  /**
+   * distance between coordinates.x2 and moving point
+   */
+  restStartXInTask: number;
   startX: number;
+  /**
+   * distance between coordinates.x1 and moving point
+   */
+  startXInTask: number;
   task: Task;
 };
 

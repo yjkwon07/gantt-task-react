@@ -10,6 +10,8 @@ import {
 
 import useLatest from "use-latest";
 
+import { SCROLL_STEP } from "../../constants";
+
 import { handleTaskBySVGMouseEvent } from "../../helpers/bar-helper";
 
 import { getTaskCoordinates } from "../../helpers/get-task-coordinates";
@@ -37,10 +39,10 @@ const getNextCoordinates = (
   prevValue: ChangeInProgress,
   nextX: number,
   rtl: boolean,
-  svgWidth: number,
 ): TaskCoordinates => {
   const {
     action,
+    additionalLeftSpace,
     initialCoordinates,
     startX,
   } = prevValue;
@@ -56,26 +58,20 @@ const getNextCoordinates = (
         if (rtl) {
           return {
             ...prevValue.coordinates,
-            containerX: 0,
-            containerWidth: svgWidth,
-            innerX1: initialCoordinates.x1,
-            innerX2: nextX2,
+            innerX2: nextX2 + additionalLeftSpace,
             progressWidth,
             progressX: initialCoordinates.progressX + x2Diff,
             width: initialCoordinates.width + x2Diff,
-            x2: nextX2,
+            x2: nextX2 - additionalLeftSpace,
           };
         }
 
         return {
           ...prevValue.coordinates,
-          containerX: 0,
-          containerWidth: svgWidth,
-          innerX1: initialCoordinates.x1,
-          innerX2: nextX2,
+          innerX2: nextX2 + additionalLeftSpace,
           progressWidth,
           width: initialCoordinates.width + x2Diff,
-          x2: nextX2,
+          x2: nextX2 - additionalLeftSpace,
         };
       }
 
@@ -87,13 +83,9 @@ const getNextCoordinates = (
         const progressWidth = (initialCoordinates.x2 - nextX1) * task.progress * 0.01;
 
         if (rtl) {
-
           return {
             ...prevValue.coordinates,
-            containerX: 0,
-            containerWidth: svgWidth,
-            innerX1: nextX1,
-            innerX2: initialCoordinates.x2,
+            innerX1: nextX1 + additionalLeftSpace,
             progressWidth,
             progressX: initialCoordinates.progressX - x1Diff,
             width: initialCoordinates.width - x1Diff,
@@ -103,10 +95,7 @@ const getNextCoordinates = (
 
         return {
           ...prevValue.coordinates,
-          containerX: 0,
-          containerWidth: svgWidth,
-          innerX1: nextX1,
-          innerX2: initialCoordinates.x2,
+          innerX1: nextX1 + additionalLeftSpace,
           progressX: nextX1,
           progressWidth,
           width: initialCoordinates.width - x1Diff,
@@ -147,10 +136,8 @@ const getNextCoordinates = (
 
         return {
           ...prevValue.coordinates,
-          containerX: 0,
-          containerWidth: svgWidth,
-          innerX1: nextX1,
-          innerX2: nextX2,
+          innerX1: nextX1 + additionalLeftSpace,
+          innerX2: nextX2 + additionalLeftSpace,
           progressX: initialCoordinates.progressX + diff,
           x1: nextX1,
           x2: nextX2,
@@ -232,15 +219,26 @@ export const useTaskDrag = ({
 
     setChangeInProgress({
       action,
+      additionalLeftSpace: 0,
+      additionalRightSpace: 0,
       changedTask: task,
-      coordinates,
+      coordinates: {
+        ...coordinates,
+        containerX: 0,
+        containerWidth: svgWidthRef.current,
+        innerX1: coordinates.x1,
+        innerX2: coordinates.x2,
+      },
       initialCoordinates: coordinates,
+      restStartXInTask: coordinates.x2 - cursor.x,
       startX: cursor.x,
+      startXInTask: cursor.x - coordinates.x1,
       task,
     });
   }, [
     ganttSVGRef,
     mapTaskToCoordinatesRef,
+    svgWidthRef,
   ]);
 
   const changeInProgressTask = changeInProgress?.task;
@@ -257,6 +255,7 @@ export const useTaskDrag = ({
 
     const {
       task,
+      additionalLeftSpace,
     } = changeInProgressLatest;
 
     setChangeInProgress((prevValue) => {
@@ -267,9 +266,8 @@ export const useTaskDrag = ({
       const nextCoordinates = getNextCoordinates(
         task,
         prevValue,
-        nextX,
+        nextX - additionalLeftSpace,
         rtl,
-        svgWidthRef.current,
       );
 
       const { changedTask: newChangedTask } = handleTaskBySVGMouseEvent(
@@ -300,14 +298,64 @@ export const useTaskDrag = ({
     }
 
     const intervalId = setInterval(() => {
-      const coordinates = changeInProgressLatestRef.current?.coordinates;
-      const scrollX = scrollXRef.current;
+      const currentChangeInProgress = changeInProgressLatestRef.current;
 
-      if (!coordinates || scrollX === null) {
+      const scrollX = scrollXRef.current;
+      
+      if (!currentChangeInProgress || scrollX === null) {
         return;
       }
-     
-      if (scrollX > coordinates.x1) {
+
+      const {
+        action,
+        coordinates,
+        restStartXInTask,
+        startXInTask,
+      } = currentChangeInProgress;
+
+      if (
+        (action === "start" || action === "move")
+        && (scrollX > coordinates.innerX1 - SCROLL_STEP * 2)
+      ) {
+        if (scrollX > 0) {
+          recountOnMove(action === "move" ? scrollX + startXInTask : scrollX);
+          scrollToLeftStep();
+        } else {
+          setChangeInProgress((prevValue) => {
+            if (!prevValue) {
+              return null;
+            }
+
+            return {
+              ...prevValue,
+              additionalLeftSpace: prevValue.additionalLeftSpace + SCROLL_STEP,
+              coordinates: {
+                ...prevValue.coordinates,
+                containerX: prevValue.coordinates.containerX - SCROLL_STEP,
+                containerWidth: prevValue.coordinates.containerWidth + SCROLL_STEP,
+                innerX2: prevValue.action === "start"
+                  ? prevValue.coordinates.innerX2 + SCROLL_STEP
+                  : prevValue.coordinates.innerX2,
+                progressX: prevValue.coordinates.progressX - SCROLL_STEP,
+                width: prevValue.action === "start"
+                  ? prevValue.coordinates.width + SCROLL_STEP
+                  : prevValue.coordinates.width,
+                x1: prevValue.coordinates.x1 - SCROLL_STEP,
+                x2: prevValue.action === "move"
+                  ? prevValue.coordinates.x2 - SCROLL_STEP
+                  : prevValue.coordinates.x2,
+              },
+            };
+          });
+        }
+
+        return;
+      }
+
+      if (
+        action === "end"
+        && (scrollX > coordinates.innerX2 - SCROLL_STEP * 3)
+      ) {
         if (scrollX > 0) {
           recountOnMove(scrollX);
           scrollToLeftStep();
@@ -322,7 +370,50 @@ export const useTaskDrag = ({
         return;
       }
 
-      if (scrollX + svgClientWidth < coordinates.x2) {
+      if (
+        (action === "end" || action === "move")
+        && (scrollX + svgClientWidth < coordinates.innerX2 + SCROLL_STEP * 3)
+      ) {
+        if (svgWidthRef.current > scrollX + svgClientWidth) {
+          recountOnMove(action === "move"
+            ? scrollX + svgClientWidth - restStartXInTask
+            : scrollX + svgClientWidth);
+          scrollToRightStep();
+        } else {
+          setChangeInProgress((prevValue) => {
+            if (!prevValue) {
+              return null;
+            }
+
+            return {
+              ...prevValue,
+              additionalRightSpace: prevValue.additionalRightSpace + SCROLL_STEP,
+              coordinates: {
+                ...prevValue.coordinates,
+                containerWidth: prevValue.coordinates.containerWidth + SCROLL_STEP,
+                innerX1: prevValue.action === "move"
+                  ? prevValue.coordinates.innerX1 + SCROLL_STEP
+                  : prevValue.coordinates.innerX1,
+                innerX2: prevValue.coordinates.innerX2 + SCROLL_STEP,
+                progressX: prevValue.coordinates.progressX + SCROLL_STEP,
+                width: prevValue.action === "end"
+                  ? prevValue.coordinates.width + SCROLL_STEP
+                  : prevValue.coordinates.width,
+                x1: prevValue.action === "move"
+                  ? prevValue.coordinates.x1 + SCROLL_STEP
+                  : prevValue.coordinates.x1,
+                x2: prevValue.coordinates.x2 + SCROLL_STEP,
+              },
+            };
+          });
+          scrollToRightStep();
+        }
+      }
+
+      if (
+        action === "start"
+        && (scrollX + svgClientWidth < coordinates.innerX1 + SCROLL_STEP * 2)
+      ) {
         if (svgWidthRef.current > scrollX + svgClientWidth) {
           recountOnMove(scrollX + svgClientWidth);
           scrollToRightStep();

@@ -10,6 +10,8 @@ import type {
 
 import useLatest from 'use-latest';
 
+import { SCROLL_STEP } from '../../constants';
+
 export const useVerticalScrollbars = (): [
   RefObject<HTMLDivElement>,
   RefObject<HTMLDivElement>,
@@ -70,14 +72,14 @@ export const useVerticalScrollbars = (): [
   }, []);
 
   const scrollToTopStep = useCallback(() => {
-    setScrollYProgrammatically(scrollYRef.current - 10);
+    setScrollYProgrammatically(scrollYRef.current - SCROLL_STEP);
   }, [
     setScrollYProgrammatically,
     scrollYRef,
   ]);
 
   const scrollToBottomStep = useCallback(() => {
-    setScrollYProgrammatically(scrollYRef.current + 10);
+    setScrollYProgrammatically(scrollYRef.current + SCROLL_STEP);
   }, [
     setScrollYProgrammatically,
     scrollYRef,

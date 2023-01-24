@@ -10,6 +10,7 @@ import type {
 } from "../../types/public-types";
 
 export type GridBodyProps = {
+  additionalLeftSpace: number;
   distances: Distances;
   ganttFullHeight: number;
   isUnknownDates: boolean;
@@ -20,6 +21,7 @@ export type GridBodyProps = {
 };
 
 const GridBodyInner: React.FC<GridBodyProps> = ({
+  additionalLeftSpace,
   distances: {
     columnWidth,
   },
@@ -47,7 +49,7 @@ const GridBodyInner: React.FC<GridBodyProps> = ({
 
     return (
       <rect
-        x={x}
+        x={additionalLeftSpace + x}
         y={0}
         width={columnWidth}
         height={ganttFullHeight}
@@ -55,10 +57,12 @@ const GridBodyInner: React.FC<GridBodyProps> = ({
       />
     );
   }, [
+    additionalLeftSpace,
     columnWidth,
     ganttFullHeight,
     isUnknownDates,
     rtl,
+    startDate,
     todayColor,
     viewMode,
   ]);

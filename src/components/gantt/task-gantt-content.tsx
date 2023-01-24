@@ -34,6 +34,8 @@ import { checkTaskHasDependencyWarning } from "../../helpers/check-task-has-depe
 import type { OptimizedListParams } from "../../helpers/use-optimized-list";
 
 export type TaskGanttContentProps = {
+  additionalLeftSpace: number | null;
+  additionalRightSpace: number | null;
   criticalPaths: CriticalPaths | null;
   dependentMap: DependentMap;
   distances: Distances;
@@ -73,6 +75,8 @@ export type TaskGanttContentProps = {
 } & Omit<EventOption, 'onArrowDoubleClick'>;
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
+  additionalLeftSpace,
+  additionalRightSpace,
   childTasksMap,
   dependentMap,
   distances,
@@ -165,7 +169,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
 
       tasksRes.push(
         <svg
-          x={containerX}
+          x={containerX + (additionalLeftSpace || 0)}
           y={levelY}
           width={containerWidth}
           height={fullRowHeight}
@@ -267,7 +271,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   
             arrowsRes.push(
               <svg
-                x={containerX}
+                x={containerX + (additionalLeftSpace || 0)}
                 y={containerY}
                 width={containerWidth}
                 height={containerHeight}
@@ -350,7 +354,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   
             arrowsRes.push(
               <svg
-                x={containerX}
+                x={containerX + (additionalLeftSpace || 0)}
                 y={containerY}
                 width={containerWidth}
                 height={containerHeight}
@@ -386,6 +390,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
 
     return [tasksRes, arrowsRes];
   }, [
+    additionalLeftSpace,
+    additionalRightSpace,
     dependencyMap,
     dependentMap,
     getTaskCoordinates,

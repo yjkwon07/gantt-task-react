@@ -3,6 +3,7 @@ import React, {
   useMemo,
 } from "react";
 import type {
+  CSSProperties,
   RefObject,
 } from "react";
 
@@ -15,19 +16,24 @@ export type TaskGanttProps = {
   barProps: TaskGanttContentProps;
   calendarProps: CalendarProps;
   fullRowHeight: number;
+  fullSvgWidth: number;
   ganttFullHeight: number;
   ganttHeight: number;
   ganttSVGRef: RefObject<SVGSVGElement>;
   gridProps: GridProps;
   horizontalContainerRef: RefObject<HTMLDivElement>;
-  svgWidth: number;
   verticalGanttContainerRef: RefObject<HTMLDivElement>;
 };
 
 const TaskGanttInner: React.FC<TaskGanttProps> = ({
   barProps,
+  barProps: {
+    additionalLeftSpace,
+  },
+
   calendarProps,
   fullRowHeight,
+  fullSvgWidth,
   ganttFullHeight,
   ganttHeight,
   ganttSVGRef,
@@ -38,31 +44,32 @@ const TaskGanttInner: React.FC<TaskGanttProps> = ({
     },
   },
   horizontalContainerRef,
-  svgWidth,
   verticalGanttContainerRef,
 }) => {
-  const containerStyle = useMemo(() => ({
+  const containerStyle = useMemo<CSSProperties>(() => ({
     height: ganttHeight || ganttFullHeight,
-    width: svgWidth,
+    width: fullSvgWidth,
   }), [
+    fullSvgWidth,
     ganttHeight,
     ganttFullHeight,
-    svgWidth,
   ]);
 
-  const gridStyle = useMemo(() => ({
+  const gridStyle = useMemo<CSSProperties>(() => ({
     height: ganttFullHeight,
-    width: svgWidth,
+    width: fullSvgWidth,
     backgroundSize: `${columnWidth}px ${fullRowHeight * 2}px`,
+    backgroundPositionX: additionalLeftSpace || undefined,
     backgroundImage: [
       `linear-gradient(to right, #ebeff2 1px, transparent 2px)`,
       `linear-gradient(to bottom, transparent ${fullRowHeight}px, #f5f5f5 ${fullRowHeight}px)`,
     ].join(', '),
   }), [
+    additionalLeftSpace,
     columnWidth,
     fullRowHeight,
+    fullSvgWidth,
     ganttFullHeight,
-    svgWidth,
   ]);
 
   return (
@@ -73,7 +80,7 @@ const TaskGanttInner: React.FC<TaskGanttProps> = ({
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width={svgWidth}
+        width={fullSvgWidth}
         height={calendarProps.distances.headerHeight}
         fontFamily={barProps.fontFamily}
       >
@@ -88,7 +95,7 @@ const TaskGanttInner: React.FC<TaskGanttProps> = ({
         <div style={gridStyle}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width={svgWidth}
+            width={fullSvgWidth}
             height={ganttFullHeight}
             fontFamily={barProps.fontFamily}
             ref={ganttSVGRef}

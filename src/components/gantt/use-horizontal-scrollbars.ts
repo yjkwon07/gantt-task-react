@@ -10,6 +10,8 @@ import type {
 
 import useLatest from 'use-latest';
 
+import { SCROLL_STEP } from '../../constants';
+
 export const useHorizontalScrollbars = (): [
   RefObject<HTMLDivElement>,
   RefObject<HTMLDivElement>,
@@ -71,14 +73,14 @@ export const useHorizontalScrollbars = (): [
   }, []);
 
   const scrollToLeftStep = useCallback(() => {
-    setScrollXProgrammatically(scrollXRef.current - 10);
+    setScrollXProgrammatically(scrollXRef.current - SCROLL_STEP);
   }, [
     setScrollXProgrammatically,
     scrollXRef,
   ]);
 
   const scrollToRightStep = useCallback(() => {
-    setScrollXProgrammatically(scrollXRef.current + 10);
+    setScrollXProgrammatically(scrollXRef.current + SCROLL_STEP);
   }, [
     setScrollXProgrammatically,
     scrollXRef,
