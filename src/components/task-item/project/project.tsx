@@ -2,10 +2,14 @@ import React, {
   useMemo,
 } from "react";
 
+import type { BarMoveAction } from "../../../types/gantt-task-actions";
+
 import { TaskItemProps } from "../task-item";
 import styles from "./project.module.css";
 
-export const Project: React.FC<TaskItemProps> = ({
+export const Project: React.FC<TaskItemProps & {
+  onTaskEventStart: (action: BarMoveAction, event: React.MouseEvent) => void;
+}> = ({
   distances: {
     barCornerRadius,
   },

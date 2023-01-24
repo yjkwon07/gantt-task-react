@@ -61,7 +61,9 @@ export type TaskGanttContentProps = {
   rtl: boolean;
   handleTaskDragStart: (
     action: BarMoveAction,
-    task: Task, event: React.MouseEvent<Element, MouseEvent>,
+    task: Task,
+    event: React.MouseEvent<Element, MouseEvent>,
+    taskRootNode: Element,
   ) => void;
   setTooltipTask: (task: Task | null, element: Element | null) => void;
   handleBarRelationStart: (target: RelationMoveTarget, task: Task) => void;

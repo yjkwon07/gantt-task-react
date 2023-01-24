@@ -189,7 +189,7 @@ export const useTaskDrag = ({
   xStep,
 }: UseTaskDragParams): [
   ChangeInProgress | null,
-  (action: BarMoveAction, task: Task, event: ReactMouseEvent) => void,
+  (action: BarMoveAction, task: Task, event: ReactMouseEvent, taskRootNode: Element) => void,
 ] => {
   const [changeInProgress, setChangeInProgress] = useState<ChangeInProgress | null>(null);
 
@@ -203,6 +203,7 @@ export const useTaskDrag = ({
     action: BarMoveAction,
     task: Task,
     event: ReactMouseEvent,
+    taskRootNode: Element,
   ) => {
     const svgNode = ganttSVGRef.current;
 
@@ -234,6 +235,7 @@ export const useTaskDrag = ({
       startX: cursor.x,
       startXInTask: cursor.x - coordinates.x1,
       task,
+      taskRootNode,
     });
   }, [
     ganttSVGRef,
@@ -326,25 +328,38 @@ export const useTaskDrag = ({
               return null;
             }
 
+            const nextCoordinates: TaskCoordinates = {
+              ...prevValue.coordinates,
+              containerX: prevValue.coordinates.containerX - SCROLL_STEP,
+              containerWidth: prevValue.coordinates.containerWidth + SCROLL_STEP,
+              innerX2: prevValue.action === "start"
+                ? prevValue.coordinates.innerX2 + SCROLL_STEP
+                : prevValue.coordinates.innerX2,
+              progressX: prevValue.coordinates.progressX - SCROLL_STEP,
+              width: prevValue.action === "start"
+                ? prevValue.coordinates.width + SCROLL_STEP
+                : prevValue.coordinates.width,
+              x1: prevValue.coordinates.x1 - SCROLL_STEP,
+              x2: prevValue.action === "move"
+                ? prevValue.coordinates.x2 - SCROLL_STEP
+                : prevValue.coordinates.x2,
+            };
+      
+            const { changedTask: newChangedTask } = handleTaskBySVGMouseEvent(
+              prevValue.action,
+              prevValue.task,
+              prevValue.initialCoordinates,
+              nextCoordinates,
+              xStep,
+              timeStep,
+              rtl,
+            );
+
             return {
               ...prevValue,
               additionalLeftSpace: prevValue.additionalLeftSpace + SCROLL_STEP,
-              coordinates: {
-                ...prevValue.coordinates,
-                containerX: prevValue.coordinates.containerX - SCROLL_STEP,
-                containerWidth: prevValue.coordinates.containerWidth + SCROLL_STEP,
-                innerX2: prevValue.action === "start"
-                  ? prevValue.coordinates.innerX2 + SCROLL_STEP
-                  : prevValue.coordinates.innerX2,
-                progressX: prevValue.coordinates.progressX - SCROLL_STEP,
-                width: prevValue.action === "start"
-                  ? prevValue.coordinates.width + SCROLL_STEP
-                  : prevValue.coordinates.width,
-                x1: prevValue.coordinates.x1 - SCROLL_STEP,
-                x2: prevValue.action === "move"
-                  ? prevValue.coordinates.x2 - SCROLL_STEP
-                  : prevValue.coordinates.x2,
-              },
+              changedTask: newChangedTask,
+              coordinates: nextCoordinates,
             };
           });
         }
@@ -385,25 +400,38 @@ export const useTaskDrag = ({
               return null;
             }
 
+            const nextCoordinates: TaskCoordinates = {
+              ...prevValue.coordinates,
+              containerWidth: prevValue.coordinates.containerWidth + SCROLL_STEP,
+              innerX1: prevValue.action === "move"
+                ? prevValue.coordinates.innerX1 + SCROLL_STEP
+                : prevValue.coordinates.innerX1,
+              innerX2: prevValue.coordinates.innerX2 + SCROLL_STEP,
+              progressX: prevValue.coordinates.progressX + SCROLL_STEP,
+              width: prevValue.action === "end"
+                ? prevValue.coordinates.width + SCROLL_STEP
+                : prevValue.coordinates.width,
+              x1: prevValue.action === "move"
+                ? prevValue.coordinates.x1 + SCROLL_STEP
+                : prevValue.coordinates.x1,
+              x2: prevValue.coordinates.x2 + SCROLL_STEP,
+            };
+      
+            const { changedTask: newChangedTask } = handleTaskBySVGMouseEvent(
+              prevValue.action,
+              prevValue.task,
+              prevValue.initialCoordinates,
+              nextCoordinates,
+              xStep,
+              timeStep,
+              rtl,
+            );
+
             return {
               ...prevValue,
               additionalRightSpace: prevValue.additionalRightSpace + SCROLL_STEP,
-              coordinates: {
-                ...prevValue.coordinates,
-                containerWidth: prevValue.coordinates.containerWidth + SCROLL_STEP,
-                innerX1: prevValue.action === "move"
-                  ? prevValue.coordinates.innerX1 + SCROLL_STEP
-                  : prevValue.coordinates.innerX1,
-                innerX2: prevValue.coordinates.innerX2 + SCROLL_STEP,
-                progressX: prevValue.coordinates.progressX + SCROLL_STEP,
-                width: prevValue.action === "end"
-                  ? prevValue.coordinates.width + SCROLL_STEP
-                  : prevValue.coordinates.width,
-                x1: prevValue.action === "move"
-                  ? prevValue.coordinates.x1 + SCROLL_STEP
-                  : prevValue.coordinates.x1,
-                x2: prevValue.coordinates.x2 + SCROLL_STEP,
-              },
+              changedTask: newChangedTask,
+              coordinates: nextCoordinates,
             };
           });
           scrollToRightStep();

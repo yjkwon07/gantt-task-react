@@ -9,12 +9,15 @@ import { BarDisplay } from "./bar-display";
 import { BarDateHandle } from "./bar-date-handle";
 import { BarRelationHandle } from "./bar-relation-handle";
 import { BarProgressHandle } from "./bar-progress-handle";
-import { TaskItemProps } from "../task-item";
+import type { TaskItemProps } from "../task-item";
+import type { BarMoveAction } from "../../../types/gantt-task-actions";
 
 import styles from "./bar.module.css";
 import stylesRelationHandle from "./bar-relation-handle.module.css";
 
-export const Bar: React.FC<TaskItemProps> = ({
+export const Bar: React.FC<TaskItemProps & {
+  onTaskEventStart: (action: BarMoveAction, event: React.MouseEvent) => void;
+}> = ({
   colorStyles,
 
   distances: {
@@ -31,8 +34,8 @@ export const Bar: React.FC<TaskItemProps> = ({
   isRelationChangeable,
   isRelationDrawMode,
   isSelected,
-  onEventStart,
   onRelationStart,
+  onTaskEventStart,
   progressWidth,
   progressX,
   rtl,
@@ -71,24 +74,24 @@ export const Bar: React.FC<TaskItemProps> = ({
   const startMoveFullTask = useCallback(
     (event: React.MouseEvent<SVGPolygonElement, MouseEvent>) => {
       if (canChangeDates) {
-        onEventStart("move", task, event);
+        onTaskEventStart("move", event);
       }
     },
-    [canChangeDates, onEventStart, task],
+    [canChangeDates, onTaskEventStart],
   );
 
   const startMoveStartOfTask = useCallback(
     (event: React.MouseEvent<SVGRectElement, MouseEvent>) => {
-      onEventStart("start", task, event);
+      onTaskEventStart("start", event);
     },
-    [onEventStart, task],
+    [onTaskEventStart],
   );
 
   const startMoveEndOfTask = useCallback(
     (event: React.MouseEvent<SVGRectElement, MouseEvent>) => {
-      onEventStart("end", task, event);
+      onTaskEventStart("end", event);
     },
-    [onEventStart, task],
+    [onTaskEventStart],
   );
 
   const progressPoint = getProgressPoint(
@@ -168,7 +171,7 @@ export const Bar: React.FC<TaskItemProps> = ({
         <BarProgressHandle
           progressPoint={progressPoint}
           onMouseDown={e => {
-            onEventStart("progress", task, e);
+            onTaskEventStart("progress", e);
           }}
         />
       )}

@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 
@@ -21,10 +22,32 @@ import {
   useInteractions,
 } from '@floating-ui/react';
 
-import { Task } from '../types/public-types';
+import type {
+  ChangeInProgress,
+  Task,
+} from '../types/public-types';
 
-export const useTaskTooltip = () => {
-  const [tooltipTask, setTooltipTask] = useState<Task | null>(null);
+export const useTaskTooltip = (
+  changeInProgress: ChangeInProgress | null,
+) => {
+  const [hoverTooltipTask, setHoverTooltipTask] = useState<Task | null>(null);
+  const [hoverTooltipEl, setHoverTooltipEl] = useState<Element | null>(null);
+
+  const tooltipTask = useMemo(() => {
+    if (changeInProgress) {
+      return changeInProgress.changedTask;
+    }
+
+    return hoverTooltipTask;
+  }, [changeInProgress, hoverTooltipTask]);
+
+  const tooltipEl = useMemo(() => {
+    if (changeInProgress) {
+      return changeInProgress.taskRootNode;
+    }
+
+    return hoverTooltipEl;
+  }, [changeInProgress, hoverTooltipEl]);
 
   const {
     x,
@@ -36,7 +59,7 @@ export const useTaskTooltip = () => {
     },
     context,
   } = useFloating({
-    open: Boolean(tooltipTask),
+    open: Boolean(hoverTooltipTask),
     middleware: [offset(10), flip(), shift()],
     whileElementsMounted: autoUpdate,
   });
@@ -59,7 +82,7 @@ export const useTaskTooltip = () => {
   const setReferenceRef = useLatest(setReference);
 
   useEffect(() => {
-    if (!tooltipTask) {
+    if (!hoverTooltipTask) {
       return undefined;
     }
 
@@ -78,12 +101,17 @@ export const useTaskTooltip = () => {
         cancelAnimationFrame(updateId);
       }
     };
-  }, [context, tooltipTask]);
+  }, [context, hoverTooltipTask]);
 
   const onChangeTooltipTask = useCallback((nextTask: Task | null, element: Element | null) => {
     setReferenceRef.current(element);
-    setTooltipTask(nextTask);
+    setHoverTooltipTask(nextTask);
+    setHoverTooltipEl(element);
   }, [setReferenceRef]);
+
+  useEffect(() => {
+    setReferenceRef.current(tooltipEl);
+  }, [tooltipEl]);
 
   return {
     tooltipTask,

@@ -673,6 +673,7 @@ export type ChangeInProgress = {
    */
   startXInTask: number;
   task: Task;
+  taskRootNode: Element;
 };
 
 export type GetMetadata = (task: TaskOrEmpty) => ChangeMetadata;

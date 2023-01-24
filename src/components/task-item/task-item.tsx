@@ -57,6 +57,7 @@ export type TaskItemProps = {
     action: BarMoveAction,
     selectedTask: Task,
     event: React.MouseEvent,
+    taskRootNode: Element,
   ) => any;
   onRelationStart: (
     target: RelationMoveTarget,
@@ -103,6 +104,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     rtl,
     onClick = undefined,
     onDoubleClick = undefined,
+    onEventStart,
     setTooltipTask,
     setSelectedTask,
     fixStartPosition = undefined,
@@ -110,6 +112,8 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     handleDeteleTask,
     colorStyles: stylesProp,
   } = props;
+
+  const taskRootRef = useRef<SVGGElement>(null);
 
   const styles = useMemo(() => {
     if (taskStyles) {
@@ -197,6 +201,22 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     }
   }, [onDoubleClick, task]);
 
+  const onTaskEventStart = useCallback((
+    action: BarMoveAction,
+    event: React.MouseEvent,
+  ) => {
+    const taskRootNode = taskRootRef.current;
+
+    if (taskRootNode) {
+      onEventStart(
+        action,
+        task,
+        event,
+        taskRootNode,
+      );
+    }
+  }, [onEventStart, task]);
+
   const textRef = useRef<SVGTextElement>(null);
   const [isTextInside, setIsTextInside] = useState(true);
 
@@ -206,6 +226,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
         return (
           <Milestone
             {...props}
+            onTaskEventStart={onTaskEventStart}
             colorStyles={styles}
           />
         );
@@ -214,6 +235,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
         return (
           <Project
             {...props}
+            onTaskEventStart={onTaskEventStart}
             colorStyles={styles}
           />
         );
@@ -223,6 +245,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
           return (
             <BarSmall
               {...props}
+              onTaskEventStart={onTaskEventStart}
               colorStyles={styles}
             />
           );
@@ -231,6 +254,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
         return (
           <Bar
             {...props}
+            onTaskEventStart={onTaskEventStart}
             colorStyles={styles}
           />
         );
@@ -299,6 +323,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       onFocus={onFocus}
+      ref={taskRootRef}
     >
       {taskItem}
       <text

@@ -225,16 +225,6 @@ export const Gantt: React.FC<GanttProps> = ({
     undefined
   );
 
-  const {
-    tooltipTask,
-    tooltipX,
-    tooltipY,
-    tooltipStrategy,
-    setFloatingRef,
-    getFloatingProps,
-    onChangeTooltipTask,
-  } = useTaskTooltip();
-
   const sortedTasks = useMemo<readonly TaskOrEmpty[]>(
     () => [...tasks].sort(sortTasks),
     [tasks],
@@ -913,6 +903,111 @@ export const Gantt: React.FC<GanttProps> = ({
     prepareSuggestions,
   ]);
 
+  const xStep = useMemo(() => {
+    const secondDate = getDateByOffset(startDate, 1, viewMode);
+
+    const dateDelta =
+      secondDate.getTime() -
+      startDate.getTime() -
+      secondDate.getTimezoneOffset() * 60 * 1000 +
+      startDate.getTimezoneOffset() * 60 * 1000;
+
+    const newXStep = (timeStep * distances.columnWidth) / dateDelta;
+
+    return newXStep;
+  }, [
+    distances,
+    startDate,
+    timeStep,
+    viewMode,
+  ]);
+
+  const onDateChange = useCallback<OnDateChange>((
+    task,
+    dependentTasks,
+    index,
+    parents,
+    suggestions,
+  ) => {
+    if (onDateChangeProp) {
+      onDateChangeProp(
+        task,
+        dependentTasks,
+        index,
+        parents,
+        suggestions,
+      );
+    }
+
+    if (onChangeTasks) {
+      const withSuggestions = prepareSuggestions(suggestions);
+      withSuggestions[index] = task;
+      onChangeTasks(withSuggestions, {
+        type: "date_change",
+      });
+    }
+  }, [
+    prepareSuggestions,
+    onChangeTasks,
+    onDateChangeProp,
+  ]);
+
+  const onProgressChange = useCallback<OnProgressChange>((
+    task,
+    children,
+    index,
+  ) => {
+    if (onProgressChangeProp) {
+      onProgressChangeProp(
+        task,
+        children,
+        index,
+      );
+    }
+
+    if (onChangeTasks) {
+      const nextTasks = [...tasksRef.current];
+      nextTasks[index] = task;
+      onChangeTasks(nextTasks, {
+        type: "progress_change",
+      });
+    }
+  }, [
+    tasksRef,
+    onChangeTasks,
+    onProgressChangeProp,
+  ]);
+
+  const [changeInProgress, handleTaskDragStart] = useTaskDrag({
+    childTasksMap,
+    dependentMap,
+    ganttSVGRef,
+    getMetadata,
+    mapTaskToCoordinates,
+    mapTaskToGlobalIndex,
+    onDateChange,
+    onProgressChange,
+    rtl,
+    scrollToLeftStep,
+    scrollToRightStep,
+    scrollXRef,
+    svgClientWidthRef,
+    svgWidth,
+    tasksMap,
+    timeStep,
+    xStep,
+  });
+
+  const {
+    tooltipTask,
+    tooltipX,
+    tooltipY,
+    tooltipStrategy,
+    setFloatingRef,
+    getFloatingProps,
+    onChangeTooltipTask,
+  } = useTaskTooltip(changeInProgress);
+
   const handleDeteleTask = useCallback((task: TaskOrEmpty) => {
     if (!onDelete && !onChangeTasks) {
       return;
@@ -1111,81 +1206,6 @@ export const Gantt: React.FC<GanttProps> = ({
     mapTaskToGlobalIndexRef,
     prepareSuggestions,
     onChangeTooltipTask,
-  ]);
-
-  const xStep = useMemo(() => {
-    const secondDate = getDateByOffset(startDate, 1, viewMode);
-
-    const dateDelta =
-      secondDate.getTime() -
-      startDate.getTime() -
-      secondDate.getTimezoneOffset() * 60 * 1000 +
-      startDate.getTimezoneOffset() * 60 * 1000;
-
-    const newXStep = (timeStep * distances.columnWidth) / dateDelta;
-
-    return newXStep;
-  }, [
-    distances,
-    startDate,
-    timeStep,
-    viewMode,
-  ]);
-
-  const onDateChange = useCallback<OnDateChange>((
-    task,
-    dependentTasks,
-    index,
-    parents,
-    suggestions,
-  ) => {
-    if (onDateChangeProp) {
-      onDateChangeProp(
-        task,
-        dependentTasks,
-        index,
-        parents,
-        suggestions,
-      );
-    }
-
-    if (onChangeTasks) {
-      const withSuggestions = prepareSuggestions(suggestions);
-      withSuggestions[index] = task;
-      onChangeTasks(withSuggestions, {
-        type: "date_change",
-      });
-    }
-  }, [
-    prepareSuggestions,
-    onChangeTasks,
-    onDateChangeProp,
-  ]);
-
-  const onProgressChange = useCallback<OnProgressChange>((
-    task,
-    children,
-    index,
-  ) => {
-    if (onProgressChangeProp) {
-      onProgressChangeProp(
-        task,
-        children,
-        index,
-      );
-    }
-
-    if (onChangeTasks) {
-      const nextTasks = [...tasksRef.current];
-      nextTasks[index] = task;
-      onChangeTasks(nextTasks, {
-        type: "progress_change",
-      });
-    }
-  }, [
-    tasksRef,
-    onChangeTasks,
-    onProgressChangeProp,
   ]);
 
   const fixStartPosition = useCallback<FixPosition>((task, date, index) => {
@@ -1417,26 +1437,6 @@ export const Gantt: React.FC<GanttProps> = ({
       tasksRef,
     ],
   );
-
-  const [changeInProgress, handleTaskDragStart] = useTaskDrag({
-    childTasksMap,
-    dependentMap,
-    ganttSVGRef,
-    getMetadata,
-    mapTaskToCoordinates,
-    mapTaskToGlobalIndex,
-    onDateChange,
-    onProgressChange,
-    rtl,
-    scrollToLeftStep,
-    scrollToRightStep,
-    scrollXRef,
-    svgClientWidthRef,
-    svgWidth,
-    tasksMap,
-    timeStep,
-    xStep,
-  });
 
   const [ganttRelationEvent, handleBarRelationStart] = useCreateRelation({
     distances,

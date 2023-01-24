@@ -7,10 +7,14 @@ import cx from "classnames";
 import { BarRelationHandle } from "../bar/bar-relation-handle";
 import stylesRelationHandle from "../bar/bar-relation-handle.module.css";
 
-import { TaskItemProps } from "../task-item";
+import type { TaskItemProps } from "../task-item";
+import type { BarMoveAction } from "../../../types/gantt-task-actions";
+
 import styles from "./milestone.module.css";
 
-export const Milestone: React.FC<TaskItemProps> = ({
+export const Milestone: React.FC<TaskItemProps & {
+  onTaskEventStart: (action: BarMoveAction, event: React.MouseEvent) => void;
+}> = ({
   task,
   taskYOffset,
 
@@ -25,8 +29,8 @@ export const Milestone: React.FC<TaskItemProps> = ({
   isDateChangeable,
   isRelationChangeable,
   isRelationDrawMode,
-  onEventStart,
   onRelationStart,
+  onTaskEventStart,
   isSelected,
   isCritical,
   colorStyles,
@@ -70,7 +74,7 @@ export const Milestone: React.FC<TaskItemProps> = ({
         transform={transform}
         className={styles.milestoneBackground}
         onMouseDown={e => {
-          isDateChangeable && onEventStart("move", task, e);
+          isDateChangeable && onTaskEventStart("move", e);
         }}
       />
 

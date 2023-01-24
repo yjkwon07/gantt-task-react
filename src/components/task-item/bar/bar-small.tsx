@@ -5,11 +5,14 @@ import React, {
 import { getProgressPoint } from "../../../helpers/bar-helper";
 import { BarDisplay } from "./bar-display";
 import { BarProgressHandle } from "./bar-progress-handle";
-import { TaskItemProps } from "../task-item";
+import type { TaskItemProps } from "../task-item";
+import type { BarMoveAction } from "../../../types/gantt-task-actions";
 
 import styles from "./bar.module.css";
 
-export const BarSmall: React.FC<TaskItemProps> = ({
+export const BarSmall: React.FC<TaskItemProps & {
+  onTaskEventStart: (action: BarMoveAction, event: React.MouseEvent) => void;
+}> = ({
   distances: {
     barCornerRadius,
     handleWidth,
@@ -19,12 +22,11 @@ export const BarSmall: React.FC<TaskItemProps> = ({
 
   progressWidth,
   progressX,
-  task,
   taskYOffset,
   taskHeight,
   isProgressChangeable,
   isDateChangeable,
-  onEventStart,
+  onTaskEventStart,
   isSelected,
   isCritical,
   colorStyles,
@@ -56,7 +58,7 @@ export const BarSmall: React.FC<TaskItemProps> = ({
         isCritical={isCritical}
         hasChildren={hasChildren}
         onMouseDown={e => {
-          isDateChangeable && onEventStart("move", task, e);
+          isDateChangeable && onTaskEventStart("move", e);
         }}
       />
 
@@ -65,7 +67,7 @@ export const BarSmall: React.FC<TaskItemProps> = ({
           <BarProgressHandle
             progressPoint={progressPoint}
             onMouseDown={e => {
-              onEventStart("progress", task, e);
+              onTaskEventStart("progress", e);
             }}
           />
         )}
