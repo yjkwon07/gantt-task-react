@@ -13,9 +13,10 @@ import type { BarMoveAction } from "../../../types/gantt-task-actions";
 import styles from "./milestone.module.css";
 
 export const Milestone: React.FC<TaskItemProps & {
-  onTaskEventStart: (action: BarMoveAction, event: React.MouseEvent) => void;
+  onLeftRelationTriggerMouseDown: () => void;
+  onRightRelationTriggerMouseDown: () => void;
+  onTaskEventStart: (action: BarMoveAction, clientX: number) => void;
 }> = ({
-  task,
   taskYOffset,
 
   distances: {
@@ -26,10 +27,10 @@ export const Milestone: React.FC<TaskItemProps & {
 
   taskHeight,
   taskHalfHeight,
-  isDateChangeable,
   isRelationChangeable,
   isRelationDrawMode,
-  onRelationStart,
+  onLeftRelationTriggerMouseDown,
+  onRightRelationTriggerMouseDown,
   onTaskEventStart,
   isSelected,
   isCritical,
@@ -73,8 +74,15 @@ export const Milestone: React.FC<TaskItemProps & {
         ry={barCornerRadius}
         transform={transform}
         className={styles.milestoneBackground}
-        onMouseDown={e => {
-          isDateChangeable && onTaskEventStart("move", e);
+        onMouseDown={(e) => {
+          onTaskEventStart("move", e.clientX);
+        }}
+        onTouchStart={(e) => {
+          const firstTouch = e.touches[0];
+
+          if (firstTouch) {
+            onTaskEventStart("move", firstTouch.clientX);
+          }
         }}
       />
 
@@ -87,9 +95,7 @@ export const Milestone: React.FC<TaskItemProps & {
               x={x1 - relationCircleOffset}
               y={taskYOffset + taskHalfHeight}
               radius={relationCircleRadius}
-              onMouseDown={() => {
-                onRelationStart("startOfTask", task);
-              }}
+              startDrawRelation={onLeftRelationTriggerMouseDown}
             />
             {/* right */}
             <BarRelationHandle
@@ -97,9 +103,7 @@ export const Milestone: React.FC<TaskItemProps & {
               x={x2 + relationCircleOffset}
               y={taskYOffset + taskHalfHeight}
               radius={relationCircleRadius}
-              onMouseDown={() => {
-                onRelationStart("endOfTask", task);
-              }}
+              startDrawRelation={onRightRelationTriggerMouseDown}
             />
           </g>
         )}

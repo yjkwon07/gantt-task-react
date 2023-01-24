@@ -10,25 +10,25 @@ import styles from './fix-dependency-position.module.css';
 export const fixPositionContainerClass = styles.hoverVisibleWrapper;
 
 type FixDependencyPositionProps = {   
-  x: number;
-  y: number;
-  width: number;
+  color: string;
+  dependencyFixIndent: number;
+  handleFixPosition: () => void;
   height: number;
   isLeft: boolean;
-  dependencyFixIndent: number;
-  color: string;
-  onMouseDown: () => void;
+  width: number;
+  x: number;
+  y: number;
 };
 
 const FixDependencyPositionInner: React.FC<FixDependencyPositionProps> = ({
-  x,
-  y,
-  width,
+  color,
+  dependencyFixIndent,
+  handleFixPosition,
   height,
   isLeft,
-  dependencyFixIndent,
-  color,
-  onMouseDown,
+  width,
+  x,
+  y,
 }) => {
   const halfHeight = useMemo(
     () => Math.round(height / 2),
@@ -71,7 +71,7 @@ const FixDependencyPositionInner: React.FC<FixDependencyPositionProps> = ({
       className={styles.wrapper}
       fill={color}
       stroke={color}
-      onMouseDown={onMouseDown}
+      onMouseDown={handleFixPosition}
     >
       <path
         d={d}

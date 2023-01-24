@@ -62,7 +62,7 @@ export type TaskGanttContentProps = {
   handleTaskDragStart: (
     action: BarMoveAction,
     task: Task,
-    event: React.MouseEvent<Element, MouseEvent>,
+    clientX: number,
     taskRootNode: Element,
   ) => void;
   setTooltipTask: (task: Task | null, element: Element | null) => void;

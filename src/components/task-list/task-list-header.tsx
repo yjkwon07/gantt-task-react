@@ -64,7 +64,14 @@ const TaskListHeaderDefaultInner: React.FC<TaskListHeaderProps> = ({
                   <div
                     className={styles.resizer}
                     onMouseDown={(event) => {
-                      onResizeStart(index, event);
+                      onResizeStart(index, event.clientX);
+                    }}
+                    onTouchStart={(event) => {
+                      const firstTouch = event.touches[0];
+
+                      if (firstTouch) {
+                        onResizeStart(index, firstTouch.clientX);
+                      }
                     }}
                   />
                 )}

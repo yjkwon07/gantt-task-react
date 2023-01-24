@@ -1,22 +1,25 @@
-import React from "react";
+import React, {
+  memo,
+} from "react";
 
 import cx from "classnames";
 
 import styles from "./bar-relation-handle.module.css";
 
 type BarRelationHandleProps = {
+  isRelationDrawMode: boolean;
+  radius: number;
+  startDrawRelation: () => void;
   x: number;
   y: number;
-  radius: number;
-  isRelationDrawMode: boolean;
-  onMouseDown: (event: React.MouseEvent<SVGCircleElement, MouseEvent>) => void;
 };
-export const BarRelationHandle: React.FC<BarRelationHandleProps> = ({
+
+const BarRelationHandleInner: React.FC<BarRelationHandleProps> = ({
+  isRelationDrawMode,
+  radius,
+  startDrawRelation,
   x,
   y,
-  radius,
-  isRelationDrawMode,
-  onMouseDown,
 }) => {
   return (
     <circle
@@ -26,8 +29,11 @@ export const BarRelationHandle: React.FC<BarRelationHandleProps> = ({
       className={cx(styles.barRelationHandle, {
         [styles.barRelationHandle_drawMode]: isRelationDrawMode,
       })}
-      onMouseDown={onMouseDown}
+      onMouseDown={startDrawRelation}
+      onTouchStart={startDrawRelation}
       data-draw-mode={isRelationDrawMode}
     />
   );
 };
+
+export const BarRelationHandle = memo(BarRelationHandleInner);

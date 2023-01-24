@@ -16,7 +16,9 @@ import styles from "./bar.module.css";
 import stylesRelationHandle from "./bar-relation-handle.module.css";
 
 export const Bar: React.FC<TaskItemProps & {
-  onTaskEventStart: (action: BarMoveAction, event: React.MouseEvent) => void;
+  onLeftRelationTriggerMouseDown: () => void;
+  onRightRelationTriggerMouseDown: () => void;
+  onTaskEventStart: (action: BarMoveAction, clientX: number) => void;
 }> = ({
   colorStyles,
 
@@ -34,12 +36,12 @@ export const Bar: React.FC<TaskItemProps & {
   isRelationChangeable,
   isRelationDrawMode,
   isSelected,
-  onRelationStart,
+  onLeftRelationTriggerMouseDown,
+  onRightRelationTriggerMouseDown,
   onTaskEventStart,
   progressWidth,
   progressX,
   rtl,
-  task,
   taskHalfHeight,
   taskHeight,
   taskYOffset,
@@ -49,50 +51,21 @@ export const Bar: React.FC<TaskItemProps & {
 }) => {
   const canChangeDates = isDateChangeable && !hasChildren;
 
-  const onLeftRelationTriggerMouseDown = useCallback(() => {
-    onRelationStart(
-      rtl ? "endOfTask" : "startOfTask",
-      task,
-    );
-  }, [
-    onRelationStart,
-    rtl,
-    task,
-  ]);
+  const startMoveFullTask = useCallback((clientX: number) => {
+    onTaskEventStart("move", clientX);
+  }, [onTaskEventStart]);
 
-  const onRightRelationTriggerMouseDown = useCallback(() => {
-    onRelationStart(
-      rtl ? "startOfTask" : "endOfTask",
-      task,
-    );
-  }, [
-    onRelationStart,
-    rtl,
-    task,
-  ]);
+  const startMoveStartOfTask = useCallback((clientX: number) => {
+    onTaskEventStart("start", clientX);
+  }, [onTaskEventStart]);
 
-  const startMoveFullTask = useCallback(
-    (event: React.MouseEvent<SVGPolygonElement, MouseEvent>) => {
-      if (canChangeDates) {
-        onTaskEventStart("move", event);
-      }
-    },
-    [canChangeDates, onTaskEventStart],
-  );
+  const startMoveEndOfTask = useCallback((clientX: number) => {
+    onTaskEventStart("end", clientX);
+  }, [onTaskEventStart]);
 
-  const startMoveStartOfTask = useCallback(
-    (event: React.MouseEvent<SVGRectElement, MouseEvent>) => {
-      onTaskEventStart("start", event);
-    },
-    [onTaskEventStart],
-  );
-
-  const startMoveEndOfTask = useCallback(
-    (event: React.MouseEvent<SVGRectElement, MouseEvent>) => {
-      onTaskEventStart("end", event);
-    },
-    [onTaskEventStart],
-  );
+  const startMoveProgress = useCallback((clientX: number) => {
+    onTaskEventStart("progress", clientX);
+  }, [onTaskEventStart]);
 
   const progressPoint = getProgressPoint(
     +!rtl * progressWidth + progressX,
@@ -118,30 +91,30 @@ export const Bar: React.FC<TaskItemProps & {
         isSelected={isSelected}
         isCritical={isCritical}
         hasChildren={hasChildren}
-        onMouseDown={startMoveFullTask}
+        startMoveFullTask={startMoveFullTask}
       />
 
       {/* left */}
       {canChangeDates && (
         <BarDateHandle
+          barCornerRadius={barCornerRadius}
+          height={handleHeight}
+          startMove={startMoveStartOfTask}
+          width={handleWidth}
           x={x1 + 1}
           y={taskYOffset + 1}
-          width={handleWidth}
-          height={handleHeight}
-          barCornerRadius={barCornerRadius}
-          onMouseDown={startMoveStartOfTask}
         />
       )}
 
       {/* right */}
       {canChangeDates && (
         <BarDateHandle
+          barCornerRadius={barCornerRadius}
+          height={handleHeight}
+          startMove={startMoveEndOfTask}
+          width={handleWidth}
           x={x2 - handleWidth - 1}
           y={taskYOffset + 1}
-          width={handleWidth}
-          height={handleHeight}
-          barCornerRadius={barCornerRadius}
-          onMouseDown={startMoveEndOfTask}
         />
       )}
 
@@ -149,10 +122,10 @@ export const Bar: React.FC<TaskItemProps & {
       {isRelationChangeable && (
         <BarRelationHandle
           isRelationDrawMode={isRelationDrawMode}
+          radius={relationCircleRadius}
+          startDrawRelation={onLeftRelationTriggerMouseDown}
           x={x1 - relationCircleOffset}
           y={taskYOffset + taskHalfHeight}
-          radius={relationCircleRadius}
-          onMouseDown={onLeftRelationTriggerMouseDown}
         />
       )}
 
@@ -160,19 +133,17 @@ export const Bar: React.FC<TaskItemProps & {
       {isRelationChangeable && (
         <BarRelationHandle
           isRelationDrawMode={isRelationDrawMode}
+          radius={relationCircleRadius}
+          startDrawRelation={onRightRelationTriggerMouseDown}
           x={x2 + relationCircleOffset}
           y={taskYOffset + taskHalfHeight}
-          radius={relationCircleRadius}
-          onMouseDown={onRightRelationTriggerMouseDown}
         />
       )}
 
       {isProgressChangeable && (
         <BarProgressHandle
           progressPoint={progressPoint}
-          onMouseDown={e => {
-            onTaskEventStart("progress", e);
-          }}
+          startMoveProgress={startMoveProgress}
         />
       )}
     </g>

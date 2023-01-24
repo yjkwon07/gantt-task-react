@@ -4,7 +4,6 @@ import {
   useState,
 } from "react";
 import {
-  MouseEvent as ReactMouseEvent,
   RefObject,
 } from "react";
 
@@ -189,7 +188,7 @@ export const useTaskDrag = ({
   xStep,
 }: UseTaskDragParams): [
   ChangeInProgress | null,
-  (action: BarMoveAction, task: Task, event: ReactMouseEvent, taskRootNode: Element) => void,
+  (action: BarMoveAction, task: Task, clientX: number, taskRootNode: Element) => void,
 ] => {
   const [changeInProgress, setChangeInProgress] = useState<ChangeInProgress | null>(null);
 
@@ -202,7 +201,7 @@ export const useTaskDrag = ({
   const handleTaskDragStart = useCallback((
     action: BarMoveAction,
     task: Task,
-    event: ReactMouseEvent,
+    clientX: number,
     taskRootNode: Element,
   ) => {
     const svgNode = ganttSVGRef.current;
@@ -213,7 +212,7 @@ export const useTaskDrag = ({
 
     const point = svgNode.createSVGPoint();
 
-    point.x = event.clientX;
+    point.x = clientX;
     const cursor = point.matrixTransform(svgNode.getScreenCTM()?.inverse());
 
     const coordinates = getTaskCoordinates(task, mapTaskToCoordinatesRef.current);
@@ -472,14 +471,12 @@ export const useTaskDrag = ({
 
     const point = svgNode.createSVGPoint();
 
-    const handleMouseMove = (event: MouseEvent) => {
+    const handleMove = (clientX: number) => {
       if (!point) {
         return;
       }
 
-      event.preventDefault();
-
-      point.x = event.clientX;
+      point.x = clientX;
       const cursor = point.matrixTransform(
         svgNode.getScreenCTM()?.inverse()
       );
@@ -489,7 +486,22 @@ export const useTaskDrag = ({
       recountOnMove(nextX);
     };
 
-    const handleMouseUp = async (event: MouseEvent) => {
+    const handleMouseMove = (event: MouseEvent) => {
+      event.preventDefault();
+      handleMove(event.clientX);
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      event.preventDefault();
+
+      const firstTouch = event.touches[0];
+
+      if (firstTouch) {
+        handleMove(firstTouch.clientX);
+      }
+    };
+
+    const handleUp = async (event: Event) => {
       const changeInProgressLatest = changeInProgressLatestRef.current;
 
       if (!changeInProgressLatest || !point) {
@@ -555,11 +567,15 @@ export const useTaskDrag = ({
     };
 
     svgNode.addEventListener("mousemove", handleMouseMove);
-    svgNode.addEventListener("mouseup", handleMouseUp);
+    svgNode.addEventListener("touchmove", handleTouchMove);
+    svgNode.addEventListener("mouseup", handleUp);
+    svgNode.addEventListener("touchend", handleUp);
 
     return () => {
       svgNode.removeEventListener("mousemove", handleMouseMove);
-      svgNode.removeEventListener("mouseup", handleMouseUp);
+      svgNode.removeEventListener("touchmove", handleTouchMove);
+      svgNode.removeEventListener("mouseup", handleUp);
+      svgNode.removeEventListener("touchend", handleUp);
     };
   }, [
     dependentMap,

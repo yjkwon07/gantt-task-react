@@ -3,17 +3,26 @@ import styles from "./bar.module.css";
 
 type BarProgressHandleProps = {
   progressPoint: string;
-  onMouseDown: (event: React.MouseEvent<SVGPolygonElement, MouseEvent>) => void;
+  startMoveProgress: (clientX: number) => void;
 };
 export const BarProgressHandle: React.FC<BarProgressHandleProps> = ({
   progressPoint,
-  onMouseDown,
+  startMoveProgress,
 }) => {
   return (
     <polygon
       className={styles.barHandle}
       points={progressPoint}
-      onMouseDown={onMouseDown}
+      onMouseDown={(e) => {
+        startMoveProgress(e.clientX);
+      }}
+      onTouchStart={(e) => {
+        const firstTouch = e.touches[0];
+      
+        if (firstTouch) {
+          startMoveProgress(firstTouch.clientX);
+        }
+      }}
     />
   );
 };

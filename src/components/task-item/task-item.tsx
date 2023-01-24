@@ -56,7 +56,7 @@ export type TaskItemProps = {
   onEventStart: (
     action: BarMoveAction,
     selectedTask: Task,
-    event: React.MouseEvent,
+    clientX: number,
     taskRootNode: Element,
   ) => any;
   onRelationStart: (
@@ -76,6 +76,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
   const {
     getTaskGlobalIndexByRef,
     hasDependencyWarning,
+    isDateChangeable,
 
     task,
     task: {
@@ -105,6 +106,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     onClick = undefined,
     onDoubleClick = undefined,
     onEventStart,
+    onRelationStart,
     setTooltipTask,
     setSelectedTask,
     fixStartPosition = undefined,
@@ -203,19 +205,45 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
 
   const onTaskEventStart = useCallback((
     action: BarMoveAction,
-    event: React.MouseEvent,
+    clientX: number,
   ) => {
+    if (!isDateChangeable) {
+      return;
+    }
+
     const taskRootNode = taskRootRef.current;
 
     if (taskRootNode) {
       onEventStart(
         action,
         task,
-        event,
+        clientX,
         taskRootNode,
       );
     }
-  }, [onEventStart, task]);
+  }, [isDateChangeable, onEventStart, task]);
+
+  const onLeftRelationTriggerMouseDown = useCallback(() => {
+    onRelationStart(
+      rtl ? "endOfTask" : "startOfTask",
+      task,
+    );
+  }, [
+    onRelationStart,
+    rtl,
+    task,
+  ]);
+
+  const onRightRelationTriggerMouseDown = useCallback(() => {
+    onRelationStart(
+      rtl ? "startOfTask" : "endOfTask",
+      task,
+    );
+  }, [
+    onRelationStart,
+    rtl,
+    task,
+  ]);
 
   const textRef = useRef<SVGTextElement>(null);
   const [isTextInside, setIsTextInside] = useState(true);
@@ -226,17 +254,19 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
         return (
           <Milestone
             {...props}
-            onTaskEventStart={onTaskEventStart}
-            colorStyles={styles}
-          />
-        );
+              colorStyles={styles}
+              onLeftRelationTriggerMouseDown={onLeftRelationTriggerMouseDown}
+              onRightRelationTriggerMouseDown={onRightRelationTriggerMouseDown}
+              onTaskEventStart={onTaskEventStart}
+            />
+          );
 
       case "project":
         return (
           <Project
             {...props}
-            onTaskEventStart={onTaskEventStart}
             colorStyles={styles}
+            onTaskEventStart={onTaskEventStart}
           />
         );
 
@@ -245,8 +275,8 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
           return (
             <BarSmall
               {...props}
-              onTaskEventStart={onTaskEventStart}
               colorStyles={styles}
+              onTaskEventStart={onTaskEventStart}
             />
           );
         }
@@ -254,6 +284,8 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
         return (
           <Bar
             {...props}
+            onLeftRelationTriggerMouseDown={onLeftRelationTriggerMouseDown}
+            onRightRelationTriggerMouseDown={onRightRelationTriggerMouseDown}
             onTaskEventStart={onTaskEventStart}
             colorStyles={styles}
           />
@@ -362,7 +394,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
               width={10}
               isLeft={outOfParentWarnings.start.isOutside !== rtl}
               color="grey"
-              onMouseDown={handleFixStartPosition}
+              handleFixWidth={handleFixStartPosition}
             />
           )}
 
@@ -374,7 +406,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
               width={10}
               isLeft={outOfParentWarnings.end.isOutside === rtl}
               color="grey"
-              onMouseDown={handleFixEndPosition}
+              handleFixWidth={handleFixEndPosition}
             />
           )}
         </>

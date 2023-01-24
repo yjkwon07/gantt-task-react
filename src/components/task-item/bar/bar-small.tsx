@@ -1,4 +1,5 @@
 import React, {
+  useCallback,
   useMemo,
 } from "react";
 
@@ -11,7 +12,7 @@ import type { BarMoveAction } from "../../../types/gantt-task-actions";
 import styles from "./bar.module.css";
 
 export const BarSmall: React.FC<TaskItemProps & {
-  onTaskEventStart: (action: BarMoveAction, event: React.MouseEvent) => void;
+  onTaskEventStart: (action: BarMoveAction, clientX: number) => void;
 }> = ({
   distances: {
     barCornerRadius,
@@ -25,7 +26,6 @@ export const BarSmall: React.FC<TaskItemProps & {
   taskYOffset,
   taskHeight,
   isProgressChangeable,
-  isDateChangeable,
   onTaskEventStart,
   isSelected,
   isCritical,
@@ -43,32 +43,36 @@ export const BarSmall: React.FC<TaskItemProps & {
     x1,
   ]);
 
+  const startMoveFullTask = useCallback((clientX: number) => {
+    onTaskEventStart("move", clientX);
+  }, [onTaskEventStart]);
+
+  const startMoveProgress = useCallback((clientX: number) => {
+    onTaskEventStart("progress", clientX);
+  }, [onTaskEventStart]);
+
   return (
     <g className={styles.barWrapper} tabIndex={0}>
       <BarDisplay
+        barCornerRadius={barCornerRadius}
+        hasChildren={hasChildren}
+        height={taskHeight}
+        isCritical={isCritical}
+        isSelected={isSelected}
+        progressWidth={progressWidth}
+        progressX={progressX}
+        startMoveFullTask={startMoveFullTask}
+        styles={colorStyles}
+        width={handleWidth * 2}
         x={x1}
         y={taskYOffset}
-        width={handleWidth * 2}
-        height={taskHeight}
-        progressX={progressX}
-        progressWidth={progressWidth}
-        barCornerRadius={barCornerRadius}
-        styles={colorStyles}
-        isSelected={isSelected}
-        isCritical={isCritical}
-        hasChildren={hasChildren}
-        onMouseDown={e => {
-          isDateChangeable && onTaskEventStart("move", e);
-        }}
       />
 
       <g className="handleGroup">
         {isProgressChangeable && (
           <BarProgressHandle
             progressPoint={progressPoint}
-            onMouseDown={e => {
-              onTaskEventStart("progress", e);
-            }}
+            startMoveProgress={startMoveProgress}
           />
         )}
       </g>

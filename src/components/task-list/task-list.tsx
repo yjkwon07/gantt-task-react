@@ -54,7 +54,7 @@ export type TaskListProps = {
   isShowTaskNumbers: boolean;
   mapTaskToNestedIndex: MapTaskToNestedIndex;
   onExpanderClick: (task: Task) => void;
-  onResizeStart: (columnIndex: number, event: React.MouseEvent) => void;
+  onResizeStart: (columnIndex: number, clientX: number) => void;
   scrollToBottomStep: () => void;
   scrollToTask: (task: Task) => void;
   scrollToTopStep: () => void;

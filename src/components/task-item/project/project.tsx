@@ -8,7 +8,7 @@ import { TaskItemProps } from "../task-item";
 import styles from "./project.module.css";
 
 export const Project: React.FC<TaskItemProps & {
-  onTaskEventStart: (action: BarMoveAction, event: React.MouseEvent) => void;
+  onTaskEventStart: (action: BarMoveAction, clientX: number) => void;
 }> = ({
   distances: {
     barCornerRadius,

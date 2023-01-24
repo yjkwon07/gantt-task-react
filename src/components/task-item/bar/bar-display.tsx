@@ -7,34 +7,34 @@ import { ColorStyles } from "../../../types/public-types";
 import style from "./bar.module.css";
 
 type BarDisplayProps = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  isSelected: boolean;
+  barCornerRadius: number;
   isCritical: boolean;
+  isSelected: boolean;
   hasChildren: boolean;
+  height: number;
+  progressWidth: number;
   /* progress start point */
   progressX: number;
-  progressWidth: number;
-  barCornerRadius: number;
+  startMoveFullTask: (clientX: number) => void;
   styles: ColorStyles;
-  onMouseDown: (event: React.MouseEvent<SVGPolygonElement, MouseEvent>) => void;
+  width: number;
+  x: number;
+  y: number;
 };
 
 export const BarDisplay: React.FC<BarDisplayProps> = ({
+  barCornerRadius,
+  isCritical,
+  isSelected,
+  hasChildren,
+  height,
+  progressWidth,
+  progressX,
+  startMoveFullTask,
+  styles,
+  width,
   x,
   y,
-  width,
-  height,
-  isSelected,
-  isCritical,
-  hasChildren,
-  progressX,
-  progressWidth,
-  barCornerRadius,
-  styles,
-  onMouseDown,
 }) => {
   const processColor = useMemo(() => {
     if (isCritical) {
@@ -101,7 +101,18 @@ export const BarDisplay: React.FC<BarDisplayProps> = ({
   }, [isSelected, isCritical, hasChildren, styles]);
 
   return (
-    <g onMouseDown={onMouseDown}>
+    <g
+      onMouseDown={(e) => {
+        startMoveFullTask(e.clientX);
+      }}
+      onTouchStart={(e) => {
+        const firstTouch = e.touches[0];
+
+        if (firstTouch) {
+          startMoveFullTask(firstTouch.clientX);
+        }
+      }}
+    >
       <rect
         x={x}
         width={width}

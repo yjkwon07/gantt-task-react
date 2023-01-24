@@ -236,7 +236,7 @@ const ArrowInner: React.FC<ArrowProps> = ({
             color="grey"
             width={dependencyFixWidth}
             height={dependencyFixHeight}
-            onMouseDown={fixDependencyTaskTo}
+            handleFixPosition={fixDependencyTaskTo}
           />
 
           <FixDependencyPosition
@@ -247,7 +247,7 @@ const ArrowInner: React.FC<ArrowProps> = ({
             color="grey"
             width={dependencyFixWidth}
             height={dependencyFixHeight}
-            onMouseDown={fixDependencyTaskFrom}
+            handleFixPosition={fixDependencyTaskFrom}
           />
         </>
       )}

@@ -118,7 +118,12 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
         {renderedList}
       </>
     );
-  }, [renderedIndexes, fullRowHeight, renderedTasks]);
+  }, [
+    columns,
+    fullRowHeight,
+    renderedIndexes,
+    renderedTasks,
+  ]);
 
   return (
     <div

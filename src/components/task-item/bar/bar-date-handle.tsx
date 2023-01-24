@@ -2,20 +2,21 @@ import React from "react";
 import styles from "./bar.module.css";
 
 type BarDateHandleProps = {
+  barCornerRadius: number;
+  height: number;
+  startMove: (clientX: number) => void;
+  width: number;
   x: number;
   y: number;
-  width: number;
-  height: number;
-  barCornerRadius: number;
-  onMouseDown: (event: React.MouseEvent<SVGRectElement, MouseEvent>) => void;
 };
+
 export const BarDateHandle: React.FC<BarDateHandleProps> = ({
+  barCornerRadius,
+  height,
+  startMove,
+  width,
   x,
   y,
-  width,
-  height,
-  barCornerRadius,
-  onMouseDown,
 }) => {
   return (
     <rect
@@ -26,7 +27,16 @@ export const BarDateHandle: React.FC<BarDateHandleProps> = ({
       className={styles.barHandle}
       ry={barCornerRadius}
       rx={barCornerRadius}
-      onMouseDown={onMouseDown}
+      onMouseDown={(e) => {
+        startMove(e.clientX);
+      }}
+      onTouchStart={(e) => {
+        const firstTouch = e.touches[0];
+
+        if (firstTouch) {
+          startMove(firstTouch.clientX);
+        }
+      }}
     />
   );
 };

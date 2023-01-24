@@ -8,15 +8,11 @@ export const useColumnResize = (
     columnIndex: number,
     delta: number,
   ) => void,
-): [ColumnResizeEvent | null, (columnIndex: number, event: React.MouseEvent) => void] => {
+): [ColumnResizeEvent | null, (columnIndex: number, clientX: number) => void] => {
   const [columnResizeEvent, setColumnResizeEvent] = useState<ColumnResizeEvent | null>(null);
   const columnResizeEventLatest = useLatest(columnResizeEvent);
 
-  const onResizeStart = useCallback((columnIndex: number, event: React.MouseEvent) => {
-    const {
-      clientX,
-    } = event;
-
+  const onResizeStart = useCallback((columnIndex: number, clientX: number) => {
     setColumnResizeEvent({
       columnIndex,
       startX: clientX,
@@ -31,7 +27,7 @@ export const useColumnResize = (
       return undefined;
     }
 
-    const handleMouseMove = (event: MouseEvent) => {
+    const handleMove = (clientX: number) => {
       setColumnResizeEvent((prevValue) => {
         if (!prevValue) {
           return null;
@@ -39,12 +35,24 @@ export const useColumnResize = (
 
         return {
           ...prevValue,
-          endX: event.clientX,
+          endX: clientX,
         };
       });
     };
 
-    const handleMouseUp = () => {
+    const handleMouseMove = (event: MouseEvent) => {
+      handleMove(event.clientX);
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      const firstTouch = event.touches[0];
+
+      if (firstTouch) {
+        handleMove(firstTouch.clientX);
+      }
+    };
+
+    const handleUp = () => {
       setColumnResizeEvent(null);
 
       const latestEvent = columnResizeEventLatest.current;
@@ -65,11 +73,15 @@ export const useColumnResize = (
     };
 
     document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("touchmove", handleTouchMove);
+    document.addEventListener("mouseup", handleUp);
+    document.addEventListener("touchend", handleUp);
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("mouseup", handleUp);
+      document.removeEventListener("touchend", handleUp);
     };
   }, [
     isResizeInProgress,

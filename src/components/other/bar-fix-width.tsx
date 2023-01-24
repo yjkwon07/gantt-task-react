@@ -16,7 +16,7 @@ type BarFixWidthProps = {
   height: number;
   isLeft: boolean;
   color: string;
-  onMouseDown: () => void;
+  handleFixWidth: () => void;
 };
 
 const BarFixWidthInner: React.FC<BarFixWidthProps> = ({
@@ -26,7 +26,7 @@ const BarFixWidthInner: React.FC<BarFixWidthProps> = ({
   height,
   isLeft,
   color,
-  onMouseDown,
+  handleFixWidth,
 }) => {
   const halfHeight = useMemo(
     () => Math.round(height / 2),
@@ -69,7 +69,7 @@ const BarFixWidthInner: React.FC<BarFixWidthProps> = ({
       className={styles.wrapper}
       fill={color}
       stroke={color}
-      onMouseDown={onMouseDown}
+      onMouseDown={handleFixWidth}
     >
       <path
         d={d}

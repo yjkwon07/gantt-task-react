@@ -531,7 +531,7 @@ export interface TaskListHeaderProps {
   fontFamily: string;
   fontSize: string;
   canResizeColumns: boolean;
-  onResizeStart: (columnIndex: number, event: React.MouseEvent) => void;
+  onResizeStart: (columnIndex: number, clientX: number) => void;
 }
 
 // comparison level -> task id -> index in array of tasks

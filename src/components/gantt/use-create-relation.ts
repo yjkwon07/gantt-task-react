@@ -106,12 +106,7 @@ export const useCreateRelation = ({
 
     const point = svgNode.createSVGPoint();
 
-    const handleMouseMove = (event: MouseEvent) => {
-      const {
-        clientX,
-        clientY,
-      } = event;
-
+    const handleMove = (clientX: number, clientY: number) => {
       point.x = clientX;
       point.y = clientY;
 
@@ -136,12 +131,32 @@ export const useCreateRelation = ({
       });
     };
 
-    const handleMouseUp = (event: MouseEvent) => {
+    const handleMouseMove = (event: MouseEvent) => {
       const {
         clientX,
         clientY,
       } = event;
 
+      handleMove(clientX, clientY);
+    };
+
+    let lastTouch: Touch | null = null;
+
+    const handleTouchMove = (event: TouchEvent) => {
+      const firstTouch = event.touches[0];
+
+      if (firstTouch) {
+        const {
+          clientX,
+          clientY,
+        } = firstTouch;
+        lastTouch = firstTouch;
+  
+        handleMove(clientX, clientY);
+      }
+    };
+
+    const handleEnd = (clientX: number, clientY: number) => {
       point.x = clientX;
       point.y = clientY;
 
@@ -214,12 +229,36 @@ export const useCreateRelation = ({
       setGanttRelationEvent(null);
     };
 
+    const handleMouseUp = (event: MouseEvent) => {
+      const {
+        clientX,
+        clientY,
+      } = event;
+
+      handleEnd(clientX, clientY);
+    };
+
+    const handleTouchEnd = () => {
+      if (lastTouch) {
+        const {
+          clientX,
+          clientY,
+        } = lastTouch;
+  
+        handleEnd(clientX, clientY);
+      }
+    };
+
     svgNode.addEventListener("mousemove", handleMouseMove);
+    svgNode.addEventListener("touchmove", handleTouchMove);
     svgNode.addEventListener("mouseup", handleMouseUp);
+    svgNode.addEventListener("touchend", handleTouchEnd);
 
     return () => {
       svgNode.removeEventListener("mousemove", handleMouseMove);
+      svgNode.removeEventListener("touchmove", handleTouchMove);
       svgNode.removeEventListener("mouseup", handleMouseUp);
+      svgNode.removeEventListener("touchend", handleTouchEnd);
     };
   }, [
     ganttSVGRef,
