@@ -22,7 +22,6 @@ import {
   GanttProps,
   OnDateChange,
   OnDateChangeSuggestionType,
-  OnProgressChange,
   OnRelationChange,
   Task,
   TaskOrEmpty,
@@ -74,6 +73,8 @@ import styles from "./gantt.module.css";
 import { getDateByOffset } from "../../helpers/get-date-by-offset";
 import { getDatesDiff } from "../../helpers/get-dates-diff";
 import { DependenciesColumn } from "../task-list/columns/dependencies-column";
+import { useGetTaskCoordinates } from "./use-get-task-coordinates";
+import { BarMoveAction } from "../../types/gantt-task-actions";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -158,6 +159,7 @@ export const Gantt: React.FC<GanttProps> = ({
   preStepsCount = 1,
   colors = undefined,
   icons = undefined,
+  isMoveChildsWithParent = true,
   rtl = false,
   timeStep = 300000,
   fontFamily = "Arial, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue",
@@ -782,12 +784,16 @@ export const Gantt: React.FC<GanttProps> = ({
       childTasksMapRef.current,
       mapTaskToGlobalIndexRef.current,
       dependentMapRef.current,
+      isRecountParentsOnChange,
+      isMoveChildsWithParent,
     ),
     [
       tasksMapRef,
       childTasksMapRef,
       mapTaskToGlobalIndexRef,
       dependentMapRef,
+      isRecountParentsOnChange,
+      isMoveChildsWithParent,
     ],
   );
 
@@ -798,10 +804,6 @@ export const Gantt: React.FC<GanttProps> = ({
     suggestions: readonly OnDateChangeSuggestionType[],
   ): TaskOrEmpty[] => {
     const prevTasks = [...tasksRef.current];
-
-    if (!isRecountParentsOnChange) {
-      return prevTasks;
-    }
 
     const nextTasks = prevTasks;
 
@@ -815,7 +817,6 @@ export const Gantt: React.FC<GanttProps> = ({
 
     return nextTasks;
   }, [
-    isRecountParentsOnChange,
     tasksRef,
   ]);
 
@@ -931,18 +932,34 @@ export const Gantt: React.FC<GanttProps> = ({
     viewMode,
   ]);
 
-  const onDateChange = useCallback<OnDateChange>((
-    task,
-    dependentTasks,
-    index,
-    parents,
-    suggestions,
+  const onDateChange = useCallback((
+    action: BarMoveAction,
+    changedTask: Task,
+    originalTask: Task,
   ) => {
+    const changeAction: ChangeAction = action === "move"
+      ? {
+        type: "change_start_and_end",
+        task: changedTask,
+        originalTask,
+      }
+      : {
+        type: "change",
+        task: changedTask,
+      };
+
+    const [
+      dependentTasks,
+      taskIndex,
+      parents,
+      suggestions,
+    ] = getMetadata(changeAction);
+
     if (onDateChangeProp) {
       onDateChangeProp(
-        task,
+        changedTask,
         dependentTasks,
-        index,
+        taskIndex,
         parents,
         suggestions,
       );
@@ -950,48 +967,53 @@ export const Gantt: React.FC<GanttProps> = ({
 
     if (onChangeTasks) {
       const withSuggestions = prepareSuggestions(suggestions);
-      withSuggestions[index] = task;
+      withSuggestions[taskIndex] = changedTask;
       onChangeTasks(withSuggestions, {
         type: "date_change",
       });
     }
   }, [
+    getMetadata,
     prepareSuggestions,
     onChangeTasks,
     onDateChangeProp,
   ]);
 
-  const onProgressChange = useCallback<OnProgressChange>((
-    task,
-    children,
-    index,
-  ) => {
+  const onProgressChange = useCallback((task: Task) => {
+    const [
+      dependentTasks,
+      taskIndex,
+    ] = getMetadata({
+      type: "change",
+      task,
+    });
+
     if (onProgressChangeProp) {
       onProgressChangeProp(
         task,
-        children,
-        index,
+        dependentTasks,
+        taskIndex,
       );
     }
 
     if (onChangeTasks) {
       const nextTasks = [...tasksRef.current];
-      nextTasks[index] = task;
+      nextTasks[taskIndex] = task;
       onChangeTasks(nextTasks, {
         type: "progress_change",
       });
     }
   }, [
-    tasksRef,
+    getMetadata,
     onChangeTasks,
     onProgressChangeProp,
+    tasksRef,
   ]);
 
   const [changeInProgress, handleTaskDragStart] = useTaskDrag({
     childTasksMap,
     dependentMap,
     ganttSVGRef,
-    getMetadata,
     mapTaskToCoordinates,
     mapTaskToGlobalIndex,
     onDateChange,
@@ -1312,16 +1334,10 @@ export const Gantt: React.FC<GanttProps> = ({
       taskIndex,
       parents,
       suggestions,
-    ] = getChangeTaskMetadata(
-      {
-        type: "change",
-        task: newChangedTask,
-      },
-      tasksMapRef.current,
-      childTasksMapRef.current,
-      mapTaskToGlobalIndexRef.current,
-      dependentMapRef.current,
-    );
+    ] = getMetadata({
+      type: "change",
+      task: newChangedTask,
+    });
 
     onFixDependencyPosition(
       newChangedTask,
@@ -1331,11 +1347,8 @@ export const Gantt: React.FC<GanttProps> = ({
       suggestions,
     );
   }, [
+    getMetadata,
     onFixDependencyPosition,
-    tasksMapRef,
-    childTasksMapRef,
-    mapTaskToGlobalIndexRef,
-    dependentMapRef,
   ]);
 
   const onRelationChange = useCallback<OnRelationChange>((from, to, isOneDescendant) => {
@@ -1459,13 +1472,12 @@ export const Gantt: React.FC<GanttProps> = ({
     visibleTasks,
   });
 
-  const getTaskCoordinates = useCallback((task: Task) => {
-    if (changeInProgress && changeInProgress.task === task) {
-      return changeInProgress.coordinates;
-    }
-
-    return getTaskCoordinatesDefault(task, mapTaskToCoordinates);;
-  }, [mapTaskToCoordinates, changeInProgress]);
+  const getTaskCoordinates = useGetTaskCoordinates(
+    changeInProgress,
+    mapTaskToCoordinates,
+    tasksMap,
+    isMoveChildsWithParent,
+  );
 
   /**
    * Prevent crash after task delete

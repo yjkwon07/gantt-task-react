@@ -17,15 +17,11 @@ import { getTaskCoordinates } from "../../helpers/get-task-coordinates";
 import { BarMoveAction } from "../../types/gantt-task-actions";
 
 import {
-  ChangeAction,
   ChangeInProgress,
-  ChangeMetadata,
   ChildMapByLevel,
   DependentMap,
   MapTaskToCoordinates,
   MapTaskToGlobalIndex,
-  OnDateChange,
-  OnProgressChange,
   Task,
   TaskCoordinates,
   TaskMapByLevel,
@@ -152,11 +148,10 @@ type UseTaskDragParams = {
   childTasksMap: ChildMapByLevel;
   dependentMap: DependentMap;
   ganttSVGRef: RefObject<SVGSVGElement>;
-  getMetadata: (changeAction: ChangeAction) => ChangeMetadata;
   mapTaskToCoordinates: MapTaskToCoordinates;
   mapTaskToGlobalIndex: MapTaskToGlobalIndex;
-  onDateChange?: OnDateChange;
-  onProgressChange?: OnProgressChange;
+  onDateChange: (action: BarMoveAction, changedTask: Task, originalTask: Task) => void;
+  onProgressChange: (task: Task) => void;
   rtl: boolean;
   scrollToLeftStep: () => void;
   scrollToRightStep: () => void;
@@ -172,7 +167,6 @@ export const useTaskDrag = ({
   childTasksMap,
   dependentMap,
   ganttSVGRef,
-  getMetadata,
   mapTaskToCoordinates,
   mapTaskToGlobalIndex,
   onDateChange,
@@ -531,39 +525,12 @@ export const useTaskDrag = ({
         return;
       }
 
-      const [
-        dependentTasks,
-        taskIndex,
-        parents,
-        suggestions,
-      ] = getMetadata({
-        type: "change",
-        task: newChangedTask,
-      });
-
       if (action === "progress") {
-        if (onProgressChange) {
-          onProgressChange(
-            newChangedTask,
-            dependentTasks,
-            taskIndex,
-          );
-        }
-
+        onProgressChange(newChangedTask);
         return;
       }
 
-      if (!onDateChange) {
-        return;
-      }
-
-      onDateChange(
-        newChangedTask,
-        dependentTasks,
-        taskIndex,
-        parents,
-        suggestions,
-      );
+      onDateChange(action, newChangedTask, task);
     };
 
     svgNode.addEventListener("mousemove", handleMouseMove);
@@ -587,7 +554,6 @@ export const useTaskDrag = ({
     timeStep,
     onDateChange,
     ganttSVGRef,
-    getMetadata,
     recountOnMove,
     rtl,
     setChangeInProgress,

@@ -345,6 +345,10 @@ export interface EventOption {
    */
   onClick?: (task: Task) => void;
   /**
+   * Recount descedents of a group task when moving
+   */
+  isMoveChildsWithParent?: boolean;
+  /**
    * Recount parents of tasks in callback `onChangeTasks`
    */
   isRecountParentsOnChange?: boolean;
@@ -725,6 +729,11 @@ export type ChangeAction =
   | {
     type: "change";
     task: TaskOrEmpty;
+  }
+  | {
+    type: "change_start_and_end"
+    task: Task;
+    originalTask: Task;
   }
   | {
     type: "delete";

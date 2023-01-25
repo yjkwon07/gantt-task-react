@@ -1,4 +1,5 @@
-import {
+import { changeStartAndEndDescendants } from "../suggestions/change-start-and-end-descendants";
+import type {
   ChangeAction,
   ChangeMetadata,
   ChildMapByLevel,
@@ -7,6 +8,7 @@ import {
   TaskMapByLevel,
 } from "../types/public-types";
 import { collectParents } from "./collect-parents";
+import { getAllDescendants } from "./get-all-descendants";
 import { getSuggestedStartEndChanges } from "./get-suggested-start-end-changes";
 
 const getTargetTask = (changeAction: ChangeAction) => {
@@ -15,6 +17,7 @@ const getTargetTask = (changeAction: ChangeAction) => {
       return changeAction.parent;
 
     case "change":
+    case "change_start_and_end":
     case "delete":
       return changeAction.task;
 
@@ -25,11 +28,11 @@ const getTargetTask = (changeAction: ChangeAction) => {
       return changeAction.parent;
 
     default:
-      throw new Error("Unknown change action");
+      throw new Error(`Unknown change action: ${(changeAction as ChangeAction).type}`);
   }
 };
 
-const collectSuggestedTasks = (
+const collectSuggestedParents = (
   changeAction: ChangeAction,
   tasksMap: TaskMapByLevel,
 ) => {
@@ -38,6 +41,7 @@ const collectSuggestedTasks = (
       return [changeAction.parent, ...collectParents(changeAction.parent, tasksMap)];
 
     case "change":
+    case "change_start_and_end":
     case "delete":
       return collectParents(changeAction.task, tasksMap);
 
@@ -55,7 +59,7 @@ const collectSuggestedTasks = (
       ];
 
     default:
-      throw new Error("Unknown change action");
+      throw new Error(`Unknown change action: ${(changeAction as ChangeAction).type}`);
   }
 };
 
@@ -65,6 +69,8 @@ export const getChangeTaskMetadata = (
   childTasksMap: ChildMapByLevel,
   mapTaskToGlobalIndex: MapTaskToGlobalIndex,
   dependentMap: DependentMap,
+  isRecountParentsOnChange: boolean,
+  isMoveChildsWithParent: boolean,
 ): ChangeMetadata => {
   const changedTask = getTargetTask(changeAction);
 
@@ -73,14 +79,32 @@ export const getChangeTaskMetadata = (
     comparisonLevel = 1,
   } = changedTask;
 
-  const suggestedTasks = collectSuggestedTasks(changeAction, tasksMap);
+  const parentSuggestedTasks = isRecountParentsOnChange
+    ? collectSuggestedParents(changeAction, tasksMap)
+    : [];
 
-  const suggestions = suggestedTasks.map((suggestedTask) => getSuggestedStartEndChanges(
-    suggestedTask,
+  const parentSuggestions = parentSuggestedTasks.map((parentTask) => getSuggestedStartEndChanges(
+    parentTask,
     changeAction,
     childTasksMap,
     mapTaskToGlobalIndex,
   ));
+
+  const descendants = (isMoveChildsWithParent && changeAction.type === "change_start_and_end")
+    ? getAllDescendants(changeAction.task, childTasksMap, false)
+    : [];
+
+  const descendantSuggestions = changeAction.type === "change_start_and_end"
+    ? changeStartAndEndDescendants(
+      changeAction.task,
+      changeAction.originalTask,
+      descendants,
+      mapTaskToGlobalIndex,
+    )
+    : [];
+
+  const suggestedTasks = [...parentSuggestedTasks, ...descendants];
+  const suggestions = [...parentSuggestions, ...descendantSuggestions];
 
   const taskIndexMapByLevel = mapTaskToGlobalIndex.get(comparisonLevel);
 

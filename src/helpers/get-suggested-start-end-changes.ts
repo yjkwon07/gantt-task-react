@@ -26,6 +26,7 @@ const getMinAndMaxDatesInDescendants = (
 
   switch (changeAction.type) {
     case "change":
+    case "change_start_and_end":
       if (task.id === changeAction.task.id) {
         if (changeAction.task.type === "empty") {
           return null;
@@ -57,6 +58,7 @@ const getMinAndMaxDatesInDescendants = (
 
   switch (changeAction.type) {
     case "change":
+    case "change_start_and_end":
     case "delete":
       allChildTasks = childTasks;
       break;
