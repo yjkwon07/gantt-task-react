@@ -75,6 +75,7 @@ import { getDatesDiff } from "../../helpers/get-dates-diff";
 import { DependenciesColumn } from "../task-list/columns/dependencies-column";
 import { useGetTaskCoordinates } from "./use-get-task-coordinates";
 import { BarMoveAction } from "../../types/gantt-task-actions";
+import { getMinAndMaxChildsMap } from "../../helpers/get-min-and-max-childs-map";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -144,30 +145,30 @@ const defaultDistances: Distances = {
 };
 
 export const Gantt: React.FC<GanttProps> = ({
-  canMoveTasks = true,
-  canResizeColumns = true,
-  dateFormats: dateFormatsProp = undefined,
-  distances: distancesProp = undefined,
-  isRecountParentsOnChange = true,
-  tasks,
-  columns: columnsProp = undefined,
-  onResizeColumn = undefined,
-  viewMode = ViewMode.Day,
-  dateLocale = enDateLocale,
-  isDeleteDependencyOnDoubleClick = true,
-  isUnknownDates = false,
-  preStepsCount = 1,
-  colors = undefined,
-  icons = undefined,
-  isMoveChildsWithParent = true,
-  rtl = false,
-  timeStep = 300000,
-  fontFamily = "Arial, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue",
-  fontSize = "14px",
-  viewDate,
-  TooltipContent = StandardTooltipContent,
   TaskListHeader = TaskListHeaderDefault,
   TaskListTable = TaskListTableDefault,
+  TooltipContent = StandardTooltipContent,
+  canMoveTasks = true,
+  canResizeColumns = true,
+  colors = undefined,
+  columns: columnsProp = undefined,
+  comparisonLevels = 1,
+  dateFormats: dateFormatsProp = undefined,
+  dateLocale = enDateLocale,
+  distances: distancesProp = undefined,
+  fixEndPosition: fixEndPositionProp = undefined,
+  fixStartPosition: fixStartPositionProp = undefined,
+  fontFamily = "Arial, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue",
+  fontSize = "14px",
+  icons = undefined,
+  isDeleteDependencyOnDoubleClick = true,
+  isMoveChildsWithParent = true,
+  isRecountParentsOnChange = true,
+  isShowChildOutOfParentWarnings = false,
+  isShowCriticalPath = false,
+  isShowDependencyWarnings = false,
+  isShowTaskNumbers = true,
+  isUnknownDates = false,
   onAddTask = undefined,
   onAddTaskClick = undefined,
   onArrowDoubleClick: onArrowDoubleClickProp = undefined,
@@ -178,21 +179,21 @@ export const Gantt: React.FC<GanttProps> = ({
   onDoubleClick = undefined,
   onEditTask = undefined,
   onEditTaskClick = undefined,
+  onFixDependencyPosition: onFixDependencyPositionProp = undefined,
   onMoveTaskAfter = undefined,
   onMoveTaskInside = undefined,
-  onFixDependencyPosition: onFixDependencyPositionProp = undefined,
   onProgressChange: onProgressChangeProp = undefined,
   onRelationChange: onRelationChangeProp = undefined,
+  onResizeColumn = undefined,
   onSelect = undefined,
-  fixStartPosition: fixStartPositionProp = undefined,
-  fixEndPosition: fixEndPositionProp = undefined,
+  preStepsCount = 1,
   renderBottomHeader = undefined,
   renderTopHeader = undefined,
-  comparisonLevels = 1,
-  isShowChildOutOfParentWarnings = false,
-  isShowDependencyWarnings = false,
-  isShowCriticalPath = false,
-  isShowTaskNumbers = true,
+  rtl = false,
+  tasks,
+  timeStep = 300000,
+  viewDate,
+  viewMode = ViewMode.Day,
 }) => {
   const ganttSVGRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -237,6 +238,11 @@ export const Gantt: React.FC<GanttProps> = ({
   const [childTasksMap, rootTasksMap] = useMemo(
     () => getChildsAndRoots(sortedTasks),
     [sortedTasks],
+  );
+
+  const minAndMaxChildsMap = useMemo(
+    () => getMinAndMaxChildsMap(rootTasksMap, childTasksMap),
+    [rootTasksMap, childTasksMap],
   );
 
   const childTasksMapRef = useLatest(childTasksMap);
@@ -1476,7 +1482,10 @@ export const Gantt: React.FC<GanttProps> = ({
     changeInProgress,
     mapTaskToCoordinates,
     tasksMap,
+    minAndMaxChildsMap,
     isMoveChildsWithParent,
+    isRecountParentsOnChange,
+    rtl,
   );
 
   /**
