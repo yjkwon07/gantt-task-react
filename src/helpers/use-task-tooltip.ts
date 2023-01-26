@@ -15,7 +15,6 @@ import {
 } from '@floating-ui/dom';
 import {
   useFloating,
-  useHover,
   useFocus,
   useDismiss,
   useRole,
@@ -59,12 +58,11 @@ export const useTaskTooltip = (
     },
     context,
   } = useFloating({
-    open: Boolean(hoverTooltipTask),
+    open: Boolean(tooltipTask),
     middleware: [offset(10), flip(), shift()],
     whileElementsMounted: autoUpdate,
   });
 
-  const hover = useHover(context, { move: false });
   const focus = useFocus(context);
   const dismiss = useDismiss(context);
   const role = useRole(context, { role: 'tooltip' });
@@ -73,7 +71,6 @@ export const useTaskTooltip = (
     getReferenceProps,
     getFloatingProps,
   } = useInteractions([
-    hover,
     focus,
     dismiss,
     role,
@@ -82,7 +79,7 @@ export const useTaskTooltip = (
   const setReferenceRef = useLatest(setReference);
 
   useEffect(() => {
-    if (!hoverTooltipTask) {
+    if (!tooltipTask) {
       return undefined;
     }
 
@@ -101,10 +98,9 @@ export const useTaskTooltip = (
         cancelAnimationFrame(updateId);
       }
     };
-  }, [context, hoverTooltipTask]);
+  }, [context, tooltipTask]);
 
   const onChangeTooltipTask = useCallback((nextTask: Task | null, element: Element | null) => {
-    setReferenceRef.current(element);
     setHoverTooltipTask(nextTask);
     setHoverTooltipEl(element);
   }, [setReferenceRef]);
