@@ -38,16 +38,18 @@ export const useGetTaskCoordinates = (
           tasksMap,
         )
       ) {
-        const moveDiff = changeInProgress.coordinates.x1 - changeInProgress.initialCoordinates.x1;
+        const {
+          coordinatesDiff,
+        } = changeInProgress;
 
         const defaultTaskCoordinates = getTaskCoordinatesDefault(task, mapTaskToCoordinates);
 
         return {
           ...defaultTaskCoordinates,
-          containerX: defaultTaskCoordinates.containerX + moveDiff,
-          x1: defaultTaskCoordinates.x1 + moveDiff,
-          x2: defaultTaskCoordinates.x2 + moveDiff,
-          progressX: defaultTaskCoordinates.progressX + moveDiff,
+          containerX: defaultTaskCoordinates.containerX + coordinatesDiff,
+          x1: defaultTaskCoordinates.x1 + coordinatesDiff,
+          x2: defaultTaskCoordinates.x2 + coordinatesDiff,
+          progressX: defaultTaskCoordinates.progressX + coordinatesDiff,
         };
       }
 

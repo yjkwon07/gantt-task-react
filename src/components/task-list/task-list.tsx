@@ -46,6 +46,7 @@ export type TaskListProps = {
   fontSize: string;
   fullRowHeight: number;
   ganttFullHeight: number;
+  getTaskCurrentState: (task: Task) => Task;
   handleAddTask: (task: Task) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
@@ -84,6 +85,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
   fontSize,
   fullRowHeight,
   ganttFullHeight,
+  getTaskCurrentState,
   handleAddTask,
   handleDeteleTask,
   handleEditTask,
@@ -201,6 +203,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
               fontSize={fontSize}
               fullRowHeight={fullRowHeight}
               ganttFullHeight={ganttFullHeight}
+              getTaskCurrentState={getTaskCurrentState}
               handleAddTask={handleAddTask}
               handleDeteleTask={handleDeteleTask}
               handleEditTask={handleEditTask}

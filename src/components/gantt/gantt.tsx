@@ -76,6 +76,7 @@ import { DependenciesColumn } from "../task-list/columns/dependencies-column";
 import { useGetTaskCoordinates } from "./use-get-task-coordinates";
 import { BarMoveAction } from "../../types/gantt-task-actions";
 import { getMinAndMaxChildsMap } from "../../helpers/get-min-and-max-childs-map";
+import { useGetTaskCurrentState } from "./use-get-task-current-state";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -1488,6 +1489,15 @@ export const Gantt: React.FC<GanttProps> = ({
     rtl,
   );
 
+  const getTaskCurrentState = useGetTaskCurrentState(
+    changeInProgress,
+    mapTaskToCoordinates,
+    tasksMap,
+    minAndMaxChildsMap,
+    isMoveChildsWithParent,
+    isRecountParentsOnChange,
+  );
+
   /**
    * Prevent crash after task delete
    */
@@ -1688,6 +1698,7 @@ export const Gantt: React.FC<GanttProps> = ({
     fontSize,
     fullRowHeight,
     ganttFullHeight,
+    getTaskCurrentState,
     handleAddTask,
     handleDeteleTask,
     handleEditTask,

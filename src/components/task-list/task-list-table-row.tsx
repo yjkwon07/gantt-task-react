@@ -35,6 +35,7 @@ type TaskListTableRowProps = {
   depth: number;
   distances: Distances;
   fullRowHeight: number;
+  getTaskCurrentState: (task: Task) => Task;
   handleAddTask: (task: Task) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
@@ -61,6 +62,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   depth,
   distances,
   fullRowHeight,
+  getTaskCurrentState,
   handleAddTask,
   handleDeteleTask,
   handleEditTask,
@@ -156,13 +158,14 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     isClosed,
     isShowTaskNumbers,
     onExpanderClick,
-    task,
+    task: task.type === 'empty' ? task : getTaskCurrentState(task),
   }), [
     canMoveTasks,
     dateSetup,
     dependencies,
     depth,
     distances,
+    getTaskCurrentState,
     handleDeteleTask,
     handleAddTask,
     handleEditTask,

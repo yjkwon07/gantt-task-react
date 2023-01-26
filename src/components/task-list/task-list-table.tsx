@@ -24,6 +24,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   fontFamily,
   fontSize,
   fullRowHeight,
+  getTaskCurrentState,
   handleAddTask,
   handleDeteleTask,
   handleEditTask,
@@ -90,6 +91,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
           depth={depth}
           distances={distances}
           fullRowHeight={fullRowHeight}
+          getTaskCurrentState={getTaskCurrentState}
           handleAddTask={handleAddTask}
           handleDeteleTask={handleDeteleTask}
           handleEditTask={handleEditTask}
@@ -123,6 +125,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   }, [
     columns,
     fullRowHeight,
+    getTaskCurrentState,
     renderedIndexes,
     renderedTasks,
   ]);

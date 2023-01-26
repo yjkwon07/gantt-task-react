@@ -34,7 +34,7 @@ const getNextCoordinates = (
   prevValue: ChangeInProgress,
   nextX: number,
   rtl: boolean,
-): TaskCoordinates => {
+): [TaskCoordinates, number] => {
   const {
     action,
     additionalLeftSpace,
@@ -51,23 +51,23 @@ const getNextCoordinates = (
         const progressWidth = (nextX2 - initialCoordinates.x1) * task.progress * 0.01;
 
         if (rtl) {
-          return {
+          return [{
             ...prevValue.coordinates,
             innerX2: nextX2 + additionalLeftSpace,
             progressWidth,
             progressX: initialCoordinates.progressX + x2Diff,
             width: initialCoordinates.width + x2Diff,
             x2: nextX2 - additionalLeftSpace,
-          };
+          }, x2Diff];
         }
 
-        return {
+        return [{
           ...prevValue.coordinates,
           innerX2: nextX2 + additionalLeftSpace,
           progressWidth,
           width: initialCoordinates.width + x2Diff,
           x2: nextX2 - additionalLeftSpace,
-        };
+        }, x2Diff];
       }
 
     case "start":
@@ -78,24 +78,24 @@ const getNextCoordinates = (
         const progressWidth = (initialCoordinates.x2 - nextX1) * task.progress * 0.01;
 
         if (rtl) {
-          return {
+          return [{
             ...prevValue.coordinates,
             innerX1: nextX1 + additionalLeftSpace,
             progressWidth,
             progressX: initialCoordinates.progressX - x1Diff,
             width: initialCoordinates.width - x1Diff,
             x1: nextX1,
-          };
+          }, x1Diff];
         }
 
-        return {
+        return [{
           ...prevValue.coordinates,
           innerX1: nextX1 + additionalLeftSpace,
           progressX: nextX1,
           progressWidth,
           width: initialCoordinates.width - x1Diff,
           x1: nextX1,
-        };
+        }, x1Diff];
       }
 
     case "progress":
@@ -109,17 +109,17 @@ const getNextCoordinates = (
         );
 
         if (rtl) {
-          return {
+          return [{
             ...prevValue.coordinates,
             progressX: nextProgressEndX,
             progressWidth: initialCoordinates.x2 - nextProgressEndX,
-          };
+          }, 0];
         }
 
-        return {
+        return [{
           ...prevValue.coordinates,
           progressWidth: nextProgressEndX - initialCoordinates.x1,
-        };
+        }, 0];
       }
 
     case "move":
@@ -129,18 +129,54 @@ const getNextCoordinates = (
         const nextX1 = initialCoordinates.x1 + diff;
         const nextX2 = initialCoordinates.x2 + diff;
 
-        return {
+        return [{
           ...prevValue.coordinates,
           innerX1: nextX1 + additionalLeftSpace,
           innerX2: nextX2 + additionalLeftSpace,
           progressX: initialCoordinates.progressX + diff,
           x1: nextX1,
           x2: nextX2,
-        };
+        }, diff];
       }
 
     default:
-      return prevValue.coordinates;
+      return [prevValue.coordinates, prevValue.coordinatesDiff];
+  }
+};
+
+const getNextTsDiff = (
+  changedTask: Task,
+  prevValue: ChangeInProgress,
+  rtl: boolean,
+): number => {
+  const {
+    action,
+    task,
+  } = prevValue;
+
+  switch (action) {
+    case "end":
+      if (rtl) {
+        return changedTask.start.getTime() - task.start.getTime();
+      }
+
+      return changedTask.end.getTime() - task.end.getTime();
+
+    case "start":
+      if (rtl) {
+        return changedTask.end.getTime() - task.end.getTime();
+      }
+
+      return changedTask.start.getTime() - task.start.getTime();
+
+    case "progress":
+      return 0;
+
+    case "move":
+      return changedTask.start.getTime() - task.start.getTime();
+
+    default:
+      return prevValue.tsDiff;
   }
 };
 
@@ -223,12 +259,14 @@ export const useTaskDrag = ({
         innerX1: coordinates.x1,
         innerX2: coordinates.x2,
       },
+      coordinatesDiff: 0,
       initialCoordinates: coordinates,
       restStartXInTask: coordinates.x2 - cursor.x,
       startX: cursor.x,
       startXInTask: cursor.x - coordinates.x1,
       task,
       taskRootNode,
+      tsDiff: 0,
     });
   }, [
     ganttSVGRef,
@@ -258,7 +296,7 @@ export const useTaskDrag = ({
         return null;
       }
 
-      const nextCoordinates = getNextCoordinates(
+      const [nextCoordinates, coordinatesDiff] = getNextCoordinates(
         task,
         prevValue,
         nextX - additionalLeftSpace,
@@ -279,6 +317,8 @@ export const useTaskDrag = ({
         ...prevValue,
         changedTask: newChangedTask,
         coordinates: nextCoordinates,
+        coordinatesDiff,
+        tsDiff: getNextTsDiff(newChangedTask, prevValue, rtl),
       };
     });
   }, [
@@ -353,6 +393,8 @@ export const useTaskDrag = ({
               additionalLeftSpace: prevValue.additionalLeftSpace + SCROLL_STEP,
               changedTask: newChangedTask,
               coordinates: nextCoordinates,
+              coordinatesDiff: prevValue.coordinatesDiff - SCROLL_STEP,
+              tsDiff: getNextTsDiff(newChangedTask, prevValue, rtl),
             };
           });
         }
@@ -425,6 +467,8 @@ export const useTaskDrag = ({
               additionalRightSpace: prevValue.additionalRightSpace + SCROLL_STEP,
               changedTask: newChangedTask,
               coordinates: nextCoordinates,
+              coordinatesDiff: prevValue.coordinatesDiff + SCROLL_STEP,
+              tsDiff: getNextTsDiff(newChangedTask, prevValue, rtl),
             };
           });
           scrollToRightStep();

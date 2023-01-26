@@ -513,6 +513,7 @@ export interface TaskListTableProps {
   fontSize: string;
   fullRowHeight: number;
   ganttFullHeight: number;
+  getTaskCurrentState: (task: Task) => Task;
   handleAddTask: (task: Task) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
@@ -694,6 +695,7 @@ export type ChangeInProgress = {
   additionalRightSpace: number;
   changedTask: Task;
   coordinates: TaskCoordinates;
+  coordinatesDiff: number;
   initialCoordinates: TaskCoordinates;
   /**
    * distance between coordinates.x2 and moving point
@@ -706,6 +708,7 @@ export type ChangeInProgress = {
   startXInTask: number;
   task: Task;
   taskRootNode: Element;
+  tsDiff: number;
 };
 
 export type GetMetadata = (task: TaskOrEmpty) => ChangeMetadata;
