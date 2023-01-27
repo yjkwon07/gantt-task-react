@@ -115,15 +115,19 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
 }) => {
   const isRelationDrawMode = Boolean(ganttRelationEvent);
 
-  const [renderedTasks, renderedArrows] = useMemo(() => {
+  const [renderedTasks, renderedArrows, renderedSelectedTasks] = useMemo(() => {
     if (!renderedRowIndexes) {
-      return [null, null];
+      return [null, null, null];
     }
 
     const [start, end] = renderedRowIndexes;
 
     const tasksRes: ReactNode[] = [];
     const arrowsRes: ReactNode[] = [];
+    const selectedTasksRes: ReactNode[] = [];
+
+    // task id -> true
+    const addedSelectedTasks: Record<string, true> = {};
 
     // avoid duplicates
     // comparison level -> task from id -> task to id -> true
@@ -132,7 +136,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     for (let index = start; index <= end; ++index) {
       const task = mapGlobalRowIndexToTask.get(index);
 
-      if (!task || task.type === 'empty') {
+      if (!task) {
         continue;
       }
 
@@ -141,7 +145,26 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
         id: taskId,
       } = task;
 
+      if (selectedIdsMirror[taskId] && !addedSelectedTasks[taskId]) {
+        addedSelectedTasks[taskId] = true;
+
+        selectedTasksRes.push(
+          <rect
+            x={0}
+            y={Math.floor(index / comparisonLevels) * fullRowHeight}
+            width="100%"
+            height={fullRowHeight}
+            fill={colorStyles.selectedTaskBackgroundColor}
+            key={taskId}
+          />
+        );
+      }
+
       if (comparisonLevel > comparisonLevels) {
+        continue;
+      }
+
+      if (task.type === 'empty') {
         continue;
       }
 
@@ -387,12 +410,14 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       }
     }
 
-    return [tasksRes, arrowsRes];
+    return [tasksRes, arrowsRes, selectedTasksRes];
   }, [
     additionalLeftSpace,
     additionalRightSpace,
+    colorStyles,
     dependencyMap,
     dependentMap,
+    fullRowHeight,
     getTaskCoordinates,
     mapGlobalRowIndexToTask,
     renderedRowIndexes,
@@ -402,6 +427,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
 
   return (
     <g className="content">
+      {renderedSelectedTasks}
+
       <g
         className="arrows"
         fill={colorStyles.arrowColor}
