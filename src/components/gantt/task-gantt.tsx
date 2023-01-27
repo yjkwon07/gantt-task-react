@@ -47,7 +47,7 @@ const TaskGanttInner: React.FC<TaskGanttProps> = ({
   verticalGanttContainerRef,
 }) => {
   const containerStyle = useMemo<CSSProperties>(() => ({
-    height: ganttHeight || ganttFullHeight,
+    height: ganttHeight,
     width: fullSvgWidth,
   }), [
     fullSvgWidth,

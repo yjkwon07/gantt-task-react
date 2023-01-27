@@ -46,6 +46,7 @@ export type TaskListProps = {
   fontSize: string;
   fullRowHeight: number;
   ganttFullHeight: number;
+  ganttHeight: number;
   getTaskCurrentState: (task: Task) => Task;
   handleAddTask: (task: Task) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;
@@ -85,6 +86,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
   fontSize,
   fullRowHeight,
   ganttFullHeight,
+  ganttHeight,
   getTaskCurrentState,
   handleAddTask,
   handleDeteleTask,
@@ -181,7 +183,9 @@ const TaskListInner: React.FC<TaskListProps> = ({
         <div
           ref={taskListContainerRef}
           className={horizontalContainerClass}
-          style={distances.ganttHeight ? { height: distances.ganttHeight } : {}}
+          style={{
+            height: ganttHeight,
+          }}
         >
           <div
             style={{

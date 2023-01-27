@@ -387,6 +387,11 @@ export const Gantt: React.FC<GanttProps> = ({
     [maxLevelLength, fullRowHeight],
   );
 
+  const ganttHeight = useMemo(
+    () => distances.ganttHeight ? Math.min(distances.ganttHeight, ganttFullHeight) : ganttFullHeight,
+    [distances, ganttFullHeight],
+  );
+
   const [mapTaskToRowIndex, mapRowIndexToTask] = useMemo(
     () => getMapTaskToRowIndex(
       visibleTasks,
@@ -564,10 +569,6 @@ export const Gantt: React.FC<GanttProps> = ({
 
   // scroll events
   useEffect(() => {
-    const {
-      ganttHeight,
-    } = distances;
-
     const handleWheel = (event: WheelEvent) => {
       if (event.shiftKey || event.deltaX) {
         const scrollMove = event.deltaX ? event.deltaX : event.deltaY;
@@ -611,6 +612,7 @@ export const Gantt: React.FC<GanttProps> = ({
     };
   }, [
     distances,
+    ganttHeight,
     ganttFullHeight,
     setScrollXProgrammatically,
     setScrollYProgrammatically,
@@ -625,7 +627,6 @@ export const Gantt: React.FC<GanttProps> = ({
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const {
       columnWidth,
-      ganttHeight,
       rowHeight,
     } = distances;
 
@@ -1701,6 +1702,7 @@ export const Gantt: React.FC<GanttProps> = ({
     fontSize,
     fullRowHeight,
     ganttFullHeight,
+    ganttHeight,
     getTaskCurrentState,
     handleAddTask,
     handleDeteleTask,
@@ -1742,7 +1744,7 @@ export const Gantt: React.FC<GanttProps> = ({
           fullRowHeight={fullRowHeight}
           fullSvgWidth={fullSvgWidth}
           ganttFullHeight={ganttFullHeight}
-          ganttHeight={distances.ganttHeight}
+          ganttHeight={ganttHeight}
           ganttSVGRef={ganttSVGRef}
           gridProps={gridProps}
           horizontalContainerRef={horizontalContainerRef}
@@ -1765,7 +1767,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
         <VerticalScroll
           ganttFullHeight={ganttFullHeight}
-          ganttHeight={distances.ganttHeight}
+          ganttHeight={ganttHeight}
           headerHeight={distances.headerHeight}
           isChangeInProgress={Boolean(changeInProgress)}
           onScroll={onVerticalScrollbarScrollY}
