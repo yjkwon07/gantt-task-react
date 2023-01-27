@@ -1,11 +1,11 @@
-import { MapTaskToGlobalIndex, TaskOrEmpty } from "../types/public-types";
+import { TaskToGlobalIndexMap, TaskOrEmpty } from "../types/public-types";
 
 /**
  * @param tasks List of tasks
  */
 export const getMapTaskToGlobalIndex = (
   tasks: readonly TaskOrEmpty[],
-): MapTaskToGlobalIndex => {
+): TaskToGlobalIndexMap => {
   const res = new Map<number, Map<string, number>>();
 
   tasks.forEach((task, index) => {

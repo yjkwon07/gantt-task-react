@@ -21,7 +21,7 @@ import {
   ChildMapByLevel,
   DependentMap,
   MapTaskToCoordinates,
-  MapTaskToGlobalIndex,
+  TaskToGlobalIndexMap,
   Task,
   TaskCoordinates,
   TaskMapByLevel,
@@ -186,7 +186,7 @@ type UseTaskDragParams = {
   dependentMap: DependentMap;
   ganttSVGRef: RefObject<SVGSVGElement>;
   mapTaskToCoordinates: MapTaskToCoordinates;
-  mapTaskToGlobalIndex: MapTaskToGlobalIndex;
+  mapTaskToGlobalIndex: TaskToGlobalIndexMap;
   onDateChange: (action: BarMoveAction, changedTask: Task, originalTask: Task) => void;
   onProgressChange: (task: Task) => void;
   rtl: boolean;

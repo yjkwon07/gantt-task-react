@@ -4,6 +4,7 @@ import React, {
 } from "react";
 import type {
   ComponentType,
+  MouseEvent,
   RefObject,
 } from "react";
 
@@ -13,6 +14,7 @@ import { useDrop } from "react-dnd";
 
 import {
   ChildMapByLevel,
+  ColorStyles,
   Column,
   ColumnResizeEvent,
   DateSetup,
@@ -37,6 +39,7 @@ export type TaskListProps = {
   canResizeColumns: boolean;
   childTasksMap: ChildMapByLevel;
   closedTasks: Readonly<Record<string, true>>;
+  colors: ColorStyles;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
   dateSetup: DateSetup;
@@ -62,8 +65,8 @@ export type TaskListProps = {
   scrollToBottomStep: () => void;
   scrollToTask: (task: Task) => void;
   scrollToTopStep: () => void;
-  selectedTask: Task | null;
-  setSelectedTask: (task: Task) => void;
+  selectTaskOnClick: (taskId: string, event: MouseEvent) => void;
+  selectedIdsMirror: Readonly<Record<string, true>>;
   taskListContainerRef: RefObject<HTMLDivElement>;
   taskListRef: RefObject<HTMLDivElement>;
   taskListWidth: number;
@@ -77,6 +80,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
   canResizeColumns,
   childTasksMap,
   closedTasks,
+  colors,
   columnResizeEvent,
   columns,
   dateSetup,
@@ -102,8 +106,8 @@ const TaskListInner: React.FC<TaskListProps> = ({
   scrollToBottomStep,
   scrollToTask,
   scrollToTopStep,
-  selectedTask,
-  setSelectedTask,
+  selectTaskOnClick,
+  selectedIdsMirror,
   taskListContainerRef,
   taskListRef,
   taskListWidth,
@@ -116,8 +120,6 @@ const TaskListInner: React.FC<TaskListProps> = ({
     'scrollTop',
     fullRowHeight,
   );
-
-  const selectedTaskId = selectedTask ? selectedTask.id : "";
 
   const [{ isScrollingToTop }, scrollToTopRef] = useDrop({
     accept: ROW_DRAG_TYPE,
@@ -198,6 +200,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
               canMoveTasks={canMoveTasks}
               childTasksMap={childTasksMap}
               closedTasks={closedTasks}
+              colors={colors}
               columnResizeEvent={columnResizeEvent}
               columns={columns}
               dateSetup={dateSetup}
@@ -219,8 +222,8 @@ const TaskListInner: React.FC<TaskListProps> = ({
               onExpanderClick={onExpanderClick}
               renderedIndexes={renderedIndexes}
               scrollToTask={scrollToTask}
-              selectedTaskId={selectedTaskId}
-              setSelectedTask={setSelectedTask}
+              selectTaskOnClick={selectTaskOnClick}
+              selectedIdsMirror={selectedIdsMirror}
               taskListWidth={taskListWidth}
               tasks={tasks}
             />

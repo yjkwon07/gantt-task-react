@@ -63,9 +63,6 @@ export type TaskItemProps = {
     target: RelationMoveTarget,
     selectedTask: Task,
   ) => void;
-  setSelectedTask: (
-    task: Task | null,
-  ) => void;
   fixStartPosition?: FixPosition;
   fixEndPosition?: FixPosition;
   handleDeteleTask: (task: TaskOrEmpty) => void;
@@ -108,7 +105,6 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     onEventStart,
     onRelationStart,
     setTooltipTask,
-    setSelectedTask,
     fixStartPosition = undefined,
     fixEndPosition = undefined,
     handleDeteleTask,
@@ -324,10 +320,6 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     return x1 + width + arrowIndent * 1.2;
   }, [x1, width, isTextInside, rtl, arrowIndent]);
 
-  const onFocus = useCallback(() => {
-    setSelectedTask(task);
-  }, [setSelectedTask, task]);
-
   const onMouseEnter = useCallback<MouseEventHandler<SVGGElement>>((event) => {
     setTooltipTask(task, event.currentTarget);
   }, [setTooltipTask, task]);
@@ -354,7 +346,6 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
       onMouseLeave={onMouseLeave}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
-      onFocus={onFocus}
       ref={taskRootRef}
     >
       {taskItem}

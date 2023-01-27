@@ -1,15 +1,15 @@
-import { MapTaskToRowIndex, Task } from "../types/public-types";
+import { TaskToRowIndexMap, Task } from "../types/public-types";
 
 export const getTaskRowIndex = (
   task: Task,
-  mapTaskToRowIndex: MapTaskToRowIndex,
+  taskToRowIndexMap: TaskToRowIndexMap,
 ) => {
   const {
     id,
     comparisonLevel = 1,
   } = task;
 
-  const rowIndexByLevel = mapTaskToRowIndex.get(comparisonLevel);
+  const rowIndexByLevel = taskToRowIndexMap.get(comparisonLevel);
 
   if (!rowIndexByLevel) {
     throw new Error(`Warning: tasks by level ${comparisonLevel} are not found`);

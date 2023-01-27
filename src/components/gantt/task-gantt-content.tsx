@@ -15,7 +15,7 @@ import {
   Distances,
   EventOption,
   FixPosition,
-  MapRowIndexToTask,
+  GlobalRowIndexToTaskMap,
   Task,
   TaskCoordinates,
   TaskOrEmpty,
@@ -42,8 +42,9 @@ export type TaskGanttContentProps = {
   getTaskCoordinates: (task: Task) => TaskCoordinates;
   getTaskGlobalIndexByRef: (task: Task) => number;
   handleFixDependency: (task: Task, delta: number) => void;
-  mapRowIndexToTask: MapRowIndexToTask;
+  mapGlobalRowIndexToTask: GlobalRowIndexToTaskMap;
   renderedRowIndexes: OptimizedListParams | null;
+  selectedIdsMirror: Readonly<Record<string, true>>;
   taskToHasDependencyWarningMap: TaskToHasDependencyWarningMap | null;
   taskYOffset: number;
   visibleTasksMirror: Readonly<Record<string, true>>;
@@ -52,7 +53,6 @@ export type TaskGanttContentProps = {
   dependencyMap: DependencyMap;
   isShowDependencyWarnings: boolean;
   ganttRelationEvent: GanttRelationEvent | null;
-  selectedTask: Task | null;
   fullRowHeight: number;
   taskHeight: number;
   taskHalfHeight: number;
@@ -67,7 +67,6 @@ export type TaskGanttContentProps = {
   ) => void;
   setTooltipTask: (task: Task | null, element: Element | null) => void;
   handleBarRelationStart: (target: RelationMoveTarget, task: Task) => void;
-  setSelectedTask: (task: Task | null) => void;
   handleDeteleTask: (task: TaskOrEmpty) => void;
   onArrowDoubleClick: (taskFrom: Task, taskTo: Task) => void;
   comparisonLevels: number;
@@ -85,8 +84,9 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   getTaskCoordinates,
   getTaskGlobalIndexByRef,
   handleFixDependency,
-  mapRowIndexToTask,
+  mapGlobalRowIndexToTask,
   renderedRowIndexes,
+  selectedIdsMirror,
   taskToHasDependencyWarningMap,
   taskYOffset,
   visibleTasksMirror,
@@ -95,7 +95,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   isShowDependencyWarnings,
   criticalPaths,
   ganttRelationEvent,
-  selectedTask,
   fullRowHeight,
   taskHeight,
   taskHalfHeight,
@@ -105,7 +104,6 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   handleTaskDragStart,
   setTooltipTask,
   handleBarRelationStart,
-  setSelectedTask,
   handleDeteleTask,
   onDoubleClick,
   onClick,
@@ -132,7 +130,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     const addedDependencies: Record<string, Record<string, Record<string, true>>> = {};
 
     for (let index = start; index <= end; ++index) {
-      const task = mapRowIndexToTask.get(index);
+      const task = mapGlobalRowIndexToTask.get(index);
 
       if (!task || task.type === 'empty') {
         continue;
@@ -206,8 +204,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             onEventStart={handleTaskDragStart}
             setTooltipTask={setTooltipTask}
             onRelationStart={handleBarRelationStart}
-            setSelectedTask={setSelectedTask}
-            isSelected={selectedTask === task}
+            isSelected={Boolean(selectedIdsMirror[taskId])}
             isCritical={isCritical}
             rtl={rtl}
             fixStartPosition={fixStartPosition}
@@ -397,8 +394,9 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     dependencyMap,
     dependentMap,
     getTaskCoordinates,
-    mapRowIndexToTask,
+    mapGlobalRowIndexToTask,
     renderedRowIndexes,
+    selectedIdsMirror,
     visibleTasksMirror,
   ]);
 

@@ -1,5 +1,6 @@
 import type {
   ComponentType,
+  MouseEvent,
   ReactNode,
 } from "react";
 
@@ -100,6 +101,8 @@ export interface ColorStyles {
   milestoneBackgroundCriticalColor: string;
   milestoneBackgroundSelectedColor: string;
   milestoneBackgroundSelectedCriticalColor: string;
+  evenTaskBackgroundColor: string;
+  selectedTaskBackgroundColor: string;
   todayColor: string;
 }
 
@@ -333,10 +336,6 @@ export interface EventOption {
    */
   timeStep?: number;
   /**
-   * Invokes on bar select on unselect.
-   */
-  onSelect?: (task: Task | null) => void;
-  /**
    * Invokes on bar double click.
    */
   onDoubleClick?: (task: Task) => void;
@@ -504,6 +503,7 @@ export interface TaskListTableProps {
   canMoveTasks: boolean;
   childTasksMap: ChildMapByLevel;
   closedTasks: Readonly<Record<string, true>>;
+  colors: ColorStyles;
   columnResizeEvent: ColumnResizeEvent | null;
   columns: readonly Column[];
   dateSetup: DateSetup;
@@ -525,8 +525,8 @@ export interface TaskListTableProps {
   onExpanderClick: (task: Task) => void;
   renderedIndexes: OptimizedListParams | null;
   scrollToTask: (task: Task) => void;
-  selectedTaskId: string;
-  setSelectedTask: (task: Task) => void;
+  selectTaskOnClick: (taskId: string, event: MouseEvent) => void;
+  selectedIdsMirror: Readonly<Record<string, true>>;
   taskListWidth: number;
   tasks: readonly TaskOrEmpty[];
 }
@@ -542,13 +542,16 @@ export interface TaskListHeaderProps {
 }
 
 // comparison level -> task id -> index in array of tasks
-export type MapTaskToGlobalIndex = Map<number, Map<string, number>>;
+export type TaskToGlobalIndexMap = Map<number, Map<string, number>>;
 
 // comparison level -> task id -> index of the row containing the task
-export type MapTaskToRowIndex = Map<number, Map<string, number>>;
+export type TaskToRowIndexMap = Map<number, Map<string, number>>;
 
-// row index (tasks at different comparison levels have different indexes) -> the task
-export type MapRowIndexToTask = Map<number, TaskOrEmpty>;
+// comparison level -> index of the row containing the task -> task id
+export type RowIndexToTaskMap = Map<number, Map<number, TaskOrEmpty>>;
+
+// global row index (tasks at different comparison levels have different indexes) -> the task
+export type GlobalRowIndexToTaskMap = Map<number, TaskOrEmpty>;
 
 // comparison level -> task id -> array of child tasks
 export type ChildMapByLevel = Map<number, Map<string, TaskOrEmpty[]>>;

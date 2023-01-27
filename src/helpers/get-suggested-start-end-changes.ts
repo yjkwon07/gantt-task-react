@@ -1,7 +1,7 @@
 import {
   ChangeAction,
   ChildMapByLevel,
-  MapTaskToGlobalIndex,
+  TaskToGlobalIndexMap,
   OnDateChangeSuggestionType,
   Task,
   TaskOrEmpty,
@@ -150,7 +150,7 @@ export const getSuggestedStartEndChanges = (
   task: Task,
   changeAction: ChangeAction,
   childTasksMap: ChildMapByLevel,
-  mapTaskToGlobalIndex: MapTaskToGlobalIndex,
+  mapTaskToGlobalIndex: TaskToGlobalIndexMap,
 ): OnDateChangeSuggestionType => {
   const {
     id,

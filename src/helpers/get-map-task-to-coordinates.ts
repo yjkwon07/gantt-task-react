@@ -1,7 +1,7 @@
 import {
   Distances,
   MapTaskToCoordinates,
-  MapTaskToRowIndex,
+  TaskToRowIndexMap,
   TaskCoordinates,
   TaskOrEmpty,
   ViewMode,
@@ -18,7 +18,7 @@ import {
 export const getMapTaskToCoordinates = (
   tasks: readonly TaskOrEmpty[],
   visibleTasksMirror: Readonly<Record<string, true>>,
-  mapTaskToRowIndex: MapTaskToRowIndex,
+  taskToRowIndexMap: TaskToRowIndexMap,
   startDate: Date,
   viewMode: ViewMode,
   rtl: boolean,
@@ -51,7 +51,7 @@ export const getMapTaskToCoordinates = (
       return;
     }
 
-    const indexesByLevel = mapTaskToRowIndex.get(comparisonLevel);
+    const indexesByLevel = taskToRowIndexMap.get(comparisonLevel);
 
     if (!indexesByLevel) {
       throw new Error(`Indexes at level ${comparisonLevel} are not found`);

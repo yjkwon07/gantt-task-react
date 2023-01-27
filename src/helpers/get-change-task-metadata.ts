@@ -4,7 +4,7 @@ import type {
   ChangeMetadata,
   ChildMapByLevel,
   DependentMap,
-  MapTaskToGlobalIndex,
+  TaskToGlobalIndexMap,
   TaskMapByLevel,
 } from "../types/public-types";
 import { collectParents } from "./collect-parents";
@@ -67,7 +67,7 @@ export const getChangeTaskMetadata = (
   changeAction: ChangeAction,
   tasksMap: TaskMapByLevel,
   childTasksMap: ChildMapByLevel,
-  mapTaskToGlobalIndex: MapTaskToGlobalIndex,
+  mapTaskToGlobalIndex: TaskToGlobalIndexMap,
   dependentMap: DependentMap,
   isRecountParentsOnChange: boolean,
   isMoveChildsWithParent: boolean,

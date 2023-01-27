@@ -16,6 +16,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   canMoveTasks,
   childTasksMap,
   closedTasks,
+  colors,
   columns,
   columnResizeEvent,
   dateSetup,
@@ -36,6 +37,8 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   onExpanderClick,
   renderedIndexes,
   scrollToTask,
+  selectTaskOnClick,
+  selectedIdsMirror,
   tasks,
 }) => {
   const renderedTasks = useMemo(
@@ -84,6 +87,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
       renderedList.push(
         <TaskListTableRow
           canMoveTasks={canMoveTasks}
+          colors={colors}
           columnResizeEvent={columnResizeEvent}
           columns={columns}
           dateSetup={dateSetup}
@@ -102,9 +106,11 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
           indexStr={indexStr}
           isClosed={Boolean(closedTasks[id])}
           isEven={index % 2 === 1}
+          isSelected={selectedIdsMirror[id]}
           isShowTaskNumbers={isShowTaskNumbers}
           onExpanderClick={onExpanderClick}
           scrollToTask={scrollToTask}
+          selectTaskOnClick={selectTaskOnClick}
           task={task}
           key={id}
         />,
@@ -123,11 +129,14 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
       </>
     );
   }, [
+    colors,
     columns,
     fullRowHeight,
     getTaskCurrentState,
     renderedIndexes,
     renderedTasks,
+    selectTaskOnClick,
+    selectedIdsMirror,
   ]);
 
   return (

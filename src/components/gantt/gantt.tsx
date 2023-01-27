@@ -77,6 +77,7 @@ import { useGetTaskCoordinates } from "./use-get-task-coordinates";
 import { BarMoveAction } from "../../types/gantt-task-actions";
 import { getMinAndMaxChildsMap } from "../../helpers/get-min-and-max-childs-map";
 import { useGetTaskCurrentState } from "./use-get-task-current-state";
+import { useSelection } from "./use-selection";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -110,6 +111,8 @@ const defaultColors: ColorStyles = {
   milestoneBackgroundCriticalColor: "#ff8e8e",
   milestoneBackgroundSelectedColor: "#f29e4c",
   milestoneBackgroundSelectedCriticalColor: "#ff0000",
+  evenTaskBackgroundColor: "#f5f5f5",
+  selectedTaskBackgroundColor: "rgba(252, 248, 227, 0.5)",
   todayColor: "rgba(252, 248, 227, 0.5)",
 };
 
@@ -186,7 +189,6 @@ export const Gantt: React.FC<GanttProps> = ({
   onProgressChange: onProgressChangeProp = undefined,
   onRelationChange: onRelationChangeProp = undefined,
   onResizeColumn = undefined,
-  onSelect = undefined,
   preStepsCount = 1,
   renderBottomHeader = undefined,
   renderTopHeader = undefined,
@@ -380,8 +382,6 @@ export const Gantt: React.FC<GanttProps> = ({
     return maxLength;
   }, [visibleTasks, comparisonLevels]);
 
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-
   const ganttFullHeight = useMemo(
     () => maxLevelLength * fullRowHeight,
     [maxLevelLength, fullRowHeight],
@@ -392,12 +392,20 @@ export const Gantt: React.FC<GanttProps> = ({
     [distances, ganttFullHeight],
   );
 
-  const [mapTaskToRowIndex, mapRowIndexToTask] = useMemo(
+  const [taskToRowIndexMap, rowIndexToTaskMap, mapGlobalRowIndexToTask] = useMemo(
     () => getMapTaskToRowIndex(
       visibleTasks,
       comparisonLevels,
     ),
     [visibleTasks, comparisonLevels],
+  );
+
+  const {
+    selectTaskOnClick,
+    selectedIdsMirror,
+  } = useSelection(
+    taskToRowIndexMap,
+    rowIndexToTaskMap,
   );
 
   const [startDate, datesLength] = useMemo(() =>  ganttDateRange(
@@ -441,7 +449,7 @@ export const Gantt: React.FC<GanttProps> = ({
   const mapTaskToCoordinates = useMemo(() => getMapTaskToCoordinates(
     tasks,
     visibleTasksMirror,
-    mapTaskToRowIndex,
+    taskToRowIndexMap,
     startDate,
     viewMode,
     rtl,
@@ -453,7 +461,7 @@ export const Gantt: React.FC<GanttProps> = ({
   ), [
     distances,
     fullRowHeight,
-    mapTaskToRowIndex,
+    taskToRowIndexMap,
     rtl,
     startDate,
     svgWidth,
@@ -670,18 +678,6 @@ export const Gantt: React.FC<GanttProps> = ({
       setScrollYProgrammatically(newScrollY);
     }
   };
-
-  const isFirstRenderRef = useRef(true);
-  useEffect(() => {
-    if (isFirstRenderRef.current) {
-      isFirstRenderRef.current = false;
-      return;
-    }
-
-    if (onSelect) {
-      onSelect(selectedTask);
-    }
-  }, [onSelect, selectedTask]);
 
   const handleExpanderClick = useCallback((task: Task) => {
     setClosedTasks((prevClosedTasks) => {
@@ -1609,18 +1605,18 @@ export const Gantt: React.FC<GanttProps> = ({
     getTaskCoordinates,
     getTaskGlobalIndexByRef,
     handleFixDependency,
-    mapRowIndexToTask,
+    mapGlobalRowIndexToTask,
     renderedRowIndexes,
+    selectedIdsMirror,
     taskToHasDependencyWarningMap,
     taskYOffset,
     visibleTasksMirror,
-    mapTaskToRowIndex,
+    taskToRowIndexMap,
     childOutOfParentWarnings,
     dependencyMap,
     isShowDependencyWarnings,
     criticalPaths,
     ganttRelationEvent,
-    selectedTask,
     fullRowHeight,
     taskHeight,
     taskHalfHeight,
@@ -1631,7 +1627,6 @@ export const Gantt: React.FC<GanttProps> = ({
     handleTaskDragStart,
     setTooltipTask: onChangeTooltipTask,
     handleBarRelationStart,
-    setSelectedTask,
     handleDeteleTask,
     onFixDependencyPosition,
     onRelationChange,
@@ -1649,20 +1644,20 @@ export const Gantt: React.FC<GanttProps> = ({
     distances,
     getTaskCoordinates,
     getTaskGlobalIndexByRef,
-    mapRowIndexToTask,
+    mapGlobalRowIndexToTask,
     renderedRowIndexes,
+    selectedIdsMirror,
     taskToHasDependencyWarningMap,
     taskYOffset,
     visibleTasks,
     visibleTasksMirror,
-    mapTaskToRowIndex,
+    taskToRowIndexMap,
     mapTaskToCoordinates,
     childOutOfParentWarnings,
     dependencyMap,
     isShowDependencyWarnings,
     criticalPaths,
     ganttRelationEvent,
-    selectedTask,
     fullRowHeight,
     taskHeight,
     taskHalfHeight,
@@ -1673,7 +1668,6 @@ export const Gantt: React.FC<GanttProps> = ({
     changeInProgress,
     handleTaskDragStart,
     handleBarRelationStart,
-    setSelectedTask,
     handleDeteleTask,
     onArrowDoubleClick,
     onChangeTooltipTask,
@@ -1693,6 +1687,7 @@ export const Gantt: React.FC<GanttProps> = ({
     canResizeColumns,
     childTasksMap,
     closedTasks,
+    colors: colorStyles,
     columnResizeEvent,
     columns,
     dateSetup,
@@ -1717,9 +1712,9 @@ export const Gantt: React.FC<GanttProps> = ({
     onResizeStart,
     scrollToBottomStep,
     scrollToTopStep,
-    selectedTask,
+    selectTaskOnClick,
+    selectedIdsMirror,
     scrollToTask,
-    setSelectedTask,
     taskListContainerRef,
     taskListRef,
     taskListWidth,

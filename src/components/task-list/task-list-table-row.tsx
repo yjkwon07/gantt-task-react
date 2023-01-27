@@ -5,6 +5,7 @@ import React, {
 } from "react";
 import type {
   CSSProperties,
+  MouseEvent,
 } from 'react';
 
 import { useDrop } from "react-dnd";
@@ -12,6 +13,7 @@ import { useDrop } from "react-dnd";
 import cx from "classnames";
 
 import {
+  ColorStyles,
   Column,
   ColumnData,
   ColumnResizeEvent,
@@ -28,6 +30,7 @@ import { ROW_DRAG_TYPE } from "../../constants";
 
 type TaskListTableRowProps = {
   canMoveTasks: boolean;
+  colors: ColorStyles;
   columnResizeEvent: ColumnResizeEvent | null;
   columns: readonly Column[];
   dateSetup: DateSetup;
@@ -46,15 +49,18 @@ type TaskListTableRowProps = {
   indexStr: string;
   isClosed: boolean;
   isEven: boolean;
+  isSelected: boolean;
   isShowTaskNumbers: boolean;
   onExpanderClick: (task: Task) => void;
   scrollToTask: (task: Task) => void;
+  selectTaskOnClick: (taskId: string, event: MouseEvent) => void;
   style?: CSSProperties;
   task: TaskOrEmpty;
 };
 
 const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   canMoveTasks,
+  colors,
   columnResizeEvent,
   columns,
   dateSetup,
@@ -73,9 +79,11 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   indexStr,
   isClosed,
   isEven,
+  isSelected,
   isShowTaskNumbers,
   onExpanderClick,
   scrollToTask,
+  selectTaskOnClick,
   style = undefined,
   task,
 }) => {
@@ -84,13 +92,18 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     comparisonLevel = 1,
   } = task;
 
-  const onRootClick = useCallback(() => {
+  const onRootClick = useCallback((event: MouseEvent) => {
     if (task.type === 'empty') {
       return;
     }
 
     scrollToTask(task);
-  }, [scrollToTask, task]);
+    selectTaskOnClick(task.id, event);
+  }, [
+    scrollToTask,
+    selectTaskOnClick,
+    task,
+  ]);
 
   const [dropInsideProps, dropInside] = useDrop({
     accept: ROW_DRAG_TYPE,
@@ -182,11 +195,15 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     <div
       className={cx(styles.taskListTableRow, {
         [styles.lighten]: dropInsideProps.isLighten && !dropAfterProps.isLighten,
-        [styles.even]: isEven,
       })}
       onClick={onRootClick}
       style={{
         height: fullRowHeight,
+        backgroundColor: isSelected
+          ? colors.selectedTaskBackgroundColor
+          : isEven
+            ? colors.evenTaskBackgroundColor
+            : undefined,
         ...style,
       }}
       ref={dropInside}

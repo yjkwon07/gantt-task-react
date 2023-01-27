@@ -1,6 +1,7 @@
 import type {
-  MapRowIndexToTask,
-  MapTaskToRowIndex,
+  GlobalRowIndexToTaskMap,
+  RowIndexToTaskMap,
+  TaskToRowIndexMap,
   TaskOrEmpty,
 } from "../types/public-types";
 
@@ -11,9 +12,14 @@ import type {
 export const getMapTaskToRowIndex = (
   visibleTasks: readonly TaskOrEmpty[],
   comparisonLevels: number,
-): [MapTaskToRowIndex, MapRowIndexToTask] => {
+): [
+  TaskToRowIndexMap,
+  RowIndexToTaskMap,
+  GlobalRowIndexToTaskMap,
+] => {
   const taskToRowIndexRes = new Map<number, Map<string, number>>();
-  const indexToTaskRes = new Map<number, TaskOrEmpty>();
+  const rowIndexToTaskRes = new Map<number, Map<number, TaskOrEmpty>>();
+  const globalIndexToTaskRes = new Map<number, TaskOrEmpty>();
 
   const indexesByLevels: Record<string, number> = {};
 
@@ -34,9 +40,13 @@ export const getMapTaskToRowIndex = (
     indexesMapByLevel.set(id, index);
     taskToRowIndexRes.set(comparisonLevel, indexesMapByLevel);
 
+    const rowIndexToTaskAtLevelMap = rowIndexToTaskRes.get(comparisonLevel) || new Map<number, TaskOrEmpty>();
+    rowIndexToTaskAtLevelMap.set(index, task);
+    rowIndexToTaskRes.set(comparisonLevel, rowIndexToTaskAtLevelMap);
+
     const absoluteIndex = index * comparisonLevels + (comparisonLevel - 1);
-    indexToTaskRes.set(absoluteIndex, task);
+    globalIndexToTaskRes.set(absoluteIndex, task);
   });
 
-  return [taskToRowIndexRes, indexToTaskRes];
+  return [taskToRowIndexRes, rowIndexToTaskRes, globalIndexToTaskRes];
 };

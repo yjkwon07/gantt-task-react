@@ -2,7 +2,7 @@ import addMilliseconds from 'date-fns/addMilliseconds';
 import differenceInMilliseconds from 'date-fns/differenceInMilliseconds';
 
 import type {
-  MapTaskToGlobalIndex,
+  TaskToGlobalIndexMap,
   OnDateChangeSuggestionType,
   Task,
   TaskOrEmpty,
@@ -12,7 +12,7 @@ export const changeStartAndEndDescendants = (
   changedTask: Task,
   originalTask: Task,
   descendants: readonly TaskOrEmpty[],
-  mapTaskToGlobalIndex: MapTaskToGlobalIndex,
+  mapTaskToGlobalIndex: TaskToGlobalIndexMap,
 ): readonly OnDateChangeSuggestionType[] => {
   const diff = differenceInMilliseconds(changedTask.start, originalTask.start);
 

@@ -16,7 +16,7 @@ import { GanttRelationEvent, RelationMoveTarget } from "../../types/gantt-task-a
 import {
   Distances,
   MapTaskToCoordinates,
-  MapTaskToGlobalIndex,
+  TaskToGlobalIndexMap,
   OnRelationChange,
   Task,
   TaskMapByLevel,
@@ -27,7 +27,7 @@ type UseCreateRelationParams = {
   distances: Distances;
   ganttSVGRef: RefObject<SVGSVGElement>;
   mapTaskToCoordinates: MapTaskToCoordinates;
-  mapTaskToGlobalIndex: MapTaskToGlobalIndex;
+  mapTaskToGlobalIndex: TaskToGlobalIndexMap;
   onRelationChange?: OnRelationChange;
   rtl: boolean;
   taskHalfHeight: number;
