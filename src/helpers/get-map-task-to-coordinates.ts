@@ -17,6 +17,7 @@ import {
  */
 export const getMapTaskToCoordinates = (
   tasks: readonly TaskOrEmpty[],
+  visibleTasksMirror: Readonly<Record<string, true>>,
   mapTaskToRowIndex: MapTaskToRowIndex,
   startDate: Date,
   viewMode: ViewMode,
@@ -46,18 +47,20 @@ export const getMapTaskToCoordinates = (
       type,
     } = task;
 
+    if (!visibleTasksMirror[id]) {
+      return;
+    }
+
     const indexesByLevel = mapTaskToRowIndex.get(comparisonLevel);
 
     if (!indexesByLevel) {
-      console.error(`Warning: indexes by level ${comparisonLevel} are not found`);
-      return;
+      throw new Error(`Indexes at level ${comparisonLevel} are not found`);
     }
 
     const rowIndex = indexesByLevel.get(id);
 
     if (typeof rowIndex !== 'number') {
-      console.error(`Warning: row index for task ${id} is not found`);
-      return;
+      throw new Error(`Row index for task ${id} is not found`);
     }
 
     const x1 = rtl

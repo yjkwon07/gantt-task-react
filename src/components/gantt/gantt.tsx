@@ -435,6 +435,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const mapTaskToCoordinates = useMemo(() => getMapTaskToCoordinates(
     tasks,
+    visibleTasksMirror,
     mapTaskToRowIndex,
     startDate,
     viewMode,
@@ -455,6 +456,7 @@ export const Gantt: React.FC<GanttProps> = ({
     tasks,
     taskYOffset,
     viewMode,
+    visibleTasksMirror,
   ]);
 
   const mapTaskToCoordinatesRef = useLatest(mapTaskToCoordinates);
