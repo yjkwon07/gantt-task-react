@@ -1029,6 +1029,7 @@ export const Gantt: React.FC<GanttProps> = ({
     scrollToLeftStep,
     scrollToRightStep,
     scrollXRef,
+    setScrollXProgrammatically,
     svgClientWidthRef,
     svgWidth,
     tasksMap,

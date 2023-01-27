@@ -46,12 +46,7 @@ export const useHorizontalScrollbars = (): [
       horizontalScrollbarRef.current.scrollLeft = nextScrollX;
     }
 
-    setScrollX(
-      Math.min(
-        Math.max(nextScrollX, 0),
-        scrollEl.scrollWidth,
-      ),
-    );
+    setScrollX(scrollEl.scrollLeft);
 
     setTimeout(() => {
       isLockedRef.current = false;

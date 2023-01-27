@@ -697,15 +697,8 @@ export type ChangeInProgress = {
   coordinates: TaskCoordinates;
   coordinatesDiff: number;
   initialCoordinates: TaskCoordinates;
-  /**
-   * distance between coordinates.x2 and moving point
-   */
-  restStartXInTask: number;
+  lastClientX: number;
   startX: number;
-  /**
-   * distance between coordinates.x1 and moving point
-   */
-  startXInTask: number;
   task: Task;
   taskRootNode: Element;
   tsDiff: number;
