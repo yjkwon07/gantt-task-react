@@ -53,7 +53,7 @@ type TaskListTableRowProps = {
   isShowTaskNumbers: boolean;
   onExpanderClick: (task: Task) => void;
   scrollToTask: (task: Task) => void;
-  selectTaskOnClick: (taskId: string, event: MouseEvent) => void;
+  selectTaskOnMouseDown: (taskId: string, event: MouseEvent) => void;
   style?: CSSProperties;
   task: TaskOrEmpty;
 };
@@ -83,7 +83,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   isShowTaskNumbers,
   onExpanderClick,
   scrollToTask,
-  selectTaskOnClick,
+  selectTaskOnMouseDown,
   style = undefined,
   task,
 }) => {
@@ -92,16 +92,16 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     comparisonLevel = 1,
   } = task;
 
-  const onRootClick = useCallback((event: MouseEvent) => {
+  const onRootMouseDown = useCallback((event: MouseEvent) => {
     if (task.type === 'empty') {
       return;
     }
 
     scrollToTask(task);
-    selectTaskOnClick(task.id, event);
+    selectTaskOnMouseDown(task.id, event);
   }, [
     scrollToTask,
-    selectTaskOnClick,
+    selectTaskOnMouseDown,
     task,
   ]);
 
@@ -196,7 +196,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
       className={cx(styles.taskListTableRow, {
         [styles.lighten]: dropInsideProps.isLighten && !dropAfterProps.isLighten,
       })}
-      onClick={onRootClick}
+      onMouseDown={onRootMouseDown}
       style={{
         height: fullRowHeight,
         backgroundColor: isSelected

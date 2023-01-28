@@ -120,10 +120,9 @@ export const useSelection = (
     lastSelectedIdRef.current = null;
   }, []);
 
-  const selectTaskOnClick = useCallback((taskId: string, event: MouseEvent) => {
-    event.preventDefault();
-
+  const selectTaskOnMouseDown = useCallback((taskId: string, event: MouseEvent) => {
     if (event.shiftKey) {
+      event.preventDefault();
       selectTasksFromLastSelected(taskId);
       return;
     }
@@ -143,7 +142,7 @@ export const useSelection = (
   return {
     resetSelectedTasks,
     selectTask,
-    selectTaskOnClick,
+    selectTaskOnMouseDown,
     selectTasksFromLastSelected,
     selectedIdsMirror,
     toggleTask,

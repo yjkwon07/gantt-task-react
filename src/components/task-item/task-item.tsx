@@ -7,6 +7,7 @@ import React, {
   useCallback,
 } from "react";
 import type {
+  MouseEvent,
   MouseEventHandler,
 } from 'react';
 
@@ -33,6 +34,7 @@ export type TaskItemProps = {
   hasDependencyWarning: boolean;
   progressWidth: number;
   progressX: number;
+  selectTaskOnMouseDown: (taskId: string, event: MouseEvent) => void;
   task: Task;
   taskYOffset: number;
   width: number;
@@ -71,22 +73,8 @@ export type TaskItemProps = {
 
 const TaskItemInner: React.FC<TaskItemProps> = (props) => {
   const {
-    getTaskGlobalIndexByRef,
-    hasDependencyWarning,
-    isDateChangeable,
-
-    task,
-    task: {
-      styles: taskStyles,
-    },
-
-    taskYOffset,
-
-    width,
-    x1,
-    x2,
-
     childOutOfParentWarnings,
+    colorStyles: stylesProp,
 
     distances: {
       arrowIndent,
@@ -94,21 +82,34 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
       taskWarningOffset,
     },
 
+    fixEndPosition = undefined,
+    fixStartPosition = undefined,
+    getTaskGlobalIndexByRef,
+    handleDeteleTask,
+    hasDependencyWarning,
+    isDateChangeable,
     isDelete,
-    taskHeight,
-    taskHalfHeight,
-    isSelected,
     isRelationDrawMode,
-    rtl,
+    isSelected,
     onClick = undefined,
     onDoubleClick = undefined,
     onEventStart,
     onRelationStart,
+    rtl,
+    selectTaskOnMouseDown,
     setTooltipTask,
-    fixStartPosition = undefined,
-    fixEndPosition = undefined,
-    handleDeteleTask,
-    colorStyles: stylesProp,
+
+    task,
+    task: {
+      styles: taskStyles,
+    },
+
+    taskHalfHeight,
+    taskHeight,
+    taskYOffset,
+    width,
+    x1,
+    x2,
   } = props;
 
   const taskRootRef = useRef<SVGGElement>(null);
@@ -320,6 +321,10 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     return x1 + width + arrowIndent * 1.2;
   }, [x1, width, isTextInside, rtl, arrowIndent]);
 
+  const onMouseDown = useCallback<MouseEventHandler>((event) => {
+    selectTaskOnMouseDown(task.id, event);
+  }, [selectTaskOnMouseDown, task]);
+
   const onMouseEnter = useCallback<MouseEventHandler<SVGGElement>>((event) => {
     setTooltipTask(task, event.currentTarget);
   }, [setTooltipTask, task]);
@@ -342,6 +347,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
         }
         e.stopPropagation();
       }}
+      onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onClick={handleClick}

@@ -525,7 +525,7 @@ export interface TaskListTableProps {
   onExpanderClick: (task: Task) => void;
   renderedIndexes: OptimizedListParams | null;
   scrollToTask: (task: Task) => void;
-  selectTaskOnClick: (taskId: string, event: MouseEvent) => void;
+  selectTaskOnMouseDown: (taskId: string, event: MouseEvent) => void;
   selectedIdsMirror: Readonly<Record<string, true>>;
   taskListWidth: number;
   tasks: readonly TaskOrEmpty[];

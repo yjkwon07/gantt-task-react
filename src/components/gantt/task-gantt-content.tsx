@@ -2,6 +2,7 @@ import React, {
   useMemo,
 } from "react";
 import type {
+  MouseEvent,
   ReactNode,
 } from 'react';
 
@@ -13,7 +14,6 @@ import {
   DependencyMap,
   DependentMap,
   Distances,
-  EventOption,
   FixPosition,
   GlobalRowIndexToTaskMap,
   Task,
@@ -43,7 +43,10 @@ export type TaskGanttContentProps = {
   getTaskGlobalIndexByRef: (task: Task) => number;
   handleFixDependency: (task: Task, delta: number) => void;
   mapGlobalRowIndexToTask: GlobalRowIndexToTaskMap;
+  onClick?: (task: Task) => void;
+  onDoubleClick?: (task: Task) => void;
   renderedRowIndexes: OptimizedListParams | null;
+  selectTaskOnMouseDown: (taskId: string, event: MouseEvent) => void;
   selectedIdsMirror: Readonly<Record<string, true>>;
   taskToHasDependencyWarningMap: TaskToHasDependencyWarningMap | null;
   taskYOffset: number;
@@ -73,7 +76,7 @@ export type TaskGanttContentProps = {
   fixStartPosition?: FixPosition;
   fixEndPosition?: FixPosition;
   colorStyles: ColorStyles;
-} & Omit<EventOption, 'onArrowDoubleClick'>;
+};
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   additionalLeftSpace,
@@ -86,6 +89,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   handleFixDependency,
   mapGlobalRowIndexToTask,
   renderedRowIndexes,
+  selectTaskOnMouseDown,
   selectedIdsMirror,
   taskToHasDependencyWarningMap,
   taskYOffset,
@@ -208,6 +212,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
             )}
             progressWidth={progressWidth}
             progressX={rtl ? innerX2 : innerX1}
+            selectTaskOnMouseDown={selectTaskOnMouseDown}
             task={task}
             taskYOffset={taskYOffset}
             width={width}
@@ -421,6 +426,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     getTaskCoordinates,
     mapGlobalRowIndexToTask,
     renderedRowIndexes,
+    selectTaskOnMouseDown,
     selectedIdsMirror,
     visibleTasksMirror,
   ]);

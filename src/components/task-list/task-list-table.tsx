@@ -37,7 +37,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   onExpanderClick,
   renderedIndexes,
   scrollToTask,
-  selectTaskOnClick,
+  selectTaskOnMouseDown,
   selectedIdsMirror,
   tasks,
 }) => {
@@ -110,7 +110,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
           isShowTaskNumbers={isShowTaskNumbers}
           onExpanderClick={onExpanderClick}
           scrollToTask={scrollToTask}
-          selectTaskOnClick={selectTaskOnClick}
+          selectTaskOnMouseDown={selectTaskOnMouseDown}
           task={task}
           key={id}
         />,
@@ -135,7 +135,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
     getTaskCurrentState,
     renderedIndexes,
     renderedTasks,
-    selectTaskOnClick,
+    selectTaskOnMouseDown,
     selectedIdsMirror,
   ]);
 

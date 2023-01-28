@@ -65,7 +65,7 @@ export type TaskListProps = {
   scrollToBottomStep: () => void;
   scrollToTask: (task: Task) => void;
   scrollToTopStep: () => void;
-  selectTaskOnClick: (taskId: string, event: MouseEvent) => void;
+  selectTaskOnMouseDown: (taskId: string, event: MouseEvent) => void;
   selectedIdsMirror: Readonly<Record<string, true>>;
   taskListContainerRef: RefObject<HTMLDivElement>;
   taskListRef: RefObject<HTMLDivElement>;
@@ -106,7 +106,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
   scrollToBottomStep,
   scrollToTask,
   scrollToTopStep,
-  selectTaskOnClick,
+  selectTaskOnMouseDown,
   selectedIdsMirror,
   taskListContainerRef,
   taskListRef,
@@ -222,7 +222,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
               onExpanderClick={onExpanderClick}
               renderedIndexes={renderedIndexes}
               scrollToTask={scrollToTask}
-              selectTaskOnClick={selectTaskOnClick}
+              selectTaskOnMouseDown={selectTaskOnMouseDown}
               selectedIdsMirror={selectedIdsMirror}
               taskListWidth={taskListWidth}
               tasks={tasks}

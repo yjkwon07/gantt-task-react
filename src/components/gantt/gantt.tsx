@@ -401,7 +401,7 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const {
-    selectTaskOnClick,
+    selectTaskOnMouseDown,
     selectedIdsMirror,
   } = useSelection(
     taskToRowIndexMap,
@@ -1607,6 +1607,7 @@ export const Gantt: React.FC<GanttProps> = ({
     handleFixDependency,
     mapGlobalRowIndexToTask,
     renderedRowIndexes,
+    selectTaskOnMouseDown,
     selectedIdsMirror,
     taskToHasDependencyWarningMap,
     taskYOffset,
@@ -1646,6 +1647,7 @@ export const Gantt: React.FC<GanttProps> = ({
     getTaskGlobalIndexByRef,
     mapGlobalRowIndexToTask,
     renderedRowIndexes,
+    selectTaskOnMouseDown,
     selectedIdsMirror,
     taskToHasDependencyWarningMap,
     taskYOffset,
@@ -1712,7 +1714,7 @@ export const Gantt: React.FC<GanttProps> = ({
     onResizeStart,
     scrollToBottomStep,
     scrollToTopStep,
-    selectTaskOnClick,
+    selectTaskOnMouseDown,
     selectedIdsMirror,
     scrollToTask,
     taskListContainerRef,
