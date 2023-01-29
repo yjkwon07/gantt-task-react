@@ -14,7 +14,6 @@ import { SCROLL_STEP } from '../../constants';
 
 export const useHorizontalScrollbars = (): [
   RefObject<HTMLDivElement>,
-  RefObject<HTMLDivElement>,
   number,
   (nextScrollX: number) => void,
   (event: SyntheticEvent<HTMLDivElement>) => void,
@@ -25,12 +24,11 @@ export const useHorizontalScrollbars = (): [
   const scrollXRef = useLatest(scrollX);
 
   const verticalGanttContainerRef = useRef<HTMLDivElement>(null);
-  const horizontalScrollbarRef = useRef<HTMLDivElement>(null);
 
   const isLockedRef = useRef(false);
 
   const setScrollXProgrammatically = useCallback((nextScrollX: number) => {
-    const scrollEl = verticalGanttContainerRef.current || horizontalScrollbarRef.current;
+    const scrollEl = verticalGanttContainerRef.current;
 
     if (!scrollEl) {
       return;
@@ -40,10 +38,6 @@ export const useHorizontalScrollbars = (): [
 
     if (verticalGanttContainerRef.current) {
       verticalGanttContainerRef.current.scrollLeft = nextScrollX;
-    }
-
-    if (horizontalScrollbarRef.current) {
-      horizontalScrollbarRef.current.scrollLeft = nextScrollX;
     }
 
     setScrollX(scrollEl.scrollLeft);
@@ -83,7 +77,6 @@ export const useHorizontalScrollbars = (): [
 
   return [
     verticalGanttContainerRef,
-    horizontalScrollbarRef,
     scrollX,
     setScrollXProgrammatically,
     onVerticalScrollbarScrollX,

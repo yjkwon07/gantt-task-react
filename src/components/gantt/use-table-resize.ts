@@ -1,26 +1,23 @@
 import { useCallback, useEffect, useState } from "react";
+
 import useLatest from "use-latest";
 
-import { ColumnResizeEvent } from "../../types/public-types";
+import { TableResizeEvent } from "../../types/public-types";
 
-export const useColumnResize = (
-  onResizeColumn: (
-    columnIndex: number,
-    delta: number,
-  ) => void,
-): [ColumnResizeEvent | null, (columnIndex: number, clientX: number) => void] => {
-  const [columnResizeEvent, setColumnResizeEvent] = useState<ColumnResizeEvent | null>(null);
-  const columnResizeEventLatest = useLatest(columnResizeEvent);
+export const useTableResize = (
+  onResizeTable: (delta: number) => void,
+): [TableResizeEvent | null, (clientX: number) => void] => {
+  const [tableResizeEvent, setTableResizeEvent] = useState<TableResizeEvent | null>(null);
+  const tableResizeEventRef = useLatest(tableResizeEvent);
 
-  const onColumnResizeStart = useCallback((columnIndex: number, clientX: number) => {
-    setColumnResizeEvent({
-      columnIndex,
+  const onTableResizeStart = useCallback((clientX: number) => {
+    setTableResizeEvent({
       startX: clientX,
       endX: clientX,
     });
   }, []);
 
-  const isResizeInProgress = Boolean(columnResizeEvent);
+  const isResizeInProgress = Boolean(tableResizeEvent);
 
   useEffect(() => {
     if (!isResizeInProgress) {
@@ -28,7 +25,7 @@ export const useColumnResize = (
     }
 
     const handleMove = (clientX: number) => {
-      setColumnResizeEvent((prevValue) => {
+      setTableResizeEvent((prevValue) => {
         if (!prevValue) {
           return null;
         }
@@ -53,22 +50,21 @@ export const useColumnResize = (
     };
 
     const handleUp = () => {
-      setColumnResizeEvent(null);
+      setTableResizeEvent(null);
 
-      const latestEvent = columnResizeEventLatest.current;
+      const latestEvent = tableResizeEventRef.current;
 
       if (!latestEvent) {
         return;
       }
 
       const {
-        columnIndex,
         startX,
         endX,
       } = latestEvent;
 
-      if (onResizeColumn) {
-        onResizeColumn(columnIndex, endX - startX);
+      if (onResizeTable) {
+        onResizeTable(endX - startX);
       }
     };
 
@@ -85,9 +81,9 @@ export const useColumnResize = (
     };
   }, [
     isResizeInProgress,
-    columnResizeEventLatest,
-    onResizeColumn,
+    tableResizeEventRef,
+    onResizeTable,
   ]);
 
-  return [columnResizeEvent, onColumnResizeStart];
+  return [tableResizeEvent, onTableResizeStart];
 };

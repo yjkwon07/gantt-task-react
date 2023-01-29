@@ -1,5 +1,6 @@
 import React, {
   memo,
+  SyntheticEvent,
   useMemo,
 } from "react";
 import type {
@@ -22,6 +23,7 @@ export type TaskGanttProps = {
   ganttSVGRef: RefObject<SVGSVGElement>;
   gridProps: GridProps;
   horizontalContainerRef: RefObject<HTMLDivElement>;
+  onVerticalScrollbarScrollX: (event: SyntheticEvent<HTMLDivElement>) => void;
   verticalGanttContainerRef: RefObject<HTMLDivElement>;
 };
 
@@ -44,6 +46,7 @@ const TaskGanttInner: React.FC<TaskGanttProps> = ({
     },
   },
   horizontalContainerRef,
+  onVerticalScrollbarScrollX,
   verticalGanttContainerRef,
 }) => {
   const containerStyle = useMemo<CSSProperties>(() => ({
@@ -76,6 +79,7 @@ const TaskGanttInner: React.FC<TaskGanttProps> = ({
     <div
       className={styles.ganttVerticalContainer}
       ref={verticalGanttContainerRef}
+      onScroll={onVerticalScrollbarScrollX}
       dir="ltr"
     >
       <svg

@@ -143,6 +143,7 @@ export interface Distances {
   relationCircleOffset: number;
   relationCircleRadius: number;
   rowHeight: number;
+  tableWidth?: number;
   taskWarningOffset: number;
   titleCellWidth: number;
 }
@@ -545,7 +546,7 @@ export interface TaskListHeaderProps {
   fontFamily: string;
   fontSize: string;
   canResizeColumns: boolean;
-  onResizeStart: (columnIndex: number, clientX: number) => void;
+  onColumnResizeStart: (columnIndex: number, clientX: number) => void;
 }
 
 // comparison level -> task id -> index in array of tasks
@@ -747,6 +748,11 @@ export type Column = {
 
 export type ColumnResizeEvent = {
   columnIndex: number;
+  startX: number;
+  endX: number;
+};
+
+export type TableResizeEvent = {
   startX: number;
   endX: number;
 };

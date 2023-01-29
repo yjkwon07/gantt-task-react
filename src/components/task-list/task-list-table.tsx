@@ -130,6 +130,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
     );
   }, [
     colors,
+    columnResizeEvent,
     columns,
     fullRowHeight,
     getTaskCurrentState,

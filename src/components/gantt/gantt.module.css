@@ -1,8 +1,33 @@
 .ganttVerticalContainer {
-  overflow: hidden;
+  overflow-x: scroll;
+  overflow-y: hidden;
   font-size: 0;
   margin: 0;
   padding: 0;
+}
+
+.ganttVerticalContainer::-webkit-scrollbar {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.ganttVerticalContainer::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.ganttVerticalContainer::-webkit-scrollbar-thumb {
+  border: 6px solid transparent;
+  background: rgba(0, 0, 0, 0.2);
+  background: var(--palette-black-alpha-20, rgba(0, 0, 0, 0.2));
+  border-radius: 10px;
+  background-clip: padding-box;
+}
+
+.ganttVerticalContainer::-webkit-scrollbar-thumb:hover {
+  border: 4px solid transparent;
+  background: rgba(0, 0, 0, 0.3);
+  background: var(--palette-black-alpha-30, rgba(0, 0, 0, 0.3));
+  background-clip: padding-box;
 }
 
 .horizontalContainer {

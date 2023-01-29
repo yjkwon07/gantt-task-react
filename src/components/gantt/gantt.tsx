@@ -37,7 +37,6 @@ import { StandardTooltipContent, Tooltip } from "../other/tooltip";
 import { VerticalScroll } from "../other/vertical-scroll";
 import { TaskListProps, TaskList } from "../task-list/task-list";
 import { TaskGantt } from "./task-gantt";
-import { HorizontalScroll } from "../other/horizontal-scroll";
 import { sortTasks } from "../../helpers/sort-tasks";
 import { getChildsAndRoots } from "../../helpers/get-childs-and-roots";
 import { getTaskCoordinates as getTaskCoordinatesDefault } from "../../helpers/get-task-coordinates";
@@ -80,6 +79,7 @@ import { useSelection } from "./use-selection";
 import { defaultCheckIsHoliday } from "./default-check-is-holiday";
 
 import styles from "./gantt.module.css";
+import { useTableResize } from "./use-table-resize";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -219,7 +219,6 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const [
     verticalGanttContainerRef,
-    horizontalScrollbarRef,
     scrollX,
     setScrollXProgrammatically,
     onVerticalScrollbarScrollX,
@@ -594,17 +593,7 @@ export const Gantt: React.FC<GanttProps> = ({
   // scroll events
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
-      if (event.shiftKey || event.deltaX) {
-        const scrollMove = event.deltaX ? event.deltaX : event.deltaY;
-        let newScrollX = (verticalGanttContainerRef.current?.scrollLeft || 0) + scrollMove;
-        if (newScrollX < 0) {
-          newScrollX = 0;
-        } else if (newScrollX > svgWidth) {
-          newScrollX = svgWidth;
-        }
-        setScrollXProgrammatically(newScrollX);
-        event.preventDefault();
-      } else if (ganttHeight) {
+      if (ganttHeight) {
         const prevScrollY = horizontalContainerRef.current?.scrollTop || 0;
 
         let newScrollY = prevScrollY + event.deltaY;
@@ -797,7 +786,39 @@ export const Gantt: React.FC<GanttProps> = ({
     }
   }, [columns, onResizeColumn]);
 
-  const [columnResizeEvent, onResizeStart] = useColumnResize(onResizeColumnWithDelta);
+  const [columnResizeEvent, onColumnResizeStart] = useColumnResize(onResizeColumnWithDelta);
+
+  const [tableWidthState, setTableWidth] = useState(() => distances.tableWidth || taskListWidth);
+
+  const onResizeTableWithDelta = useCallback((delta: number) => {
+    setTableWidth((prevValue) => Math.min(
+      Math.max(
+        prevValue + delta,
+        50,
+      ),
+      taskListWidth,
+    ));
+  }, [taskListWidth]);
+
+  const [tableResizeEvent, onTableResizeStart] = useTableResize(onResizeTableWithDelta);
+
+  const tableWidth = useMemo(() => {
+    if (tableResizeEvent) {
+      return Math.min(
+        Math.max(
+          tableWidthState + tableResizeEvent.endX - tableResizeEvent.startX,
+          50,
+        ),
+        taskListWidth,
+      );
+    }
+
+    return tableWidthState;
+  }, [
+    tableResizeEvent,
+    tableWidthState,
+    taskListWidth,
+  ]);
 
   const getMetadata = useCallback(
     (changeAction: ChangeAction) => getChangeTaskMetadata(
@@ -1722,6 +1743,8 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   const tableProps: TaskListProps = {
+    TaskListHeader,
+    TaskListTable,
     canMoveTasks,
     canResizeColumns,
     childTasksMap,
@@ -1743,23 +1766,22 @@ export const Gantt: React.FC<GanttProps> = ({
     handleEditTask,
     handleMoveTaskAfter,
     handleMoveTaskInside,
-    horizontalContainerClass: styles.horizontalContainer,
     icons,
     isShowTaskNumbers,
     mapTaskToNestedIndex,
+    onColumnResizeStart,
     onExpanderClick: handleExpanderClick,
-    onResizeStart,
+    onTableResizeStart,
     scrollToBottomStep,
     scrollToTopStep,
     selectTaskOnMouseDown,
     selectedIdsMirror,
     scrollToTask,
+    tableWidth,
     taskListContainerRef,
     taskListRef,
     taskListWidth,
     tasks: visibleTasks,
-    TaskListHeader,
-    TaskListTable,
   };
 
   return (
@@ -1782,6 +1804,7 @@ export const Gantt: React.FC<GanttProps> = ({
           ganttSVGRef={ganttSVGRef}
           gridProps={gridProps}
           horizontalContainerRef={horizontalContainerRef}
+          onVerticalScrollbarScrollX={onVerticalScrollbarScrollX}
           verticalGanttContainerRef={verticalGanttContainerRef}
         />
 
@@ -1809,14 +1832,6 @@ export const Gantt: React.FC<GanttProps> = ({
           verticalScrollbarRef={verticalScrollbarRef}
         />
       </div>
-
-      <HorizontalScroll
-        svgWidth={svgWidth}
-        taskListWidth={taskListWidth}
-        rtl={rtl}
-        onScroll={onVerticalScrollbarScrollX}
-        horizontalScrollbarRef={horizontalScrollbarRef}
-      />
     </div>
   );
 };

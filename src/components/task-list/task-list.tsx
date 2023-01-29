@@ -28,9 +28,10 @@ import {
   TaskOrEmpty,
 } from "../../types/public-types";
 
-import styles from './task-list.module.css';
 import { ROW_DRAG_TYPE } from "../../constants";
 import { useOptimizedList } from "../../helpers/use-optimized-list";
+
+import styles from './task-list.module.css';
 
 const SCROLL_DELAY = 25;
 
@@ -56,17 +57,18 @@ export type TaskListProps = {
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
   handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
-  horizontalContainerClass?: string;
   icons?: Partial<Icons>;
   isShowTaskNumbers: boolean;
   mapTaskToNestedIndex: MapTaskToNestedIndex;
+  onColumnResizeStart: (columnIndex: number, clientX: number) => void;
   onExpanderClick: (task: Task) => void;
-  onResizeStart: (columnIndex: number, clientX: number) => void;
+  onTableResizeStart: (clientX: number) => void;
   scrollToBottomStep: () => void;
   scrollToTask: (task: Task) => void;
   scrollToTopStep: () => void;
   selectTaskOnMouseDown: (taskId: string, event: MouseEvent) => void;
   selectedIdsMirror: Readonly<Record<string, true>>;
+  tableWidth: number;
   taskListContainerRef: RefObject<HTMLDivElement>;
   taskListRef: RefObject<HTMLDivElement>;
   taskListWidth: number;
@@ -97,17 +99,18 @@ const TaskListInner: React.FC<TaskListProps> = ({
   handleEditTask,
   handleMoveTaskAfter,
   handleMoveTaskInside,
-  horizontalContainerClass,
   icons = undefined,
   isShowTaskNumbers,
   mapTaskToNestedIndex,
+  onColumnResizeStart,
   onExpanderClick,
-  onResizeStart,
+  onTableResizeStart,
   scrollToBottomStep,
   scrollToTask,
   scrollToTopStep,
   selectTaskOnMouseDown,
   selectedIdsMirror,
+  tableWidth,
   taskListContainerRef,
   taskListRef,
   taskListWidth,
@@ -170,80 +173,105 @@ const TaskListInner: React.FC<TaskListProps> = ({
   }, [isScrollingToBottom, scrollToBottomStep]);
 
   return (
-    <div ref={taskListRef}>
-      <TaskListHeader
-        headerHeight={distances.headerHeight}
-        fontFamily={fontFamily}
-        fontSize={fontSize}
-        columns={columns}
-        columnResizeEvent={columnResizeEvent}
-        onResizeStart={onResizeStart}
-        canResizeColumns={canResizeColumns}
-      />
+    <div
+      className={styles.taskListRoot}
+      ref={taskListRef}
+    >
+      <div
+        className={styles.taskListHorizontalScroll}
+        style={{
+          width: tableWidth,
+        }}
+      >
+        <TaskListHeader
+          headerHeight={distances.headerHeight}
+          fontFamily={fontFamily}
+          fontSize={fontSize}
+          columns={columns}
+          columnResizeEvent={columnResizeEvent}
+          onColumnResizeStart={onColumnResizeStart}
+          canResizeColumns={canResizeColumns}
+        />
 
-      <div className={styles.tableWrapper}>
-        <div
-          ref={taskListContainerRef}
-          className={horizontalContainerClass}
-          style={{
-            height: ganttHeight,
-          }}
-        >
+        <div className={styles.tableWrapper}>
           <div
+            ref={taskListContainerRef}
+            className={styles.horizontalContainer}
             style={{
-              height: ganttFullHeight,
-              backgroundSize: `100% ${fullRowHeight * 2}px`,
-              backgroundImage: `linear-gradient(to bottom, transparent ${fullRowHeight}px, #f5f5f5 ${fullRowHeight}px)`,
+              height: ganttHeight,
+              width: taskListWidth,
             }}
           >
-            <TaskListTable
-              canMoveTasks={canMoveTasks}
-              childTasksMap={childTasksMap}
-              closedTasks={closedTasks}
-              colors={colors}
-              columnResizeEvent={columnResizeEvent}
-              columns={columns}
-              dateSetup={dateSetup}
-              dependencyMap={dependencyMap}
-              distances={distances}
-              fontFamily={fontFamily}
-              fontSize={fontSize}
-              fullRowHeight={fullRowHeight}
-              ganttFullHeight={ganttFullHeight}
-              getTaskCurrentState={getTaskCurrentState}
-              handleAddTask={handleAddTask}
-              handleDeteleTask={handleDeteleTask}
-              handleEditTask={handleEditTask}
-              handleMoveTaskAfter={handleMoveTaskAfter}
-              handleMoveTaskInside={handleMoveTaskInside}
-              icons={icons}
-              isShowTaskNumbers={isShowTaskNumbers}
-              mapTaskToNestedIndex={mapTaskToNestedIndex}
-              onExpanderClick={onExpanderClick}
-              renderedIndexes={renderedIndexes}
-              scrollToTask={scrollToTask}
-              selectTaskOnMouseDown={selectTaskOnMouseDown}
-              selectedIdsMirror={selectedIdsMirror}
-              taskListWidth={taskListWidth}
-              tasks={tasks}
-            />
+            <div
+              style={{
+                height: ganttFullHeight,
+                backgroundSize: `100% ${fullRowHeight * 2}px`,
+                backgroundImage: `linear-gradient(to bottom, transparent ${fullRowHeight}px, #f5f5f5 ${fullRowHeight}px)`,
+              }}
+            >
+              <TaskListTable
+                canMoveTasks={canMoveTasks}
+                childTasksMap={childTasksMap}
+                closedTasks={closedTasks}
+                colors={colors}
+                columnResizeEvent={columnResizeEvent}
+                columns={columns}
+                dateSetup={dateSetup}
+                dependencyMap={dependencyMap}
+                distances={distances}
+                fontFamily={fontFamily}
+                fontSize={fontSize}
+                fullRowHeight={fullRowHeight}
+                ganttFullHeight={ganttFullHeight}
+                getTaskCurrentState={getTaskCurrentState}
+                handleAddTask={handleAddTask}
+                handleDeteleTask={handleDeteleTask}
+                handleEditTask={handleEditTask}
+                handleMoveTaskAfter={handleMoveTaskAfter}
+                handleMoveTaskInside={handleMoveTaskInside}
+                icons={icons}
+                isShowTaskNumbers={isShowTaskNumbers}
+                mapTaskToNestedIndex={mapTaskToNestedIndex}
+                onExpanderClick={onExpanderClick}
+                renderedIndexes={renderedIndexes}
+                scrollToTask={scrollToTask}
+                selectTaskOnMouseDown={selectTaskOnMouseDown}
+                selectedIdsMirror={selectedIdsMirror}
+                taskListWidth={taskListWidth}
+                tasks={tasks}
+              />
+            </div>
           </div>
+
+          <div
+            className={cx(styles.scrollToTop, {
+              [styles.hidden]: !renderedIndexes || renderedIndexes[2],
+            })}
+            ref={scrollToTopRef}
+          />
+
+          <div
+            className={cx(styles.scrollToBottom, {
+              [styles.hidden]: !renderedIndexes || renderedIndexes[3],
+            })}
+            ref={scrollToBottomRef}
+          />
         </div>
-
-        <div
-          className={cx(styles.scrollToTop, {
-            [styles.hidden]: !renderedIndexes || renderedIndexes[2],
-          })}
-          ref={scrollToTopRef}
-        />
-
-        <div
-          className={cx(styles.scrollToBottom, {
-            [styles.hidden]: !renderedIndexes || renderedIndexes[3],
-          })}
-          ref={scrollToBottomRef}
-        />
       </div>
+
+      <div
+        className={styles.taskListResizer}
+        onMouseDown={(event) => {
+          onTableResizeStart(event.clientX);
+        }}
+        onTouchStart={(event) => {
+          const firstTouch = event.touches[0];
+
+          if (firstTouch) {
+            onTableResizeStart(firstTouch.clientX);
+          }
+        }}
+      />
     </div>
   );
 };
