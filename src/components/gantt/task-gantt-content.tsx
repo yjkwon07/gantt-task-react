@@ -34,90 +34,136 @@ import { checkTaskHasDependencyWarning } from "../../helpers/check-task-has-depe
 import type { OptimizedListParams } from "../../helpers/use-optimized-list";
 
 export type TaskGanttContentProps = {
-  additionalLeftSpace: number | null;
-  additionalRightSpace: number | null;
+  additionalLeftSpace: number;
+  additionalRightSpace: number;
+  checkIsHoliday: (date: Date) => boolean;
+  childOutOfParentWarnings: ChildOutOfParentWarnings | null;
+  childTasksMap: ChildMapByLevel;
+  colorStyles: ColorStyles;
+  comparisonLevels: number;
   criticalPaths: CriticalPaths | null;
+  dependencyMap: DependencyMap;
   dependentMap: DependentMap;
   distances: Distances;
+  endColumnIndex: number;
+  fixEndPosition?: FixPosition;
+  fixStartPosition?: FixPosition;
+  fontFamily: string;
+  fontSize: string;
+  fullRowHeight: number;
+  ganttRelationEvent: GanttRelationEvent | null;
+  getDate: (index: number) => Date;
   getTaskCoordinates: (task: Task) => TaskCoordinates;
   getTaskGlobalIndexByRef: (task: Task) => number;
+  handleBarRelationStart: (target: RelationMoveTarget, task: Task) => void;
+  handleDeteleTask: (task: TaskOrEmpty) => void;
   handleFixDependency: (task: Task, delta: number) => void;
-  mapGlobalRowIndexToTask: GlobalRowIndexToTaskMap;
-  onClick?: (task: Task) => void;
-  onDoubleClick?: (task: Task) => void;
-  renderedRowIndexes: OptimizedListParams | null;
-  selectTaskOnMouseDown: (taskId: string, event: MouseEvent) => void;
-  selectedIdsMirror: Readonly<Record<string, true>>;
-  taskToHasDependencyWarningMap: TaskToHasDependencyWarningMap | null;
-  taskYOffset: number;
-  visibleTasksMirror: Readonly<Record<string, true>>;
-  childTasksMap: ChildMapByLevel;
-  childOutOfParentWarnings: ChildOutOfParentWarnings | null;
-  dependencyMap: DependencyMap;
-  isShowDependencyWarnings: boolean;
-  ganttRelationEvent: GanttRelationEvent | null;
-  fullRowHeight: number;
-  taskHeight: number;
-  taskHalfHeight: number;
-  fontSize: string;
-  fontFamily: string;
-  rtl: boolean;
   handleTaskDragStart: (
     action: BarMoveAction,
     task: Task,
     clientX: number,
     taskRootNode: Element,
   ) => void;
-  setTooltipTask: (task: Task | null, element: Element | null) => void;
-  handleBarRelationStart: (target: RelationMoveTarget, task: Task) => void;
-  handleDeteleTask: (task: TaskOrEmpty) => void;
+  isShowDependencyWarnings: boolean;
+  mapGlobalRowIndexToTask: GlobalRowIndexToTaskMap;
   onArrowDoubleClick: (taskFrom: Task, taskTo: Task) => void;
-  comparisonLevels: number;
-  fixStartPosition?: FixPosition;
-  fixEndPosition?: FixPosition;
-  colorStyles: ColorStyles;
+  onClick?: (task: Task) => void;
+  onDoubleClick?: (task: Task) => void;
+  renderedRowIndexes: OptimizedListParams | null;
+  rtl: boolean;
+  selectTaskOnMouseDown: (taskId: string, event: MouseEvent) => void;
+  selectedIdsMirror: Readonly<Record<string, true>>;
+  setTooltipTask: (task: Task | null, element: Element | null) => void;
+  startColumnIndex: number;
+  taskToHasDependencyWarningMap: TaskToHasDependencyWarningMap | null;
+  taskYOffset: number;
+  visibleTasksMirror: Readonly<Record<string, true>>;
+  taskHeight: number;
+  taskHalfHeight: number;
 };
 
 export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   additionalLeftSpace,
   additionalRightSpace,
+  checkIsHoliday,
+  childOutOfParentWarnings,
   childTasksMap,
+  colorStyles,
+  comparisonLevels,
+  criticalPaths,
+  dependencyMap,
   dependentMap,
   distances,
-  getTaskCoordinates,
-  getTaskGlobalIndexByRef,
-  handleFixDependency,
-  mapGlobalRowIndexToTask,
-  renderedRowIndexes,
-  selectTaskOnMouseDown,
-  selectedIdsMirror,
-  taskToHasDependencyWarningMap,
-  taskYOffset,
-  visibleTasksMirror,
-  childOutOfParentWarnings,
-  dependencyMap,
-  isShowDependencyWarnings,
-  criticalPaths,
-  ganttRelationEvent,
-  fullRowHeight,
-  taskHeight,
-  taskHalfHeight,
+  endColumnIndex,
+  fixEndPosition = undefined,
+  fixStartPosition = undefined,
   fontFamily,
   fontSize,
-  rtl,
-  handleTaskDragStart,
-  setTooltipTask,
+  fullRowHeight,
+  ganttRelationEvent,
+  getDate,
+  getTaskCoordinates,
+  getTaskGlobalIndexByRef,
   handleBarRelationStart,
   handleDeteleTask,
+  handleFixDependency,
+  handleTaskDragStart,
+  isShowDependencyWarnings,
+  mapGlobalRowIndexToTask,
+  onArrowDoubleClick,
   onDoubleClick,
   onClick,
-  onArrowDoubleClick,
-  comparisonLevels,
-  fixStartPosition = undefined,
-  fixEndPosition = undefined,
-  colorStyles,
+  renderedRowIndexes,
+  rtl,
+  selectTaskOnMouseDown,
+  selectedIdsMirror,
+  setTooltipTask,
+  startColumnIndex,
+  taskToHasDependencyWarningMap,
+  taskYOffset,
+  taskHeight,
+  taskHalfHeight,
+  visibleTasksMirror,
 }) => {
   const isRelationDrawMode = Boolean(ganttRelationEvent);
+
+  const renderedHolidays = useMemo(() => {
+    const {
+      holidayBackgroundColor,
+    } = colorStyles;
+    const {
+      columnWidth,
+    } = distances;
+
+    const res: ReactNode[] = [];
+
+    for (let i = startColumnIndex; i <= endColumnIndex; ++i) {
+      const date = getDate(i);
+
+      if (checkIsHoliday(date)) {
+        res.push(
+          <rect
+            height="100%"
+            width={columnWidth}
+            x={additionalLeftSpace + i * columnWidth}
+            y={0}
+            fill={holidayBackgroundColor}
+            key={i}
+          />
+        );
+      }
+    }
+
+    return res;
+  }, [
+    additionalLeftSpace,
+    checkIsHoliday,
+    colorStyles,
+    distances,
+    endColumnIndex,
+    getDate,
+    startColumnIndex,
+  ]);
 
   const [renderedTasks, renderedArrows, renderedSelectedTasks] = useMemo(() => {
     if (!renderedRowIndexes) {
@@ -434,6 +480,10 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   return (
     <g className="content">
       {renderedSelectedTasks}
+
+      <g>
+        {renderedHolidays}
+      </g>
 
       <g
         className="arrows"

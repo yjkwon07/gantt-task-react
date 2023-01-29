@@ -21,72 +21,76 @@ export const ganttDateRange = (
   preStepsCount: number,
 ): [
   Date,
+  Date,
   number,
 ] => {
-  let newStartDate: Date | null = null;
-  let newEndDate: Date | null = null;
+  let minTaskDate: Date | null = null;
+  let maxTaskDate: Date | null = null;
   for (const task of tasks) {
     if (task.type !== 'empty') {
-      if (!newStartDate || task.start < newStartDate) {
-        newStartDate = task.start;
+      if (!minTaskDate || task.start < minTaskDate) {
+        minTaskDate = task.start;
       }
 
-      if (!newEndDate || task.end > newEndDate) {
-        newEndDate = task.end;
+      if (!maxTaskDate || task.end > maxTaskDate) {
+        maxTaskDate = task.end;
       }
     }
   }
 
-  if (!newStartDate || !newEndDate) {
-    return [new Date(), 2];
+  if (!minTaskDate || !maxTaskDate) {
+    return [new Date(), new Date(), 2];
   }
+
+  let newStartDate: Date | null = null;
+  let newEndDate: Date | null = null;
 
   switch (viewMode) {
     case ViewMode.Year:
-      newStartDate = subYears(newStartDate, preStepsCount);
+      newStartDate = subYears(minTaskDate, preStepsCount);
       newStartDate = startOfYear(newStartDate);
-      newEndDate = addYears(newEndDate, 1);
+      newEndDate = addYears(maxTaskDate, 1);
       newEndDate = startOfYear(newEndDate);
       break;
     case ViewMode.Month:
-      newStartDate = subMonths(newStartDate, preStepsCount);
+      newStartDate = subMonths(minTaskDate, preStepsCount);
       newStartDate = startOfMonth(newStartDate);
-      newEndDate = addYears(newEndDate, 1);
+      newEndDate = addYears(maxTaskDate, 1);
       newEndDate = startOfYear(newEndDate);
       break;
     case ViewMode.Week:
-      newStartDate = startOfDay(newStartDate);
+      newStartDate = startOfDay(minTaskDate);
       newStartDate = subWeeks(getMonday(newStartDate), preStepsCount);
-      newEndDate = startOfDay(newEndDate);
+      newEndDate = startOfDay(maxTaskDate);
       newEndDate = addMonths(newEndDate, 1.5);
       break;
     case ViewMode.Day:
-      newStartDate = startOfDay(newStartDate);
+      newStartDate = startOfDay(minTaskDate);
       newStartDate = subDays(newStartDate, preStepsCount);
-      newEndDate = startOfDay(newEndDate);
+      newEndDate = startOfDay(maxTaskDate);
       newEndDate = addDays(newEndDate, 19);
       break;
     case ViewMode.QuarterDay:
-      newStartDate = startOfDay(newStartDate);
+      newStartDate = startOfDay(minTaskDate);
       newStartDate = subHours(newStartDate, preStepsCount * 6);
-      newEndDate = startOfDay(newEndDate);
+      newEndDate = startOfDay(maxTaskDate);
       newEndDate = addHours(newEndDate, 66); // 24(1 day)*3 - 6
       break;
     case ViewMode.HalfDay:
-      newStartDate = startOfDay(newStartDate);
+      newStartDate = startOfDay(minTaskDate);
       newStartDate = subHours(newStartDate, preStepsCount * 12);
-      newEndDate = startOfDay(newEndDate);
+      newEndDate = startOfDay(maxTaskDate);
       newEndDate = addHours(newEndDate, 108); // 24(1 day)*5 - 12
       break;
     case ViewMode.Hour:
-      newStartDate = startOfHour(newStartDate);
+      newStartDate = startOfHour(minTaskDate);
       newStartDate = subHours(newStartDate, preStepsCount);
-      newEndDate = startOfDay(newEndDate);
+      newEndDate = startOfDay(maxTaskDate);
       newEndDate = addDays(newEndDate, 1);
       break;
   }
 
-  return [newStartDate, getDatesDiff(newEndDate, newStartDate, viewMode)];
+  return [newStartDate, minTaskDate, getDatesDiff(newEndDate, newStartDate, viewMode)];
 };
 
 /**

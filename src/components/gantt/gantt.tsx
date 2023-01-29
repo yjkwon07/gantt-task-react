@@ -69,7 +69,6 @@ import { useOptimizedList } from "../../helpers/use-optimized-list";
 import { useVerticalScrollbars } from "./use-vertical-scrollbars";
 import { useHorizontalScrollbars } from "./use-horizontal-scrollbars";
 
-import styles from "./gantt.module.css";
 import { getDateByOffset } from "../../helpers/get-date-by-offset";
 import { getDatesDiff } from "../../helpers/get-dates-diff";
 import { DependenciesColumn } from "../task-list/columns/dependencies-column";
@@ -78,6 +77,9 @@ import { BarMoveAction } from "../../types/gantt-task-actions";
 import { getMinAndMaxChildsMap } from "../../helpers/get-min-and-max-childs-map";
 import { useGetTaskCurrentState } from "./use-get-task-current-state";
 import { useSelection } from "./use-selection";
+import { defaultCheckIsHoliday } from "./default-check-is-holiday";
+
+import styles from "./gantt.module.css";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -112,6 +114,7 @@ const defaultColors: ColorStyles = {
   milestoneBackgroundSelectedColor: "#f29e4c",
   milestoneBackgroundSelectedCriticalColor: "#ff0000",
   evenTaskBackgroundColor: "#f5f5f5",
+  holidayBackgroundColor: "rgba(233, 233, 233, 0.3)",
   selectedTaskBackgroundColor: "rgba(252, 248, 227, 0.5)",
   todayColor: "rgba(252, 248, 227, 0.5)",
 };
@@ -154,6 +157,7 @@ export const Gantt: React.FC<GanttProps> = ({
   TooltipContent = StandardTooltipContent,
   canMoveTasks = true,
   canResizeColumns = true,
+  checkIsHoliday: checkIsHolidayProp = defaultCheckIsHoliday,
   colors = undefined,
   columns: columnsProp = undefined,
   comparisonLevels = 1,
@@ -408,11 +412,16 @@ export const Gantt: React.FC<GanttProps> = ({
     rowIndexToTaskMap,
   );
 
-  const [startDate, datesLength] = useMemo(() =>  ganttDateRange(
+  const [startDate, minTaskDate, datesLength] = useMemo(() =>  ganttDateRange(
     visibleTasks,
     viewMode,
     preStepsCount,
   ), [visibleTasks, viewMode, preStepsCount]);
+
+  const getDate = useCallback(
+    (index: number) => getDateByOffset(startDate, index, viewMode),
+    [startDate, viewMode],
+  );
 
   const dateFormats = useMemo<DateFormats>(() => ({
     ...defaultDateFormats,
@@ -424,14 +433,21 @@ export const Gantt: React.FC<GanttProps> = ({
   const dateSetup = useMemo<DateSetup>(() => ({
     dateFormats,
     dateLocale,
+    isUnknownDates,
     preStepsCount,
     viewMode,
   }), [
     dateFormats,
     dateLocale,
+    isUnknownDates,
     preStepsCount,
     viewMode,
   ]);
+
+  const checkIsHoliday = useCallback(
+    (date: Date) => checkIsHolidayProp(date, minTaskDate, dateSetup),
+    [checkIsHolidayProp, dateSetup, minTaskDate],
+  );
 
   const svgWidth = useMemo(
     () => datesLength * distances.columnWidth,
@@ -606,7 +622,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
     const wrapperNode = wrapperRef.current;
 
-    // subscribe if scroll is necessary
+    // subscribe if scrol necessary
     if (wrapperNode) {
       wrapperNode.addEventListener("wheel", handleWheel, {
         passive: false,
@@ -1539,6 +1555,16 @@ export const Gantt: React.FC<GanttProps> = ({
   const additionalLeftSpace = changeInProgress?.additionalLeftSpace || 0;
   const additionalRightSpace = changeInProgress?.additionalRightSpace || 0;
 
+  const additionalStartColumns = useMemo(
+    () => Math.ceil(additionalLeftSpace / distances.columnWidth),
+    [additionalLeftSpace, distances],
+  );
+
+  const [defaultStartColumnIndex, defaultEndColumnIndex] = renderedColumnIndexes || [0, -1];
+
+  const startColumnIndex = defaultStartColumnIndex - additionalStartColumns;
+  const endColumnIndex = defaultEndColumnIndex - additionalStartColumns + 1;
+
   const fullSvgWidth = useMemo(
     () => svgWidth + additionalLeftSpace + additionalRightSpace,
     [
@@ -1572,105 +1598,107 @@ export const Gantt: React.FC<GanttProps> = ({
     additionalLeftSpace,
     dateSetup,
     distances,
-    isUnknownDates,
+    endColumnIndex,
     fontFamily,
     fontSize,
     fullSvgWidth,
-    rtl,
+    getDate,
+    isUnknownDates,
     renderBottomHeader,
-    renderedColumnIndexes,
     renderTopHeader,
-    startDate,
+    rtl,
+    startColumnIndex,
   }), [
     additionalLeftSpace,
     dateSetup,
     distances,
-    isUnknownDates,
+    endColumnIndex,
     fontFamily,
     fontSize,
     fullSvgWidth,
-    rtl,
+    getDate,
+    isUnknownDates,
     renderBottomHeader,
-    renderedColumnIndexes,
     renderTopHeader,
-    startDate,
+    rtl,
+    startColumnIndex,
   ]);
 
   const barProps: TaskGanttContentProps = useMemo(() => ({
-    additionalLeftSpace: changeInProgress?.additionalLeftSpace || null,
-    additionalRightSpace: changeInProgress?.additionalRightSpace || null,
-    childTasksMap,
-    dependentMap,
-    distances,
-    getTaskCoordinates,
-    getTaskGlobalIndexByRef,
-    handleFixDependency,
-    mapGlobalRowIndexToTask,
-    renderedRowIndexes,
-    selectTaskOnMouseDown,
-    selectedIdsMirror,
-    taskToHasDependencyWarningMap,
-    taskYOffset,
-    visibleTasksMirror,
-    taskToRowIndexMap,
+    additionalLeftSpace,
+    additionalRightSpace,
+    checkIsHoliday,
     childOutOfParentWarnings,
-    dependencyMap,
-    isShowDependencyWarnings,
-    criticalPaths,
-    ganttRelationEvent,
-    fullRowHeight,
-    taskHeight,
-    taskHalfHeight,
-    timeStep,
-    fontFamily,
-    fontSize,
-    rtl,
-    handleTaskDragStart,
-    setTooltipTask: onChangeTooltipTask,
-    handleBarRelationStart,
-    handleDeteleTask,
-    onFixDependencyPosition,
-    onRelationChange,
-    onProgressChange,
-    onDoubleClick,
-    onClick,
-    onArrowDoubleClick,
-    fixStartPosition,
-    fixEndPosition,
-    comparisonLevels,
+    childTasksMap,
     colorStyles,
-  }), [
-    childTasksMap,
+    comparisonLevels,
+    criticalPaths,
+    dependencyMap,
     dependentMap,
     distances,
-    getTaskCoordinates,
-    getTaskGlobalIndexByRef,
-    mapGlobalRowIndexToTask,
-    renderedRowIndexes,
-    selectTaskOnMouseDown,
-    selectedIdsMirror,
-    taskToHasDependencyWarningMap,
-    taskYOffset,
-    visibleTasks,
-    visibleTasksMirror,
-    taskToRowIndexMap,
-    mapTaskToCoordinates,
-    childOutOfParentWarnings,
-    dependencyMap,
-    isShowDependencyWarnings,
-    criticalPaths,
-    ganttRelationEvent,
-    fullRowHeight,
-    taskHeight,
-    taskHalfHeight,
-    timeStep,
+    endColumnIndex,
+    fixEndPosition,
+    fixStartPosition,
     fontFamily,
     fontSize,
-    rtl,
-    changeInProgress,
-    handleTaskDragStart,
+    fullRowHeight,
+    ganttRelationEvent,
+    getDate,
+    getTaskCoordinates,
+    getTaskGlobalIndexByRef,
     handleBarRelationStart,
     handleDeteleTask,
+    handleFixDependency,
+    handleTaskDragStart,
+    isShowDependencyWarnings,
+    mapGlobalRowIndexToTask,
+    onArrowDoubleClick,
+    onClick,
+    onDoubleClick,
+    onFixDependencyPosition,
+    onProgressChange,
+    onRelationChange,
+    renderedRowIndexes,
+    rtl,
+    selectTaskOnMouseDown,
+    selectedIdsMirror,
+    setTooltipTask: onChangeTooltipTask,
+    startColumnIndex,
+    taskHalfHeight,
+    taskHeight,
+    taskToHasDependencyWarningMap,
+    taskToRowIndexMap,
+    taskYOffset,
+    timeStep,
+    visibleTasksMirror,
+  }), [
+    additionalLeftSpace,
+    additionalRightSpace,
+    checkIsHoliday,
+    childOutOfParentWarnings,
+    childTasksMap,
+    colorStyles,
+    comparisonLevels,
+    criticalPaths,
+    dependencyMap,
+    dependentMap,
+    distances,
+    endColumnIndex,
+    fixEndPosition,
+    fixStartPosition,
+    fontFamily,
+    fontSize,
+    fullRowHeight,
+    ganttRelationEvent,
+    getDate,
+    getTaskCoordinates,
+    getTaskGlobalIndexByRef,
+    handleBarRelationStart,
+    handleDeteleTask,
+    handleTaskDragStart,
+    isShowDependencyWarnings,
+    mapGlobalRowIndexToTask,
+    mapTaskToCoordinates,
     onArrowDoubleClick,
     onChangeTooltipTask,
     onClick,
@@ -1678,10 +1706,19 @@ export const Gantt: React.FC<GanttProps> = ({
     onFixDependencyPosition,
     onProgressChange,
     onRelationChange,
-    fixStartPosition,
-    fixEndPosition,
-    comparisonLevels,
-    colorStyles,
+    renderedRowIndexes,
+    rtl,
+    selectTaskOnMouseDown,
+    selectedIdsMirror,
+    startColumnIndex,
+    taskHalfHeight,
+    taskHeight,
+    taskToHasDependencyWarningMap,
+    taskToRowIndexMap,
+    taskYOffset,
+    timeStep,
+    visibleTasks,
+    visibleTasksMirror,
   ]);
 
   const tableProps: TaskListProps = {

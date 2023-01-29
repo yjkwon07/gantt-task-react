@@ -23,6 +23,7 @@ export enum ViewMode {
 export interface DateSetup {
   dateFormats: DateFormats;
   dateLocale: DateLocale;
+  isUnknownDates: boolean;
   preStepsCount: number;
   viewMode: ViewMode;
 }
@@ -102,6 +103,7 @@ export interface ColorStyles {
   milestoneBackgroundSelectedColor: string;
   milestoneBackgroundSelectedCriticalColor: string;
   evenTaskBackgroundColor: string;
+  holidayBackgroundColor: string;
   selectedTaskBackgroundColor: string;
   todayColor: string;
 }
@@ -492,11 +494,16 @@ export interface StylingOption {
 }
 
 export interface GanttProps extends EventOption, DisplayOption, StylingOption {
-  tasks: readonly TaskOrEmpty[];
+  checkIsHoliday?: (
+    date: Date,
+    minTaskDate: Date,
+    dateSetup: DateSetup,
+  ) => boolean;
   /**
    * Can be used to compare multiple graphs. This prop is the number of graps being compared
    */
   comparisonLevels?: number;
+  tasks: readonly TaskOrEmpty[];
 }
 
 export interface TaskListTableProps {
