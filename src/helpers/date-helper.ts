@@ -11,6 +11,7 @@ import startOfYear from "date-fns/startOfYear";
 import startOfMonth from "date-fns/startOfMonth";
 import startOfDay from "date-fns/startOfDay";
 import startOfHour from "date-fns/startOfHour";
+import startOfWeek from "date-fns/startOfWeek";
 
 import { TaskOrEmpty, ViewMode } from "../types/public-types";
 import { getDatesDiff } from "./get-dates-diff";
@@ -59,8 +60,8 @@ export const ganttDateRange = (
       newEndDate = startOfYear(newEndDate);
       break;
     case ViewMode.Week:
-      newStartDate = startOfDay(minTaskDate);
-      newStartDate = subWeeks(getMonday(newStartDate), preStepsCount);
+      newStartDate = startOfWeek(minTaskDate);
+      newStartDate = subWeeks(newStartDate, preStepsCount);
       newEndDate = startOfDay(maxTaskDate);
       newEndDate = addMonths(newEndDate, 1.5);
       break;
@@ -91,16 +92,6 @@ export const ganttDateRange = (
   }
 
   return [newStartDate, minTaskDate, getDatesDiff(newEndDate, newStartDate, viewMode)];
-};
-
-/**
- * Returns monday of current week
- * @param date date for modify
- */
-const getMonday = (date: Date) => {
-  const day = date.getDay();
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
-  return new Date(date.setDate(diff));
 };
 
 export const getWeekNumberISO8601 = (date: Date) => {

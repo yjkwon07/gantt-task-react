@@ -492,6 +492,13 @@ export interface StylingOption {
    * Render function of top part of header above chart
    */
   renderTopHeader?: RenderTopHeader;
+  /**
+   * Round dates of task after move or resize
+   * @param date Date after move
+   * @param viewMode current date unit
+   * @returns next date
+   */
+  roundDate?: (date: Date, viewMode: ViewMode) => Date;
 }
 
 export interface GanttProps extends EventOption, DisplayOption, StylingOption {

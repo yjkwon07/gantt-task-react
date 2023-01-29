@@ -77,9 +77,10 @@ import { getMinAndMaxChildsMap } from "../../helpers/get-min-and-max-childs-map"
 import { useGetTaskCurrentState } from "./use-get-task-current-state";
 import { useSelection } from "./use-selection";
 import { defaultCheckIsHoliday } from "./default-check-is-holiday";
+import { useTableResize } from "./use-table-resize";
+import { defaultRoundDate } from "./default-round-date";
 
 import styles from "./gantt.module.css";
-import { useTableResize } from "./use-table-resize";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -196,6 +197,7 @@ export const Gantt: React.FC<GanttProps> = ({
   preStepsCount = 1,
   renderBottomHeader = undefined,
   renderTopHeader = undefined,
+  roundDate: roundDateProp = defaultRoundDate,
   rtl = false,
   tasks,
   timeStep = 300000,
@@ -227,6 +229,11 @@ export const Gantt: React.FC<GanttProps> = ({
   ] = useHorizontalScrollbars();
 
   const scrollXRef = useLatest(scrollX);
+
+  const roundDate = useCallback(
+    (date: Date) => roundDateProp(date, viewMode),
+    [roundDateProp, viewMode],
+  );
 
   const [closedTasks, setClosedTasks] = useState(() => getInitialClosedTasks(tasks));
 
@@ -1062,6 +1069,7 @@ export const Gantt: React.FC<GanttProps> = ({
     onDateChange,
     onProgressChange,
     rtl,
+    roundDate,
     scrollToLeftStep,
     scrollToRightStep,
     scrollXRef,

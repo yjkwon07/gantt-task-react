@@ -189,6 +189,7 @@ type UseTaskDragParams = {
   mapTaskToGlobalIndex: TaskToGlobalIndexMap;
   onDateChange: (action: BarMoveAction, changedTask: Task, originalTask: Task) => void;
   onProgressChange: (task: Task) => void;
+  roundDate: (date: Date) => Date;
   rtl: boolean;
   scrollToLeftStep: () => void;
   scrollToRightStep: () => void;
@@ -209,6 +210,7 @@ export const useTaskDrag = ({
   mapTaskToGlobalIndex,
   onDateChange,
   onProgressChange,
+  roundDate,
   rtl,
   scrollToLeftStep,
   scrollToRightStep,
@@ -436,7 +438,7 @@ export const useTaskDrag = ({
                 if (!prevValue) {
                   return null;
                 }
-    
+
                 const nextCoordinates: TaskCoordinates = {
                   ...prevValue.coordinates,
                   containerWidth: prevValue.coordinates.containerWidth + SCROLL_STEP,
@@ -453,7 +455,7 @@ export const useTaskDrag = ({
                     : prevValue.coordinates.x1,
                   x2: prevValue.coordinates.x2 + SCROLL_STEP,
                 };
-          
+
                 const { changedTask: newChangedTask } = handleTaskBySVGMouseEvent(
                   prevValue.action,
                   prevValue.task,
@@ -463,7 +465,7 @@ export const useTaskDrag = ({
                   timeStep,
                   rtl,
                 );
-    
+
                 return {
                   ...prevValue,
                   additionalRightSpace: prevValue.additionalRightSpace + SCROLL_STEP,
@@ -591,7 +593,13 @@ export const useTaskDrag = ({
         return;
       }
 
-      onDateChange(action, newChangedTask, task);
+      const roundedChangedTask = {
+        ...newChangedTask,
+        end: roundDate(newChangedTask.end),
+        start: roundDate(newChangedTask.start),
+      };
+
+      onDateChange(action, roundedChangedTask, task);
     };
 
     svgNode.addEventListener("mousemove", handleMouseMove);
@@ -606,20 +614,21 @@ export const useTaskDrag = ({
       svgNode.removeEventListener("touchend", handleUp);
     };
   }, [
-    dependentMap,
+    changeInProgressLatestRef,
     changeInProgressTask,
     childTasksMap,
-    mapTaskToGlobalIndex,
-    xStep,
-    onProgressChange,
-    timeStep,
-    onDateChange,
+    dependentMap,
     ganttSVGRef,
+    mapTaskToGlobalIndex,
+    onDateChange,
+    onProgressChange,
     recountOnMove,
+    roundDate,
     rtl,
     setChangeInProgress,
     tasksMap,
-    changeInProgressLatestRef,
+    timeStep,
+    xStep,
   ]);
 
   return [changeInProgress, handleTaskDragStart];
