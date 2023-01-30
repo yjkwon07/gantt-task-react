@@ -31,6 +31,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   handleEditTask,
   handleMoveTaskAfter,
   handleMoveTaskInside,
+  handleOpenContextMenu,
   icons,
   isShowTaskNumbers,
   mapTaskToNestedIndex,
@@ -101,6 +102,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
           handleEditTask={handleEditTask}
           handleMoveTaskAfter={handleMoveTaskAfter}
           handleMoveTaskInside={handleMoveTaskInside}
+          handleOpenContextMenu={handleOpenContextMenu}
           hasChildren={checkHasChildren(task, childTasksMap)}
           icons={icons}
           indexStr={indexStr}

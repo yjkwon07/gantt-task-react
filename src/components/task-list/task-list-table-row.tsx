@@ -44,6 +44,7 @@ type TaskListTableRowProps = {
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
   handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
+  handleOpenContextMenu: (task: TaskOrEmpty, clientX: number, clientY: number) => void;
   hasChildren: boolean;
   icons?: Partial<Icons>;
   indexStr: string;
@@ -74,6 +75,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   handleEditTask,
   handleMoveTaskAfter,
   handleMoveTaskInside,
+  handleOpenContextMenu,
   hasChildren,
   icons = undefined,
   indexStr,
@@ -93,6 +95,10 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   } = task;
 
   const onRootMouseDown = useCallback((event: MouseEvent) => {
+    if (event.button !== 0) {
+      return;
+    }
+
     if (task.type === 'empty') {
       return;
     }
@@ -104,6 +110,11 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     selectTaskOnMouseDown,
     task,
   ]);
+
+  const onContextMenu = useCallback((event: MouseEvent) => {
+    event.preventDefault();
+    handleOpenContextMenu(task, event.clientX, event.clientY);
+  }, [handleOpenContextMenu, task]);
 
   const [dropInsideProps, dropInside] = useDrop({
     accept: ROW_DRAG_TYPE,
@@ -206,6 +217,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
             : undefined,
         ...style,
       }}
+      onContextMenu={onContextMenu}
       ref={dropInside}
     >
       {columns.map(({

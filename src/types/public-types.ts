@@ -511,12 +511,13 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
    * Can be used to compare multiple graphs. This prop is the number of graps being compared
    */
   comparisonLevels?: number;
+  contextMenuOptions?: ContextMenuOptionType[];
   tasks: readonly TaskOrEmpty[];
 }
 
 export interface TaskListTableProps {
   canMoveTasks: boolean;
-  childTasksMap: ChildMapByLevel;
+  childTasksMap: ChildByLevelMap;
   closedTasks: Readonly<Record<string, true>>;
   colors: ColorStyles;
   columnResizeEvent: ColumnResizeEvent | null;
@@ -534,6 +535,7 @@ export interface TaskListTableProps {
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
   handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
+  handleOpenContextMenu: (task: TaskOrEmpty, clientX: number, clientY: number) => void;
   icons?: Partial<Icons>;
   isShowTaskNumbers: boolean;
   mapTaskToNestedIndex: MapTaskToNestedIndex;
@@ -569,7 +571,7 @@ export type RowIndexToTaskMap = Map<number, Map<number, TaskOrEmpty>>;
 export type GlobalRowIndexToTaskMap = Map<number, TaskOrEmpty>;
 
 // comparison level -> task id -> array of child tasks
-export type ChildMapByLevel = Map<number, Map<string, TaskOrEmpty[]>>;
+export type ChildByLevelMap = Map<number, Map<string, TaskOrEmpty[]>>;
 
 // comparison level -> tasks that don't have parent
 export type RootMapByLevel = Map<number, TaskOrEmpty[]>;
@@ -818,3 +820,35 @@ export type ChangeMetadata = [
    */
   OnDateChangeSuggestionType[],
 ];
+
+export type ContextMenuType = {
+  task: TaskOrEmpty | null;
+  x: number;
+  y: number;
+};
+
+export type ActionMetaType = {
+  /**
+   * 
+   * @returns List of parent tasks
+   */
+  getParentTasks: () => readonly TaskOrEmpty[];
+  /**
+   * @returns List of selected tasks
+   */
+  getSelectedTasks: () => readonly TaskOrEmpty[];
+  /**
+   * @returns List of tasks with all their descendants
+   */
+  getTasksWithDescendants: () => readonly TaskOrEmpty[];
+  /**
+   * Task that triggered context menu
+   */
+  task: TaskOrEmpty;
+};
+
+export type ContextMenuOptionType = {
+  action: (meta: ActionMetaType) => void;
+  label: ReactNode;
+  icon?: ReactNode;
+};

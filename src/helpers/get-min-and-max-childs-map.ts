@@ -1,7 +1,7 @@
 import isAfter from "date-fns/isAfter";
 
 import {
-  ChildMapByLevel,
+  ChildByLevelMap,
   MinAndMaxChildsMap,
   MinAndMaxChildsOfTask,
   RootMapByLevel,
@@ -60,7 +60,7 @@ const fillMinAndMaxChildsMap = (
 
 export const getMinAndMaxChildsMap = (
   rootTasksMap: RootMapByLevel,
-  childTasksMap: ChildMapByLevel,
+  childTasksMap: ChildByLevelMap,
 ): MinAndMaxChildsMap => {
   const res = new Map<number, Map<string, MinAndMaxChildsOfTask>>();
  

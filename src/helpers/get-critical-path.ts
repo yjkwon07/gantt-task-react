@@ -1,6 +1,6 @@
 import { RelationMoveTarget } from "../types/gantt-task-actions";
 import {
-  ChildMapByLevel,
+  ChildByLevelMap,
   CriticalPath,
   CriticalPaths,
   DependencyMap,
@@ -243,7 +243,7 @@ const collectCriticalPathForTask = (
 
 export const getCriticalPath = (
   rootTasksMap: RootMapByLevel,
-  childTasksMap: ChildMapByLevel,
+  childTasksMap: ChildByLevelMap,
   tasksMap: TaskMapByLevel,
   dependencyMarginsMap: DependencyMargins,
   dependencyMap: DependencyMap,

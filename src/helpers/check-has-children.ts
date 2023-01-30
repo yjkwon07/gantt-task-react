@@ -1,8 +1,8 @@
-import { ChildMapByLevel, TaskOrEmpty } from "../types/public-types";
+import { ChildByLevelMap, TaskOrEmpty } from "../types/public-types";
 
 export const checkHasChildren = (
   task: TaskOrEmpty,
-  childTasksMap: ChildMapByLevel,
+  childTasksMap: ChildByLevelMap,
 ) => {
   const {
     id,

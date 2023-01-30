@@ -2,7 +2,7 @@ import { changeStartAndEndDescendants } from "../suggestions/change-start-and-en
 import type {
   ChangeAction,
   ChangeMetadata,
-  ChildMapByLevel,
+  ChildByLevelMap,
   DependentMap,
   TaskToGlobalIndexMap,
   TaskMapByLevel,
@@ -66,7 +66,7 @@ const collectSuggestedParents = (
 export const getChangeTaskMetadata = (
   changeAction: ChangeAction,
   tasksMap: TaskMapByLevel,
-  childTasksMap: ChildMapByLevel,
+  childTasksMap: ChildByLevelMap,
   mapTaskToGlobalIndex: TaskToGlobalIndexMap,
   dependentMap: DependentMap,
   isRecountParentsOnChange: boolean,

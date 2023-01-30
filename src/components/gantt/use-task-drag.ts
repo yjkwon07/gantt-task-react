@@ -18,7 +18,7 @@ import { BarMoveAction } from "../../types/gantt-task-actions";
 
 import {
   ChangeInProgress,
-  ChildMapByLevel,
+  ChildByLevelMap,
   DependentMap,
   MapTaskToCoordinates,
   TaskToGlobalIndexMap,
@@ -182,7 +182,7 @@ const getNextTsDiff = (
 };
 
 type UseTaskDragParams = {
-  childTasksMap: ChildMapByLevel;
+  childTasksMap: ChildByLevelMap;
   dependentMap: DependentMap;
   ganttSVGRef: RefObject<SVGSVGElement>;
   mapTaskToCoordinates: MapTaskToCoordinates;

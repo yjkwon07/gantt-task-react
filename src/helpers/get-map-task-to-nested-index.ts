@@ -1,5 +1,5 @@
 import {
-  ChildMapByLevel,
+  ChildByLevelMap,
   MapTaskToNestedIndex,
   RootMapByLevel,
   TaskOrEmpty,
@@ -33,7 +33,7 @@ const getMapTaskTo = (
 };
 
 export const getMapTaskToNestedIndex = (
-  childTasksMap: ChildMapByLevel,
+  childTasksMap: ChildByLevelMap,
   rootTasksMap: RootMapByLevel,
 ): MapTaskToNestedIndex => {
   const res = new Map<number, Map<string, [number, string]>>();

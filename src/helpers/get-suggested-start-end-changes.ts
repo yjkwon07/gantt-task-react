@@ -1,6 +1,6 @@
 import {
   ChangeAction,
-  ChildMapByLevel,
+  ChildByLevelMap,
   TaskToGlobalIndexMap,
   OnDateChangeSuggestionType,
   Task,
@@ -10,7 +10,7 @@ import {
 const getMinAndMaxDatesInDescendants = (
   task: Task,
   changeAction: ChangeAction,
-  childTasksMap: ChildMapByLevel,
+  childTasksMap: ChildByLevelMap,
   checkedTasks: Set<string>,
 ): [Date, Date] | null => {
   const {
@@ -149,7 +149,7 @@ const getMinAndMaxDatesInDescendants = (
 export const getSuggestedStartEndChanges = (
   task: Task,
   changeAction: ChangeAction,
-  childTasksMap: ChildMapByLevel,
+  childTasksMap: ChildByLevelMap,
   mapTaskToGlobalIndex: TaskToGlobalIndexMap,
 ): OnDateChangeSuggestionType => {
   const {

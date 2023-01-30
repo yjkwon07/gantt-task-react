@@ -1,5 +1,5 @@
 import {
-  ChildMapByLevel,
+  ChildByLevelMap,
   RootMapByLevel,
   TaskOrEmpty,
 } from "../types/public-types";
@@ -40,7 +40,7 @@ const collectChildren = (
 };
 
 export const collectVisibleTasks = (
-  childTasksMap: ChildMapByLevel,
+  childTasksMap: ChildByLevelMap,
   rootTasksMap: RootMapByLevel,
   closedTasks: Readonly<Record<string, true>>,
 ): [readonly TaskOrEmpty[], Readonly<Record<string, true>>] => {

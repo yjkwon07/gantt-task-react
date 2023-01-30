@@ -1,5 +1,5 @@
 import {
-  ChildMapByLevel,
+  ChildByLevelMap,
   RootMapByLevel,
   TaskOrEmpty,
 } from "../types/public-types";
@@ -9,7 +9,7 @@ import {
  */
 export const getChildsAndRoots = (
   tasks: readonly TaskOrEmpty[],
-): [ChildMapByLevel, RootMapByLevel] => {
+): [ChildByLevelMap, RootMapByLevel] => {
   const childRes = new Map<number, Map<string, TaskOrEmpty[]>>();
   const rootRes = new Map<number, TaskOrEmpty[]>();
 

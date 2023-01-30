@@ -81,6 +81,9 @@ import { useTableResize } from "./use-table-resize";
 import { defaultRoundDate } from "./default-round-date";
 
 import styles from "./gantt.module.css";
+import { useContextMenu } from "./use-context-menu";
+import { ContextMenu } from "../context-menu";
+import { useHandleAction } from "./use-handle-action";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -162,6 +165,7 @@ export const Gantt: React.FC<GanttProps> = ({
   colors = undefined,
   columns: columnsProp = undefined,
   comparisonLevels = 1,
+  contextMenuOptions: contextMenuOptionsProp = undefined,
   dateFormats: dateFormatsProp = undefined,
   dateLocale = enDateLocale,
   distances: distancesProp = undefined,
@@ -207,6 +211,12 @@ export const Gantt: React.FC<GanttProps> = ({
   const ganttSVGRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
+
+  const {
+    contextMenu,
+    handleCloseContextMenu,
+    handleOpenContextMenu,
+  } = useContextMenu(wrapperRef);
 
   const [
     horizontalContainerRef,
@@ -411,11 +421,19 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const {
+    resetSelectedTasks,
     selectTaskOnMouseDown,
     selectedIdsMirror,
   } = useSelection(
     taskToRowIndexMap,
     rowIndexToTaskMap,
+  );
+
+  const handleAction = useHandleAction(
+    selectedIdsMirror,
+    tasksMapRef,
+    childTasksMapRef,
+    resetSelectedTasks,
   );
 
   const [startDate, minTaskDate, datesLength] = useMemo(() =>  ganttDateRange(
@@ -1543,6 +1561,36 @@ export const Gantt: React.FC<GanttProps> = ({
     isRecountParentsOnChange,
   );
 
+  const contextMenuOptions = useMemo(() => {
+    if (contextMenuOptionsProp) {
+      return contextMenuOptionsProp;
+    }
+
+    return [
+      {
+        action: () => undefined,
+        icon: '✂',
+        label: 'Cut',
+      },
+
+      {
+        action: () => undefined,
+        label: 'Copy',
+      },
+
+      {
+        action: () => undefined,
+        label: 'Paste',
+      },
+
+      {
+        action: () => undefined,
+        icon: '×',
+        label: 'Delete',
+      },
+    ];
+  }, [contextMenuOptionsProp]);
+
   /**
    * Prevent crash after task delete
    */
@@ -1774,6 +1822,7 @@ export const Gantt: React.FC<GanttProps> = ({
     handleEditTask,
     handleMoveTaskAfter,
     handleMoveTaskInside,
+    handleOpenContextMenu,
     icons,
     isShowTaskNumbers,
     mapTaskToNestedIndex,
@@ -1793,53 +1842,58 @@ export const Gantt: React.FC<GanttProps> = ({
   };
 
   return (
-    <div>
-      <div
-        className={styles.wrapper}
-        onKeyDown={handleKeyDown}
-        tabIndex={0}
-        ref={wrapperRef}
-      >
-        {(columns.length > 0) && <TaskList {...tableProps} />}
+    <div
+      className={styles.wrapper}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      ref={wrapperRef}
+    >
+      {(columns.length > 0) && <TaskList {...tableProps} />}
 
-        <TaskGantt
-          barProps={barProps}
-          calendarProps={calendarProps}
-          fullRowHeight={fullRowHeight}
-          fullSvgWidth={fullSvgWidth}
-          ganttFullHeight={ganttFullHeight}
-          ganttHeight={ganttHeight}
-          ganttSVGRef={ganttSVGRef}
-          gridProps={gridProps}
-          horizontalContainerRef={horizontalContainerRef}
-          onVerticalScrollbarScrollX={onVerticalScrollbarScrollX}
-          verticalGanttContainerRef={verticalGanttContainerRef}
+      <TaskGantt
+        barProps={barProps}
+        calendarProps={calendarProps}
+        fullRowHeight={fullRowHeight}
+        fullSvgWidth={fullSvgWidth}
+        ganttFullHeight={ganttFullHeight}
+        ganttHeight={ganttHeight}
+        ganttSVGRef={ganttSVGRef}
+        gridProps={gridProps}
+        horizontalContainerRef={horizontalContainerRef}
+        onVerticalScrollbarScrollX={onVerticalScrollbarScrollX}
+        verticalGanttContainerRef={verticalGanttContainerRef}
+      />
+
+      {tooltipTaskFromMap && (
+        <Tooltip
+          tooltipX={tooltipX}
+          tooltipY={tooltipY}
+          tooltipStrategy={tooltipStrategy}
+          setFloatingRef={setFloatingRef}
+          getFloatingProps={getFloatingProps}
+          fontFamily={fontFamily}
+          fontSize={fontSize}
+          task={tooltipTaskFromMap}
+          TooltipContent={TooltipContent}
         />
+      )}
 
-        {tooltipTaskFromMap && (
-          <Tooltip
-            tooltipX={tooltipX}
-            tooltipY={tooltipY}
-            tooltipStrategy={tooltipStrategy}
-            setFloatingRef={setFloatingRef}
-            getFloatingProps={getFloatingProps}
-            fontFamily={fontFamily}
-            fontSize={fontSize}
-            task={tooltipTaskFromMap}
-            TooltipContent={TooltipContent}
-          />
-        )}
+      <VerticalScroll
+        ganttFullHeight={ganttFullHeight}
+        ganttHeight={ganttHeight}
+        headerHeight={distances.headerHeight}
+        isChangeInProgress={Boolean(changeInProgress)}
+        onScroll={onVerticalScrollbarScrollY}
+        rtl={rtl}
+        verticalScrollbarRef={verticalScrollbarRef}
+      />
 
-        <VerticalScroll
-          ganttFullHeight={ganttFullHeight}
-          ganttHeight={ganttHeight}
-          headerHeight={distances.headerHeight}
-          isChangeInProgress={Boolean(changeInProgress)}
-          onScroll={onVerticalScrollbarScrollY}
-          rtl={rtl}
-          verticalScrollbarRef={verticalScrollbarRef}
-        />
-      </div>
+      <ContextMenu
+        contextMenu={contextMenu}
+        handleAction={handleAction}
+        handleCloseContextMenu={handleCloseContextMenu}
+        options={contextMenuOptions}
+      />
     </div>
   );
 };

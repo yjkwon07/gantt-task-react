@@ -13,7 +13,7 @@ import cx from 'classnames';
 import { useDrop } from "react-dnd";
 
 import {
-  ChildMapByLevel,
+  ChildByLevelMap,
   ColorStyles,
   Column,
   ColumnResizeEvent,
@@ -38,7 +38,7 @@ const SCROLL_DELAY = 25;
 export type TaskListProps = {
   canMoveTasks: boolean;
   canResizeColumns: boolean;
-  childTasksMap: ChildMapByLevel;
+  childTasksMap: ChildByLevelMap;
   closedTasks: Readonly<Record<string, true>>;
   colors: ColorStyles;
   columns: readonly Column[];
@@ -57,6 +57,7 @@ export type TaskListProps = {
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
   handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
+  handleOpenContextMenu: (task: TaskOrEmpty, clientX: number, clientY: number) => void;
   icons?: Partial<Icons>;
   isShowTaskNumbers: boolean;
   mapTaskToNestedIndex: MapTaskToNestedIndex;
@@ -99,6 +100,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
   handleEditTask,
   handleMoveTaskAfter,
   handleMoveTaskInside,
+  handleOpenContextMenu,
   icons = undefined,
   isShowTaskNumbers,
   mapTaskToNestedIndex,
@@ -229,6 +231,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
                 handleEditTask={handleEditTask}
                 handleMoveTaskAfter={handleMoveTaskAfter}
                 handleMoveTaskInside={handleMoveTaskInside}
+                handleOpenContextMenu={handleOpenContextMenu}
                 icons={icons}
                 isShowTaskNumbers={isShowTaskNumbers}
                 mapTaskToNestedIndex={mapTaskToNestedIndex}

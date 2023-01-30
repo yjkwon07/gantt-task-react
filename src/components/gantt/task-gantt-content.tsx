@@ -7,7 +7,7 @@ import type {
 } from 'react';
 
 import {
-  ChildMapByLevel,
+  ChildByLevelMap,
   ChildOutOfParentWarnings,
   ColorStyles,
   CriticalPaths,
@@ -38,7 +38,7 @@ export type TaskGanttContentProps = {
   additionalRightSpace: number;
   checkIsHoliday: (date: Date) => boolean;
   childOutOfParentWarnings: ChildOutOfParentWarnings | null;
-  childTasksMap: ChildMapByLevel;
+  childTasksMap: ChildByLevelMap;
   colorStyles: ColorStyles;
   comparisonLevels: number;
   criticalPaths: CriticalPaths | null;

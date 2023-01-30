@@ -1,5 +1,5 @@
 import type {
-  ChildMapByLevel,
+  ChildByLevelMap,
   Task,
   TaskOrEmpty,
 } from "../types/public-types";
@@ -39,7 +39,7 @@ IsCollectEmpty extends boolean,
 ResultItem extends Task | TaskOrEmpty = (IsCollectEmpty extends true ? TaskOrEmpty : Task),
 >(
   task: Task,
-  childTasksMap: ChildMapByLevel,
+  childTasksMap: ChildByLevelMap,
   isCollectEmpty: IsCollectEmpty,
 ): readonly ResultItem[] => {
   const {

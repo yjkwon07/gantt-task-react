@@ -1,4 +1,5 @@
 const { mergeConfig } = require('vite');
+const path = require('path');
 
 module.exports = {
   stories: ['../stories/**/*.stories.mdx'],
@@ -23,6 +24,12 @@ module.exports = {
   async viteFinal(config) {
     return mergeConfig(config, {
       base: "./",
+
+      resolve: {
+        alias: {
+          assert: path.resolve(__dirname, './assert_fallback.cjs'),
+        },
+      },
     });
   },
 };
