@@ -78,10 +78,9 @@ export const useHandleAction = (
       getParentTasks: getParentTasksWithCache,
       getSelectedTasks: getSelectedTasksWithCache,
       getTasksWithDescendants: getTasksWithDescendantsWithCache,
+      resetSelectedTasks,
       task,
     });
-
-    resetSelectedTasks();
   }, [
     resetSelectedTasks,
     selectedIdsMirrorRef,

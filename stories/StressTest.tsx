@@ -162,7 +162,7 @@ export const StressTest: React.FC<AppProps> = ({
         break;
 
       case "delete_task":
-        if (window.confirm(`Are you sure about ${action.payload.task.name}?`)) {
+        if (window.confirm('Are you sure?')) {
           setTasks(nextTasks);
         }
         break;

@@ -37,7 +37,7 @@ export const Warnings: React.FC<AppProps> = (props) => {
         break;
 
       case "delete_task":
-        if (window.confirm(`Are you sure about ${action.payload.task.name}?`)) {
+        if (window.confirm('Are you sure?')) {
           setTasks(nextTasks);
         }
         break;

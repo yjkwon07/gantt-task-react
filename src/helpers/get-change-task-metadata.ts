@@ -1,3 +1,5 @@
+import { getDependentTasks } from "../change-metadata/get-dependent-tasks";
+import { getTaskIndexes } from "../change-metadata/get-task-indexes";
 import { changeStartAndEndDescendants } from "../suggestions/change-start-and-end-descendants";
 import type {
   ChangeAction,
@@ -6,31 +8,11 @@ import type {
   DependentMap,
   TaskToGlobalIndexMap,
   TaskMapByLevel,
+  Task,
 } from "../types/public-types";
 import { collectParents } from "./collect-parents";
 import { getAllDescendants } from "./get-all-descendants";
 import { getSuggestedStartEndChanges } from "./get-suggested-start-end-changes";
-
-const getTargetTask = (changeAction: ChangeAction) => {
-  switch (changeAction.type) {
-    case "add-child":
-      return changeAction.parent;
-
-    case "change":
-    case "change_start_and_end":
-    case "delete":
-      return changeAction.task;
-
-    case "move-after":
-      return changeAction.target;
-
-    case "move-inside":
-      return changeAction.parent;
-
-    default:
-      throw new Error(`Unknown change action: ${(changeAction as ChangeAction).type}`);
-  }
-};
 
 const collectSuggestedParents = (
   changeAction: ChangeAction,
@@ -42,8 +24,22 @@ const collectSuggestedParents = (
 
     case "change":
     case "change_start_and_end":
-    case "delete":
       return collectParents(changeAction.task, tasksMap);
+
+    case "delete":
+    {
+      const resSet = new Set<Task>();
+
+      changeAction.tasks.forEach((task) => {
+        const parents = collectParents(task, tasksMap);
+
+        parents.forEach((parentTask) => {
+          resSet.add(parentTask);
+        });
+      });
+
+      return [...resSet];
+    }
 
     case "move-after":
       return [
@@ -72,13 +68,6 @@ export const getChangeTaskMetadata = (
   isRecountParentsOnChange: boolean,
   isMoveChildsWithParent: boolean,
 ): ChangeMetadata => {
-  const changedTask = getTargetTask(changeAction);
-
-  const {
-    id: taskId,
-    comparisonLevel = 1,
-  } = changedTask;
-
   const parentSuggestedTasks = isRecountParentsOnChange
     ? collectSuggestedParents(changeAction, tasksMap)
     : [];
@@ -106,30 +95,12 @@ export const getChangeTaskMetadata = (
   const suggestedTasks = [...parentSuggestedTasks, ...descendants];
   const suggestions = [...parentSuggestions, ...descendantSuggestions];
 
-  const taskIndexMapByLevel = mapTaskToGlobalIndex.get(comparisonLevel);
-
-  if (!taskIndexMapByLevel) {
-    console.error(`Warning: tasks by level ${comparisonLevel} are not found`);
-  }
-
-  const taskIndex = taskIndexMapByLevel
-    ? taskIndexMapByLevel.get(taskId)
-    : undefined;
-
-  if (typeof taskIndex !== 'number') {
-    console.error(`Warning: index for task ${taskId} is not found`);
-  }
-
-  const dependentMapByLevel = dependentMap.get(comparisonLevel);
-  const dependentsByTask = dependentMapByLevel
-    ? dependentMapByLevel.get(taskId)
-    : undefined;
-
-  const dependentTasks = dependentsByTask ? dependentsByTask.map(({ dependent }) => dependent) : [];
+  const taskIndexes = getTaskIndexes(changeAction, mapTaskToGlobalIndex);
+  const dependentTasks = getDependentTasks(changeAction, dependentMap);
 
   return [
     dependentTasks,
-    typeof taskIndex === 'number' ? taskIndex : -1,
+    taskIndexes,
     suggestedTasks,
     suggestions,
   ];

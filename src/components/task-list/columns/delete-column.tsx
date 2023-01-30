@@ -8,14 +8,14 @@ import styles from "./delete-column.module.css";
 
 export const DeleteColumn: React.FC<ColumnProps> = ({
   data: {
-    handleDeteleTask,
+    handleDeteleTasks,
     icons,
     task,
   },
 }) => {
   const onClick = useCallback(() => {
-    handleDeteleTask(task);
-  }, [task, handleDeteleTask]);
+    handleDeteleTasks([task]);
+  }, [task, handleDeteleTasks]);
 
   return (
     <button

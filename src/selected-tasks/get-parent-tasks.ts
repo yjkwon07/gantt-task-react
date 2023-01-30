@@ -1,38 +1,9 @@
+import { checkIsDescendant } from "../helpers/check-is-descendant";
+
 import type {
   TaskMapByLevel,
   TaskOrEmpty,
 } from "../types/public-types";
-
-const fillParentTasksForTask = (
-  res: TaskOrEmpty[],
-  processedTasks: Set<string>,
-  task: TaskOrEmpty,
-  tasksAtLevel: Map<string, TaskOrEmpty>,
-) => {
-  const {
-    id: taskId,
-    parent: parentId,
-  } = task;
-
-  if (processedTasks.has(taskId)) {
-    return;
-  }
-
-  processedTasks.add(taskId);
-
-  if (!parentId) {
-    res.push(task);
-    return;
-  }
-
-  const parentTask = tasksAtLevel.get(parentId);
-
-  if (!parentTask) {
-    return;
-  }
-
-  fillParentTasksForTask(res, processedTasks, parentTask, tasksAtLevel);
-};
 
 export const getParentTasks = (
   selectedTasks: TaskOrEmpty[],
@@ -40,18 +11,18 @@ export const getParentTasks = (
 ) => {
   const res: TaskOrEmpty[] = [];
 
-  selectedTasks.forEach((task) => {
-    const {
-      comparisonLevel = 1,
-    } = task;
+  selectedTasks.forEach((maybeDescendant) => {
+    let isDescendant = selectedTasks.some((maybeParent) => {
+      if (maybeParent === maybeDescendant || maybeParent.type === 'empty') {
+        return false;
+      }
 
-    const tasksAtLevel = tasksMap.get(comparisonLevel);
+      return checkIsDescendant(maybeParent, maybeDescendant, tasksMap);
+    });
 
-    if (!tasksAtLevel) {
-      return;
+    if (!isDescendant) {
+      res.push(maybeDescendant);
     }
-
-    fillParentTasksForTask(res, new Set<string>(), task, tasksAtLevel);
   });
 
   return res;

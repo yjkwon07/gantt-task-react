@@ -67,7 +67,7 @@ export type TaskItemProps = {
   ) => void;
   fixStartPosition?: FixPosition;
   fixEndPosition?: FixPosition;
-  handleDeteleTask: (task: TaskOrEmpty) => void;
+  handleDeteleTasks: (task: TaskOrEmpty[]) => void;
   colorStyles: ColorStyles;
 };
 
@@ -85,7 +85,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
     fixEndPosition = undefined,
     fixStartPosition = undefined,
     getTaskGlobalIndexByRef,
-    handleDeteleTask,
+    handleDeteleTasks,
     hasDependencyWarning,
     isDateChangeable,
     isDelete,
@@ -340,7 +340,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
         switch (e.key) {
           case "Delete": {
             if (isDelete) {
-              handleDeteleTask(task);
+              handleDeteleTasks([task]);
             }
             break;
           }

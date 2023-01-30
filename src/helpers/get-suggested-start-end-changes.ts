@@ -37,10 +37,15 @@ const getMinAndMaxDatesInDescendants = (
       break;
 
     case "delete":
-      if (task.id === changeAction.task.id) {
+    {
+      const deletedTaskIdsAtLevel = changeAction.deletedIdsMap.get(comparisonLevel);
+
+      if (deletedTaskIdsAtLevel && deletedTaskIdsAtLevel.has(id)) {
         return null;
       }
+
       break;
+    }
 
     default:
       break;

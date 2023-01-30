@@ -299,8 +299,8 @@ export type OnChangeTasksAction =
   | {
     type: "delete_task";
     payload: {
-      task: TaskOrEmpty;
-      taskIndex: number;
+      tasks: readonly TaskOrEmpty[];
+      taskIndexes: readonly number[];
     };
   }
   | {
@@ -385,7 +385,16 @@ export interface EventOption {
   /**
    * Invokes on delete selected task
    */
-  onDelete?: OnDateChange;
+  onDelete?: (
+    tasks: readonly TaskOrEmpty[],
+    dependentTasks: readonly Task[],
+    indexes: Array<{
+      task: TaskOrEmpty;
+      index: number;
+    }>,
+    parents: readonly Task[],
+    suggestions: readonly OnDateChangeSuggestionType[],
+  ) => void;
   /**
    * Callback for getting new data of the edited task
    */
@@ -531,7 +540,7 @@ export interface TaskListTableProps {
   ganttFullHeight: number;
   getTaskCurrentState: (task: Task) => Task;
   handleAddTask: (task: Task) => void;
-  handleDeteleTask: (task: TaskOrEmpty) => void;
+  handleDeteleTasks: (task: TaskOrEmpty[]) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
   handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
@@ -733,7 +742,7 @@ export type ColumnData = {
   dependencies: Task[];
   distances: Distances;
   handleAddTask: (task: Task) => void;
-  handleDeteleTask: (task: TaskOrEmpty) => void;
+  handleDeteleTasks: (task: TaskOrEmpty[]) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   hasChildren: boolean;
   icons?: Partial<Icons>;
@@ -784,7 +793,9 @@ export type ChangeAction =
   }
   | {
     type: "delete";
-    task: TaskOrEmpty;
+    tasks: readonly TaskOrEmpty[];
+    // comparison level -> task id
+    deletedIdsMap: Map<number, Set<string>>;
   }
   | {
     type: "add-child";
@@ -808,9 +819,12 @@ export type ChangeMetadata = [
    */
   Task[],
   /**
-   * index in list of tasks
+   * indexes in list of tasks
    */
-  number,
+  Array<{
+    task: TaskOrEmpty;
+    index: number;
+  }>,
   /**
    * array of parents of the task
    */
@@ -841,6 +855,7 @@ export type ActionMetaType = {
    * @returns List of tasks with all their descendants
    */
   getTasksWithDescendants: () => readonly TaskOrEmpty[];
+  resetSelectedTasks: () => void;
   /**
    * Task that triggered context menu
    */

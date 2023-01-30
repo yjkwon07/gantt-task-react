@@ -11,6 +11,7 @@ import useLatest from "use-latest";
 import enDateLocale from 'date-fns/locale/en-US';
 
 import {
+  ActionMetaType,
   ChangeAction,
   ColorStyles,
   Column,
@@ -959,7 +960,7 @@ export const Gantt: React.FC<GanttProps> = ({
             return;
           }
 
-          const [, taskIndex, , suggestions] = getMetadata({
+          const [, [{ index: taskIndex }], , suggestions] = getMetadata({
             type: "change",
             task: nextTask,
           });
@@ -1018,10 +1019,12 @@ export const Gantt: React.FC<GanttProps> = ({
 
     const [
       dependentTasks,
-      taskIndex,
+      taskIndexes,
       parents,
       suggestions,
     ] = getMetadata(changeAction);
+
+    const taskIndex = taskIndexes[0].index;
 
     if (onDateChangeProp) {
       onDateChangeProp(
@@ -1050,11 +1053,13 @@ export const Gantt: React.FC<GanttProps> = ({
   const onProgressChange = useCallback((task: Task) => {
     const [
       dependentTasks,
-      taskIndex,
+      taskIndexes,
     ] = getMetadata({
       type: "change",
       task,
     });
+
+    const taskIndex = taskIndexes[0].index;
 
     if (onProgressChangeProp) {
       onProgressChangeProp(
@@ -1109,37 +1114,50 @@ export const Gantt: React.FC<GanttProps> = ({
     onChangeTooltipTask,
   } = useTaskTooltip(changeInProgress);
 
-  const handleDeteleTask = useCallback((task: TaskOrEmpty) => {
+  const handleDeteleTasks = useCallback((tasksForDelete: readonly TaskOrEmpty[]) => {
     if (!onDelete && !onChangeTasks) {
       return;
     }
 
     onChangeTooltipTask(null, null);
+    
+    const deletedIdsMap = new Map<number, Set<string>>();
+
+    tasksForDelete.forEach((task) => {
+      const {
+        id: taskId,
+        comparisonLevel = 1,
+      } = task;
+
+      const deletedIdsAtLevel = deletedIdsMap.get(comparisonLevel) || new Set<string>();
+      deletedIdsAtLevel.add(taskId);
+
+      deletedIdsMap.set(comparisonLevel, deletedIdsAtLevel);
+    });
 
     const [
       dependentTasks,
-      taskIndex,
+      taskIndexes,
       parents,
       suggestions,
     ] = getMetadata({
       type: "delete",
-      task,
+      tasks: tasksForDelete,
+      deletedIdsMap,
     });
 
     if (onDelete) {
       onDelete(
-        task,
+        tasksForDelete,
         dependentTasks,
-        taskIndex,
+        taskIndexes,
         parents,
         suggestions,
       );
     }
 
     if (onChangeTasks) {
-      const withSuggestions = prepareSuggestions(suggestions);
-
-      withSuggestions[taskIndex] = task;
+      let withSuggestions = prepareSuggestions(suggestions);
 
       suggestions.forEach(([start, end, task, index]) => {
         withSuggestions[index] = {
@@ -1149,13 +1167,15 @@ export const Gantt: React.FC<GanttProps> = ({
         };
       });
 
-      withSuggestions.splice(taskIndex, 1);
+      const deletedIndexesSet = new Set(taskIndexes.map(({ index }) => index));
+
+      withSuggestions = withSuggestions.filter((_, index) => !deletedIndexesSet.has(index));
 
       onChangeTasks(withSuggestions, {
         type: "delete_task",
         payload: {
-          task,
-          taskIndex,
+          tasks: tasksForDelete,
+          taskIndexes: [...deletedIndexesSet],
         },
       });
     }
@@ -1176,7 +1196,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
     const [
       dependentTasks,
-      taskIndex,
+      taskIndexes,
       parents,
       suggestions,
     ] = getMetadata({
@@ -1184,6 +1204,8 @@ export const Gantt: React.FC<GanttProps> = ({
       target,
       taskForMove,
     });
+
+    const taskIndex = taskIndexes[0].index;
 
     const {
       id,
@@ -1247,7 +1269,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
     const [
       dependentTasks,
-      parentIndex,
+      parentIndexes,
       parents,
       suggestions,
     ] = getMetadata({
@@ -1255,6 +1277,8 @@ export const Gantt: React.FC<GanttProps> = ({
       parent,
       child,
     });
+
+    const parentIndex = parentIndexes[0].index;
 
     const {
       id,
@@ -1401,13 +1425,15 @@ export const Gantt: React.FC<GanttProps> = ({
 
     const [
       dependentTasks,
-      taskIndex,
+      taskIndexes,
       parents,
       suggestions,
     ] = getMetadata({
       type: "change",
       task: newChangedTask,
     });
+
+    const taskIndex = taskIndexes[0].index;
 
     onFixDependencyPosition(
       newChangedTask,
@@ -1584,12 +1610,25 @@ export const Gantt: React.FC<GanttProps> = ({
       },
 
       {
-        action: () => undefined,
+        action: ({
+          getTasksWithDescendants,
+          resetSelectedTasks: resetSelectedTasksAction,
+          task,
+        }: ActionMetaType) => {
+          const tasksWithDescendants = getTasksWithDescendants();
+
+          handleDeteleTasks(tasksWithDescendants.length === 0 ? [task] : tasksWithDescendants);
+
+          resetSelectedTasksAction();
+        },
         icon: '×',
         label: 'Delete',
       },
     ];
-  }, [contextMenuOptionsProp]);
+  }, [
+    contextMenuOptionsProp,
+    handleDeteleTasks,
+  ]);
 
   /**
    * Prevent crash after task delete
@@ -1724,7 +1763,7 @@ export const Gantt: React.FC<GanttProps> = ({
     getTaskCoordinates,
     getTaskGlobalIndexByRef,
     handleBarRelationStart,
-    handleDeteleTask,
+    handleDeteleTasks,
     handleFixDependency,
     handleTaskDragStart,
     isShowDependencyWarnings,
@@ -1771,7 +1810,7 @@ export const Gantt: React.FC<GanttProps> = ({
     getTaskCoordinates,
     getTaskGlobalIndexByRef,
     handleBarRelationStart,
-    handleDeteleTask,
+    handleDeteleTasks,
     handleTaskDragStart,
     isShowDependencyWarnings,
     mapGlobalRowIndexToTask,
@@ -1818,7 +1857,7 @@ export const Gantt: React.FC<GanttProps> = ({
     ganttHeight,
     getTaskCurrentState,
     handleAddTask,
-    handleDeteleTask,
+    handleDeteleTasks,
     handleEditTask,
     handleMoveTaskAfter,
     handleMoveTaskInside,

@@ -1,8 +1,12 @@
-import { Task, TaskMapByLevel } from "../types/public-types";
+import {
+  Task,
+  TaskMapByLevel,
+  TaskOrEmpty,
+} from "../types/public-types";
 
 export const checkIsDescendant = (
   maybeParent: Task,
-  maybeDescendant: Task,
+  maybeDescendant: TaskOrEmpty,
   tasksMap: TaskMapByLevel,
 ) => {
   /**
