@@ -15,6 +15,65 @@ import type {
 } from '../../types/public-types';
 import { getTasksWithDescendants } from '../../selected-tasks/get-tasks-with-descendants';
 
+const createGetters = (
+  mirrorRef: MutableRefObject<Readonly<Record<string, true>>>,
+  tasksMapRef: MutableRefObject<TaskMapByLevel>,
+  childTasksMapRef: MutableRefObject<ChildByLevelMap>,
+) => {
+  let selectedTasks: TaskOrEmpty[] | null = null;
+  let parentTasks: TaskOrEmpty[] | null = null;
+  let tasksWithDescendants: TaskOrEmpty[] | null = null;
+
+  const getSelectedTasksWithCache = () => {
+    if (selectedTasks) {
+      return selectedTasks;
+    }
+
+    selectedTasks = getSelectedTasks(
+      mirrorRef.current,
+      tasksMapRef.current,
+    );
+
+    return selectedTasks;
+  };
+
+  const getParentTasksWithCache = () => {
+    if (parentTasks) {
+      return parentTasks;
+    }
+
+    const selectedTasksRes = getSelectedTasksWithCache();
+
+    parentTasks = getParentTasks(
+      selectedTasksRes,
+      tasksMapRef.current,
+    );
+
+    return parentTasks;
+  };
+
+  const getTasksWithDescendantsWithCache = () => {
+    if (tasksWithDescendants) {
+      return tasksWithDescendants;
+    }
+
+    const parentTasksRes = getParentTasksWithCache();
+
+    tasksWithDescendants = getTasksWithDescendants(
+      parentTasksRes,
+      childTasksMapRef.current,
+    );
+
+    return tasksWithDescendants;
+  };
+
+  return {
+    getParentTasksWithCache,
+    getSelectedTasksWithCache,
+    getTasksWithDescendantsWithCache,
+  };
+};
+
 type UseHandleActionParams = {
   childTasksMapRef: MutableRefObject<ChildByLevelMap>;
   copyIdsMirror: Readonly<Record<string, true>>;
@@ -40,116 +99,39 @@ export const useHandleAction = ({
     task: TaskOrEmpty,
     action: (meta: ActionMetaType) => void,
   ) => {
-    let selectedTasks: TaskOrEmpty[] | null = null;
-    let parentTasks: TaskOrEmpty[] | null = null;
-    let tasksWithDescendants: TaskOrEmpty[] | null = null;
-    let cutTasks: TaskOrEmpty[] | null = null;
-    let cutParentTasks: TaskOrEmpty[] | null = null;
-    let copyTasks: TaskOrEmpty[] | null = null;
-    let copyParentTasks: TaskOrEmpty[] | null = null;
+    const {
+      getParentTasksWithCache,
+      getSelectedTasksWithCache,
+      getTasksWithDescendantsWithCache,
+    } = createGetters(
+      selectedIdsMirrorRef,
+      tasksMapRef,
+      childTasksMapRef,
+    );
 
-    const getSelectedTasksWithCache = () => {
-      if (selectedTasks) {
-        return selectedTasks;
-      }
+    const {
+      getParentTasksWithCache: getCutParentTasksWithCache,
+      getSelectedTasksWithCache: getCutTasksWithCache,
+    } = createGetters(
+      cutIdsMirrorRef,
+      tasksMapRef,
+      childTasksMapRef,
+    );
 
-      selectedTasks = getSelectedTasks(
-        selectedIdsMirrorRef.current,
-        tasksMapRef.current,
-      );
-
-      return selectedTasks;
-    };
-
-    const getParentTasksWithCache = () => {
-      if (parentTasks) {
-        return parentTasks;
-      }
-
-      const selectedTasksRes = getSelectedTasksWithCache();
-
-      parentTasks = getParentTasks(
-        selectedTasksRes,
-        tasksMapRef.current,
-      );
-
-      return parentTasks;
-    };
-
-    const getTasksWithDescendantsWithCache = () => {
-      if (tasksWithDescendants) {
-        return tasksWithDescendants;
-      }
-
-      const parentTasksRes = getParentTasksWithCache();
-
-      tasksWithDescendants = getTasksWithDescendants(
-        parentTasksRes,
-        childTasksMapRef.current,
-      );
-
-      return tasksWithDescendants;
-    };
-
-    const getCutTasksWithCache = () => {
-      if (cutTasks) {
-        return cutTasks;
-      }
-
-      cutTasks = getSelectedTasks(
-        cutIdsMirrorRef.current,
-        tasksMapRef.current,
-      );
-
-      return cutTasks;
-    };
-
-    const getCutParentTasksWithCache = () => {
-      if (cutParentTasks) {
-        return cutParentTasks;
-      }
-
-      const cutTasksRes = getCutTasksWithCache();
-
-      cutParentTasks = getParentTasks(
-        cutTasksRes,
-        tasksMapRef.current,
-      );
-
-      return cutParentTasks;
-    };
-
-    const getCopyTasksWithCache = () => {
-      if (copyTasks) {
-        return copyTasks;
-      }
-
-      copyTasks = getSelectedTasks(
-        copyIdsMirrorRef.current,
-        tasksMapRef.current,
-      );
-
-      return copyTasks;
-    };
-
-    const getCopyParentTasksWithCache = () => {
-      if (copyParentTasks) {
-        return copyParentTasks;
-      }
-
-      const copyTasksRes = getCopyTasksWithCache();
-
-      copyParentTasks = getParentTasks(
-        copyTasksRes,
-        tasksMapRef.current,
-      );
-
-      return copyParentTasks;
-    };
+    const {
+      getParentTasksWithCache: getCopyParentTasksWithCache,
+      getSelectedTasksWithCache: getCopyTasksWithCache,
+      getTasksWithDescendantsWithCache: getCopyTasksWithDescendantsWithCache,
+    } = createGetters(
+      copyIdsMirrorRef,
+      tasksMapRef,
+      childTasksMapRef,
+    );
 
     action({
       getCopyParentTasks: getCopyTasksWithCache,
       getCopyTasks: getCopyParentTasksWithCache,
+      getCopyTasksWithDescendants: getCopyTasksWithDescendantsWithCache,
       getCutParentTasks: getCutParentTasksWithCache,
       getCutTasks: getCutTasksWithCache,
       getParentTasks: getParentTasksWithCache,

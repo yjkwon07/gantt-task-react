@@ -12,6 +12,7 @@ import enDateLocale from 'date-fns/locale/en-US';
 
 import {
   ChangeAction,
+  CheckCopiedIdExistsAtLevel,
   ColorStyles,
   Column,
   ContextMenuOptionType,
@@ -81,10 +82,13 @@ import { defaultCheckIsHoliday } from "./default-check-is-holiday";
 import { useTableResize } from "./use-table-resize";
 import { defaultRoundDate } from "./default-round-date";
 
-import styles from "./gantt.module.css";
 import { useContextMenu } from "./use-context-menu";
 import { ContextMenu } from "../context-menu";
 import { useHandleAction } from "./use-handle-action";
+import { defaultGetCopiedTaskId } from "./default-get-copied-task-id";
+
+import styles from "./gantt.module.css";
+import { copyTasks } from "../../helpers/copy-tasks";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -174,6 +178,7 @@ export const Gantt: React.FC<GanttProps> = ({
   fixStartPosition: fixStartPositionProp = undefined,
   fontFamily = "Arial, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue",
   fontSize = "14px",
+  getCopiedTaskId = defaultGetCopiedTaskId,
   icons = undefined,
   isDeleteDependencyOnDoubleClick = true,
   isMoveChildsWithParent = true,
@@ -290,6 +295,19 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const tasksMapRef = useLatest(tasksMap);
+
+  const checkTaskIdExists = useCallback<CheckCopiedIdExistsAtLevel>((
+    newId,
+    comparisonLevel = 1,
+  ) => {
+    const tasksAtLevelMap = tasksMapRef.current.get(comparisonLevel);
+
+    if (!tasksAtLevelMap) {
+      return false;
+    }
+
+    return tasksAtLevelMap.has(newId);
+  }, [tasksMapRef]);
 
   const mapTaskToGlobalIndex = useMemo(
     () => getMapTaskToGlobalIndex(tasks),
@@ -1764,6 +1782,7 @@ export const Gantt: React.FC<GanttProps> = ({
       {
         action: ({
           getCopyParentTasks,
+          getCopyTasksWithDescendants,
           getCutParentTasks,
           resetSelectedTasks: resetSelectedTasksAction,
           task,
@@ -1783,6 +1802,14 @@ export const Gantt: React.FC<GanttProps> = ({
           const copyParentTasks = getCopyParentTasks();
 
           if (copyParentTasks.length > 0) {
+            const tasksForCopy = getCopyTasksWithDescendants();
+            const copiedTasks = copyTasks(
+              tasksForCopy,
+              getCopiedTaskId,
+              checkTaskIdExists,
+            );
+
+            handleAddChilds(task, copiedTasks);
             resetSelectedTasksAction();
           }
         },
@@ -1806,10 +1833,13 @@ export const Gantt: React.FC<GanttProps> = ({
       },
     ];
   }, [
+    checkTaskIdExists,
     contextMenuOptionsProp,
     copyAllTasks,
     copyTask,
     cutAllTasks,
+    getCopiedTaskId,
+    handleAddChilds,
     handleDeteleTasks,
     handleMoveTasksInside,
   ]);

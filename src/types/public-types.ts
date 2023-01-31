@@ -521,6 +521,10 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
    */
   comparisonLevels?: number;
   contextMenuOptions?: ContextMenuOptionType[];
+  /**
+   * Get new id for task after using copy-paste
+   */
+  getCopiedTaskId?: GetCopiedTaskId;
   tasks: readonly TaskOrEmpty[];
 }
 
@@ -858,6 +862,10 @@ export type ActionMetaType = {
    */
   getCopyTasks: () => readonly TaskOrEmpty[];
   /**
+   * @returns List of tasks with all their descendants under copy action
+   */
+  getCopyTasksWithDescendants: () => readonly TaskOrEmpty[];
+  /**
    * @returns List of parent tasks under cut action
    */
   getCutParentTasks: () => readonly TaskOrEmpty[];
@@ -889,3 +897,14 @@ export type ContextMenuOptionType = {
   label: ReactNode;
   icon?: ReactNode;
 };
+
+
+export type CheckCopiedIdExistsAtLevel = (
+  newId: string,
+  comparisonLevel?: number,
+) => boolean;
+
+export type GetCopiedTaskId = (
+  task: TaskOrEmpty,
+  checkExists: (newId: string) => boolean,
+) => string;
