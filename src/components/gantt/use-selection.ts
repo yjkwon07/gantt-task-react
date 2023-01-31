@@ -21,6 +21,7 @@ export const useSelection = (
   rowIndexToTaskMap: RowIndexToTaskMap,
 ) => {
   const [cutIdsMirror, setCutIdsMirror] = useState<Readonly<Record<string, true>>>(initialValue);
+  const [copyIdsMirror, setCopyIdsMirror] = useState<Readonly<Record<string, true>>>(initialValue);
   const [selectedIdsMirror, setSelectedIdsMirror] = useState<Readonly<Record<string, true>>>(initialValue);
   const lastSelectedIdRef = useRef<string | null>(null);
 
@@ -161,7 +162,20 @@ export const useSelection = (
     setSelectedIdsMirror(initialValue);
   }, [selectedIdsMirrorRef]);
 
+  const copyTask = useCallback((taskId: string) => {
+    setCopyIdsMirror({
+      [taskId]: true,
+    });
+  }, []);
+
+  const copyAllTasks = useCallback(() => {
+    setCopyIdsMirror(selectedIdsMirrorRef.current);
+  }, [selectedIdsMirrorRef]);
+
   return {
+    copyAllTasks,
+    copyIdsMirror,
+    copyTask,
     cutAllTasks,
     cutIdsMirror,
     cutTask,

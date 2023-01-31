@@ -15,14 +15,25 @@ import type {
 } from '../../types/public-types';
 import { getTasksWithDescendants } from '../../selected-tasks/get-tasks-with-descendants';
 
-export const useHandleAction = (
-  selectedIdsMirror: Readonly<Record<string, true>>,
-  cutIdsMirror: Readonly<Record<string, true>>,
-  tasksMapRef: MutableRefObject<TaskMapByLevel>,
-  childTasksMapRef: MutableRefObject<ChildByLevelMap>,
-  resetSelectedTasks: () => void,
-) => {
+type UseHandleActionParams = {
+  childTasksMapRef: MutableRefObject<ChildByLevelMap>;
+  copyIdsMirror: Readonly<Record<string, true>>;
+  cutIdsMirror: Readonly<Record<string, true>>;
+  resetSelectedTasks: () => void;
+  selectedIdsMirror: Readonly<Record<string, true>>;
+  tasksMapRef: MutableRefObject<TaskMapByLevel>;
+};
+
+export const useHandleAction = ({
+  childTasksMapRef,
+  copyIdsMirror,
+  cutIdsMirror,
+  resetSelectedTasks,
+  selectedIdsMirror,
+  tasksMapRef,
+}: UseHandleActionParams) => {
   const selectedIdsMirrorRef = useLatest(selectedIdsMirror);
+  const copyIdsMirrorRef = useLatest(copyIdsMirror);
   const cutIdsMirrorRef = useLatest(cutIdsMirror);
 
   const handleAction = useCallback((
@@ -34,6 +45,8 @@ export const useHandleAction = (
     let tasksWithDescendants: TaskOrEmpty[] | null = null;
     let cutTasks: TaskOrEmpty[] | null = null;
     let cutParentTasks: TaskOrEmpty[] | null = null;
+    let copyTasks: TaskOrEmpty[] | null = null;
+    let copyParentTasks: TaskOrEmpty[] | null = null;
 
     const getSelectedTasksWithCache = () => {
       if (selectedTasks) {
@@ -106,7 +119,37 @@ export const useHandleAction = (
       return cutParentTasks;
     };
 
+    const getCopyTasksWithCache = () => {
+      if (copyTasks) {
+        return copyTasks;
+      }
+
+      copyTasks = getSelectedTasks(
+        copyIdsMirrorRef.current,
+        tasksMapRef.current,
+      );
+
+      return copyTasks;
+    };
+
+    const getCopyParentTasksWithCache = () => {
+      if (copyParentTasks) {
+        return copyParentTasks;
+      }
+
+      const copyTasksRes = getCopyTasksWithCache();
+
+      copyParentTasks = getParentTasks(
+        copyTasksRes,
+        tasksMapRef.current,
+      );
+
+      return copyParentTasks;
+    };
+
     action({
+      getCopyParentTasks: getCopyTasksWithCache,
+      getCopyTasks: getCopyParentTasksWithCache,
       getCutParentTasks: getCutParentTasksWithCache,
       getCutTasks: getCutTasksWithCache,
       getParentTasks: getParentTasksWithCache,
@@ -116,6 +159,7 @@ export const useHandleAction = (
       task,
     });
   }, [
+    copyIdsMirrorRef,
     cutIdsMirrorRef,
     resetSelectedTasks,
     selectedIdsMirrorRef,

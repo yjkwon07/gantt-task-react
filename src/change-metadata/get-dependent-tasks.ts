@@ -39,7 +39,7 @@ export const getDependentTasks = (
   const resSet = new Set<Task>();
 
   switch (changeAction.type) {
-    case "add-child":
+    case "add-childs":
       fillDependentTasksForTask(resSet, changeAction.parent, dependentMap);
       break;
 

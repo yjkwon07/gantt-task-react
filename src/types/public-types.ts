@@ -282,7 +282,7 @@ export type FixPosition = (
 
 export type OnChangeTasksAction =
   | {
-    type: "add_task";
+    type: "add_tasks";
   }
   | {
     type: "date_change";
@@ -784,6 +784,15 @@ export type OnResizeColumn = (
 
 export type ChangeAction =
   | {
+    type: "add-childs";
+    parent: Task;
+    // comparison level -> task id
+    addedIdsMap: Map<number, Set<string>>;
+    addedChildsByLevelMap: ChildByLevelMap;
+    addedRootsByLevelMap: RootMapByLevel;
+    descendants: readonly TaskOrEmpty[];
+  }
+  | {
     type: "change";
     task: TaskOrEmpty;
   }
@@ -797,11 +806,6 @@ export type ChangeAction =
     tasks: readonly TaskOrEmpty[];
     // comparison level -> task id
     deletedIdsMap: Map<number, Set<string>>;
-  }
-  | {
-    type: "add-child";
-    parent: Task;
-    child: TaskOrEmpty;
   }
   | {
     type: "move-after";
@@ -845,6 +849,14 @@ export type ContextMenuType = {
 };
 
 export type ActionMetaType = {
+  /**
+   * @returns List of parent tasks under copy action
+   */
+  getCopyParentTasks: () => readonly TaskOrEmpty[];
+  /**
+   * @returns List of tasks under copy action
+   */
+  getCopyTasks: () => readonly TaskOrEmpty[];
   /**
    * @returns List of parent tasks under cut action
    */

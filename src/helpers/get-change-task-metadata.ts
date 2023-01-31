@@ -19,7 +19,7 @@ const collectSuggestedParents = (
   tasksMap: TaskMapByLevel,
 ) => {
   switch (changeAction.type) {
-    case "add-child":
+    case "add-childs":
       return [changeAction.parent, ...collectParents(changeAction.parent, tasksMap)];
 
     case "change":

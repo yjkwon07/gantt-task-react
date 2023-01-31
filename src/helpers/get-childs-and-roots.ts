@@ -9,6 +9,7 @@ import {
  */
 export const getChildsAndRoots = (
   tasks: readonly TaskOrEmpty[],
+  checkIsRoot: ((task: TaskOrEmpty) => boolean) | null,
 ): [ChildByLevelMap, RootMapByLevel] => {
   const childRes = new Map<number, Map<string, TaskOrEmpty[]>>();
   const rootRes = new Map<number, TaskOrEmpty[]>();
@@ -19,7 +20,7 @@ export const getChildsAndRoots = (
       comparisonLevel = 1,
     } = task;
 
-    if (!parent) {
+    if (!parent || (checkIsRoot && checkIsRoot(task))) {
       const rootOnLevel = rootRes.get(comparisonLevel) || [];
       rootRes.set(comparisonLevel, [...rootOnLevel, task]);
 

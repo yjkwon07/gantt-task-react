@@ -38,7 +38,7 @@ export const getTaskIndexes = (
   mapTaskToGlobalIndex: TaskToGlobalIndexMap,
 ) => {
   switch (changeAction.type) {
-    case "add-child":
+    case "add-childs":
       return [getTaskIndex(changeAction.parent, mapTaskToGlobalIndex)];
 
     case "change":

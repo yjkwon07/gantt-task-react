@@ -260,7 +260,7 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const [childTasksMap, rootTasksMap] = useMemo(
-    () => getChildsAndRoots(sortedTasks),
+    () => getChildsAndRoots(sortedTasks, null),
     [sortedTasks],
   );
 
@@ -422,6 +422,9 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const {
+    copyAllTasks,
+    copyIdsMirror,
+    copyTask,
     cutAllTasks,
     cutIdsMirror,
     cutTask,
@@ -433,13 +436,14 @@ export const Gantt: React.FC<GanttProps> = ({
     rowIndexToTaskMap,
   );
 
-  const handleAction = useHandleAction(
-    selectedIdsMirror,
-    cutIdsMirror,
-    tasksMapRef,
+  const handleAction = useHandleAction({
     childTasksMapRef,
+    copyIdsMirror,
+    cutIdsMirror,
     resetSelectedTasks,
-  );
+    selectedIdsMirror,
+    tasksMapRef,
+  });
 
   const [startDate, minTaskDate, datesLength] = useMemo(() =>  ganttDateRange(
     visibleTasks,
@@ -950,12 +954,120 @@ export const Gantt: React.FC<GanttProps> = ({
     prepareSuggestions,
   ]);
 
+  const handleAddChilds = useCallback((
+    parent: Task,
+    descendants: readonly TaskOrEmpty[],
+  ) => {
+    if (!onChangeTasks) {
+      return;
+    }
+
+    const addedIdsMap = new Map<number, Set<string>>();
+
+    descendants.forEach((descendant) => {
+      const {
+        id: descendantId,
+        comparisonLevel = 1,
+      } = descendant;
+
+      const addedIdsAtLevelSet = addedIdsMap.get(comparisonLevel) || new Set<string>();
+
+      addedIdsAtLevelSet.add(descendantId);
+
+      addedIdsMap.set(comparisonLevel, addedIdsAtLevelSet);
+    });
+
+    const [
+      addedChildsByLevelMap,
+      addedRootsByLevelMap,
+    ] = getChildsAndRoots(
+      descendants,
+      (descendant) => {
+        const {
+          comparisonLevel = 1,
+          parent,
+        } = descendant;
+
+        if (!parent) {
+          return true;
+        }
+
+        const addedIdsAtLevelSet = addedIdsMap.get(comparisonLevel);
+
+        if (!addedIdsAtLevelSet) {
+          throw new Error(`Ids are not found at level ${comparisonLevel}`);
+        }
+
+        return !addedIdsAtLevelSet.has(parent);
+      },
+    );
+
+    const [, [{ index: taskIndex }], , suggestions] = getMetadata({
+      type: "add-childs",
+      parent,
+      addedIdsMap,
+      addedChildsByLevelMap,
+      addedRootsByLevelMap,
+      descendants,
+    });
+
+    const withSuggestions = prepareSuggestions(suggestions);
+
+    descendants.forEach((descendant, index) => {
+      const {
+        parent: parentId,
+        comparisonLevel = 1,
+      } = descendant;
+
+      const addedIdsAtLevelSet = addedIdsMap.get(comparisonLevel);
+
+      if (!addedIdsAtLevelSet) {
+        throw new Error(`Ids are not found at level ${comparisonLevel}`);
+      }
+
+      const nextTask = !parentId || !addedIdsAtLevelSet.has(parentId)
+        ? {
+          ...descendant,
+          parent: parent.id,
+        }
+        : descendant;
+
+      withSuggestions.splice(taskIndex + 1 + index, 0, nextTask);
+    });
+
+    onChangeTasks(withSuggestions, {
+      type: "add_tasks",
+    });
+  }, [
+    onChangeTasks,
+    getMetadata,
+    prepareSuggestions,
+  ]);
+
   const handleAddTask = useCallback((task: Task) => {
     if (onAddTaskClick) {
       onAddTaskClick(task, (newTask: TaskOrEmpty) => getMetadata({
-        type: "add-child",
+        type: "add-childs",
         parent: task,
-        child: newTask,
+        descendants: [newTask],
+        addedIdsMap: new Map([
+          [
+            newTask.comparisonLevel || 1,
+            new Set([newTask.id]),
+          ],
+        ]),
+        addedChildsByLevelMap: new Map([
+          [
+            newTask.comparisonLevel || 1,
+            new Map(),
+          ],
+        ]),
+        addedRootsByLevelMap: new Map([
+          [
+            newTask.comparisonLevel || 1,
+            [newTask],
+          ],
+        ])
       }));
     } else if (onAddTask && onChangeTasks) {
       onAddTask(task)
@@ -964,21 +1076,11 @@ export const Gantt: React.FC<GanttProps> = ({
             return;
           }
 
-          const [, [{ index: taskIndex }], , suggestions] = getMetadata({
-            type: "change",
-            task: nextTask,
-          });
-
-          const withSuggestions = prepareSuggestions(suggestions);
-
-          withSuggestions.splice(taskIndex + 1, 0, nextTask);
-
-          onChangeTasks(withSuggestions, {
-            type: "add_task",
-          });
+          handleAddChilds(task, [nextTask]);
         });
     }
   }, [
+    handleAddChilds,
     onAddTask,
     onAddTaskClick,
     onChangeTasks,
@@ -1644,23 +1746,43 @@ export const Gantt: React.FC<GanttProps> = ({
       },
 
       {
-        action: () => undefined,
+        action: ({
+          getParentTasks,
+          task,
+        }) => {
+          const parentTasks = getParentTasks();
+
+          if (parentTasks.includes(task)) {
+            copyAllTasks();
+          } else {
+            copyTask(task.id);
+          }
+        },
         label: 'Copy',
       },
 
       {
         action: ({
+          getCopyParentTasks,
           getCutParentTasks,
           resetSelectedTasks: resetSelectedTasksAction,
           task,
         }) => {
+          if (task.type !== 'project' && task.type !== 'task') {
+            return;
+          }
+
           const cutParentTasks = getCutParentTasks();
 
-          if (
-            (task.type === 'project' || task.type === 'task')
-            && cutTask.length > 0
-          ) {
+          if (cutParentTasks.length > 0) {
             handleMoveTasksInside(task, cutParentTasks);
+            resetSelectedTasksAction();
+            return;
+          }
+
+          const copyParentTasks = getCopyParentTasks();
+
+          if (copyParentTasks.length > 0) {
             resetSelectedTasksAction();
           }
         },
@@ -1685,6 +1807,8 @@ export const Gantt: React.FC<GanttProps> = ({
     ];
   }, [
     contextMenuOptionsProp,
+    copyAllTasks,
+    copyTask,
     cutAllTasks,
     handleDeteleTasks,
     handleMoveTasksInside,

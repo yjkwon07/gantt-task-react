@@ -7,6 +7,37 @@ import {
   TaskOrEmpty,
 } from "../types/public-types";
 
+const getChildTasksByLevelMap = (
+  childTasksMap: ChildByLevelMap,
+  changeAction: ChangeAction,
+  task: Task,
+) => {
+  const {
+    id,
+    comparisonLevel = 1,
+  } = task;
+
+  switch (changeAction.type) {
+    case "add-childs":
+    {
+      const addedIdsAtLevelSet = changeAction.addedIdsMap.get(comparisonLevel);
+
+      if (!addedIdsAtLevelSet) {
+        return childTasksMap.get(comparisonLevel);
+      }
+
+      if (addedIdsAtLevelSet.has(id)) {
+        return changeAction.addedChildsByLevelMap.get(comparisonLevel);
+      }
+
+      return childTasksMap.get(comparisonLevel);
+    }
+
+    default:
+      return childTasksMap.get(comparisonLevel);
+  }
+};
+
 const getMinAndMaxDatesInDescendants = (
   task: Task,
   changeAction: ChangeAction,
@@ -51,7 +82,7 @@ const getMinAndMaxDatesInDescendants = (
       break;
   }
 
-  const taskMapByLevel = childTasksMap.get(comparisonLevel);
+  const taskMapByLevel = getChildTasksByLevelMap(childTasksMap, changeAction, task);
 
   if (!taskMapByLevel) {
     return [task.start, task.end];
@@ -68,12 +99,14 @@ const getMinAndMaxDatesInDescendants = (
       allChildTasks = childTasks;
       break;
 
-    case "add-child":
+    case "add-childs":
       if (task.id === changeAction.parent.id) {
+        const rootsAtLevel = changeAction.addedRootsByLevelMap.get(comparisonLevel) || [];
+
         if (childTasks) {
-          allChildTasks = [...childTasks, changeAction.child]
+          allChildTasks = [...childTasks, ...rootsAtLevel]
         } else {
-          allChildTasks = [changeAction.child];
+          allChildTasks = rootsAtLevel;
         }
       } else {
         allChildTasks = childTasks;
