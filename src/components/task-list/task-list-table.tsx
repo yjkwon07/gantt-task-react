@@ -19,6 +19,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   colors,
   columns,
   columnResizeEvent,
+  cutIdsMirror,
   dateSetup,
   dependencyMap,
   distances,
@@ -30,7 +31,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   handleDeteleTasks,
   handleEditTask,
   handleMoveTaskAfter,
-  handleMoveTaskInside,
+  handleMoveTasksInside,
   handleOpenContextMenu,
   icons,
   isShowTaskNumbers,
@@ -101,12 +102,13 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
           handleDeteleTasks={handleDeteleTasks}
           handleEditTask={handleEditTask}
           handleMoveTaskAfter={handleMoveTaskAfter}
-          handleMoveTaskInside={handleMoveTaskInside}
+          handleMoveTasksInside={handleMoveTasksInside}
           handleOpenContextMenu={handleOpenContextMenu}
           hasChildren={checkHasChildren(task, childTasksMap)}
           icons={icons}
           indexStr={indexStr}
           isClosed={Boolean(closedTasks[id])}
+          isCut={cutIdsMirror[id]}
           isEven={index % 2 === 1}
           isSelected={selectedIdsMirror[id]}
           isShowTaskNumbers={isShowTaskNumbers}
@@ -134,6 +136,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
     colors,
     columnResizeEvent,
     columns,
+    cutIdsMirror,
     fullRowHeight,
     getTaskCurrentState,
     renderedIndexes,

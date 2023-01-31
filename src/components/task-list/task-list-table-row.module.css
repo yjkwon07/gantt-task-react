@@ -8,6 +8,10 @@
   background-color: #eeeeff;
 }
 
+.cut {
+  opacity: 0.3;
+}
+
 .taskListCell {
   box-sizing: border-box;
   display: table-cell;

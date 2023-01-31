@@ -11,10 +11,10 @@ import useLatest from "use-latest";
 import enDateLocale from 'date-fns/locale/en-US';
 
 import {
-  ActionMetaType,
   ChangeAction,
   ColorStyles,
   Column,
+  ContextMenuOptionType,
   DateFormats,
   DateSetup,
   Dependency,
@@ -422,6 +422,9 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const {
+    cutAllTasks,
+    cutIdsMirror,
+    cutTask,
     resetSelectedTasks,
     selectTaskOnMouseDown,
     selectedIdsMirror,
@@ -432,6 +435,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const handleAction = useHandleAction(
     selectedIdsMirror,
+    cutIdsMirror,
     tasksMapRef,
     childTasksMapRef,
     resetSelectedTasks,
@@ -1260,12 +1264,48 @@ export const Gantt: React.FC<GanttProps> = ({
     onChangeTooltipTask,
   ]);
 
-  const handleMoveTaskInside = useCallback((parent: Task, child: TaskOrEmpty) => {
+  const handleMoveTasksInside = useCallback((parent: Task, childs: readonly TaskOrEmpty[]) => {
     if (!onMoveTaskInside && !onChangeTasks) {
       return;
     }
 
     onChangeTooltipTask(null, null);
+
+    const {
+      comparisonLevel = 1,
+    } = parent;
+
+    const indexesAtLevel = mapTaskToGlobalIndexRef.current.get(comparisonLevel);
+
+    if (!indexesAtLevel) {
+      throw new Error(`Indexes are not found at level ${comparisonLevel}`);
+    }
+
+    const childIndexes: number[] = [];
+    const movedIdsMap = new Map<number, Set<string>>();
+
+    childs.forEach((child) => {
+      const {
+        id: childId,
+        comparisonLevel: childComparisonLevel = 1,
+      } = child;
+
+      const movedIdsAtLevelSet = movedIdsMap.get(childComparisonLevel) || new Set<string>();
+      movedIdsAtLevelSet.add(childId);
+      movedIdsMap.set(childComparisonLevel, movedIdsAtLevelSet);
+
+      if (comparisonLevel !== childComparisonLevel) {
+        return;
+      }
+
+      const childIndex = indexesAtLevel.get(childId);
+
+      if (typeof childIndex !== "number") {
+        return;
+      }
+
+      childIndexes.push(childIndex);
+    });
 
     const [
       dependentTasks,
@@ -1275,49 +1315,41 @@ export const Gantt: React.FC<GanttProps> = ({
     ] = getMetadata({
       type: "move-inside",
       parent,
-      child,
+      childs,
+      movedIdsMap,
     });
 
     const parentIndex = parentIndexes[0].index;
 
-    const {
-      id,
-      comparisonLevel = 1,
-    } = child;
-
-    const indexesOnLevel = mapTaskToGlobalIndexRef.current.get(comparisonLevel);
-
-    if (!indexesOnLevel) {
-      throw new Error(`Indexes are not found for level ${comparisonLevel}`);
-    }
-
-    const childIndex = indexesOnLevel.get(id);
-
-    if (typeof childIndex !== "number") {
-      throw new Error(`Index is not found for task ${id}`);
-    }
-
     if (onMoveTaskInside) {
       onMoveTaskInside(
         parent,
-        child,
+        childs,
         dependentTasks,
         parentIndex,
-        childIndex,
+        childIndexes,
         parents,
         suggestions,
       );
     }
 
     if (onChangeTasks) {
-      const withSuggestions = prepareSuggestions(suggestions);
+      let withSuggestions = prepareSuggestions(suggestions);
 
-      const isMovedTaskBefore = childIndex < parentIndex;
+      const parentDisplacement = childIndexes
+        .filter((childIndex) => childIndex < parentIndex)
+        .length;
+      const childIndexesSet = new Set(childIndexes);
 
-      withSuggestions.splice(childIndex, 1);
-      withSuggestions.splice(isMovedTaskBefore ? parentIndex : (parentIndex + 1), 0, {
-        ...child,
-        parent: parent.id,
+      withSuggestions = withSuggestions.filter((_, index) => !childIndexesSet.has(index));
+
+      const startNewChildIndex = parentIndex - parentDisplacement + 1;
+
+      childs.forEach((child, indexInChildsArray) => {
+        withSuggestions.splice(startNewChildIndex + indexInChildsArray, 0, {
+          ...child,
+          parent: parent.id,
+        });
       });
 
       onChangeTasks(withSuggestions, {
@@ -1587,14 +1619,26 @@ export const Gantt: React.FC<GanttProps> = ({
     isRecountParentsOnChange,
   );
 
-  const contextMenuOptions = useMemo(() => {
+  const contextMenuOptions = useMemo<ContextMenuOptionType[]>(() => {
     if (contextMenuOptionsProp) {
       return contextMenuOptionsProp;
     }
 
     return [
       {
-        action: () => undefined,
+        action: ({
+          getSelectedTasks,
+          task,
+        }) => {
+          const selectedTasks = getSelectedTasks();
+
+          if (selectedTasks.length > 0) {
+            cutAllTasks();
+            return;
+          }
+
+          cutTask(task.id);
+        },
         icon: '✂',
         label: 'Cut',
       },
@@ -1605,7 +1649,21 @@ export const Gantt: React.FC<GanttProps> = ({
       },
 
       {
-        action: () => undefined,
+        action: ({
+          getCutParentTasks,
+          resetSelectedTasks: resetSelectedTasksAction,
+          task,
+        }) => {
+          const cutParentTasks = getCutParentTasks();
+
+          if (
+            (task.type === 'project' || task.type === 'task')
+            && cutTask.length > 0
+          ) {
+            handleMoveTasksInside(task, cutParentTasks);
+            resetSelectedTasksAction();
+          }
+        },
         label: 'Paste',
       },
 
@@ -1614,7 +1672,7 @@ export const Gantt: React.FC<GanttProps> = ({
           getTasksWithDescendants,
           resetSelectedTasks: resetSelectedTasksAction,
           task,
-        }: ActionMetaType) => {
+        }) => {
           const tasksWithDescendants = getTasksWithDescendants();
 
           handleDeteleTasks(tasksWithDescendants.length === 0 ? [task] : tasksWithDescendants);
@@ -1627,7 +1685,9 @@ export const Gantt: React.FC<GanttProps> = ({
     ];
   }, [
     contextMenuOptionsProp,
+    cutAllTasks,
     handleDeteleTasks,
+    handleMoveTasksInside,
   ]);
 
   /**
@@ -1847,6 +1907,7 @@ export const Gantt: React.FC<GanttProps> = ({
     colors: colorStyles,
     columnResizeEvent,
     columns,
+    cutIdsMirror,
     dateSetup,
     dependencyMap,
     distances,
@@ -1860,7 +1921,7 @@ export const Gantt: React.FC<GanttProps> = ({
     handleDeteleTasks,
     handleEditTask,
     handleMoveTaskAfter,
-    handleMoveTaskInside,
+    handleMoveTasksInside,
     handleOpenContextMenu,
     icons,
     isShowTaskNumbers,

@@ -43,12 +43,13 @@ type TaskListTableRowProps = {
   handleDeteleTasks: (task: TaskOrEmpty[]) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
-  handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
+  handleMoveTasksInside: (parent: Task, childs: readonly TaskOrEmpty[]) => void;
   handleOpenContextMenu: (task: TaskOrEmpty, clientX: number, clientY: number) => void;
   hasChildren: boolean;
   icons?: Partial<Icons>;
   indexStr: string;
   isClosed: boolean;
+  isCut: boolean;
   isEven: boolean;
   isSelected: boolean;
   isShowTaskNumbers: boolean;
@@ -74,12 +75,13 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   handleDeteleTasks,
   handleEditTask,
   handleMoveTaskAfter,
-  handleMoveTaskInside,
+  handleMoveTasksInside,
   handleOpenContextMenu,
   hasChildren,
   icons = undefined,
   indexStr,
   isClosed,
+  isCut,
   isEven,
   isSelected,
   isShowTaskNumbers,
@@ -128,7 +130,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
         return;
       }
 
-      handleMoveTaskInside(task, item);
+      handleMoveTasksInside(task, [item]);
     },
 
     canDrop: (item: TaskOrEmpty) => item.id !== id
@@ -137,7 +139,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     collect: (monitor) => ({
       isLighten: monitor.canDrop() && monitor.isOver(),
     }),
-  }, [id, comparisonLevel, handleMoveTaskInside, task]);
+  }, [id, comparisonLevel, handleMoveTasksInside, task]);
 
   const [dropAfterProps, dropAfter] = useDrop({
     accept: ROW_DRAG_TYPE,
@@ -206,6 +208,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     <div
       className={cx(styles.taskListTableRow, {
         [styles.lighten]: dropInsideProps.isLighten && !dropAfterProps.isLighten,
+        [styles.cut]: isCut,
       })}
       onMouseDown={onRootMouseDown}
       style={{

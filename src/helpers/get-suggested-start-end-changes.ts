@@ -59,7 +59,7 @@ const getMinAndMaxDatesInDescendants = (
 
   const childTasks = taskMapByLevel.get(id);
 
-  let allChildTasks: TaskOrEmpty[] | undefined = undefined;
+  let allChildTasks: readonly TaskOrEmpty[] | undefined = undefined;
 
   switch (changeAction.type) {
     case "change":
@@ -69,14 +69,9 @@ const getMinAndMaxDatesInDescendants = (
       break;
 
     case "add-child":
-    case "move-inside":
       if (task.id === changeAction.parent.id) {
         if (childTasks) {
-          const childId = changeAction.child.id;
-
-          const tasksWithoutParent = childTasks.filter(({ id }) => id !== childId);
-
-          allChildTasks = [...tasksWithoutParent, changeAction.child]
+          allChildTasks = [...childTasks, changeAction.child]
         } else {
           allChildTasks = [changeAction.child];
         }
@@ -84,6 +79,27 @@ const getMinAndMaxDatesInDescendants = (
         allChildTasks = childTasks;
       }
       break;
+
+    case "move-inside":
+    {
+      const movedTasksAtLevel = changeAction.movedIdsMap.get(comparisonLevel);
+
+      const tasksWithoutMoved = childTasks
+        ? childTasks.filter(
+          ({ id }) => !movedTasksAtLevel || !movedTasksAtLevel.has(id),
+        )
+        : [];
+
+      if (task.id === changeAction.parent.id) {
+        allChildTasks = [
+          ...tasksWithoutMoved,
+          ...changeAction.childs,
+        ];
+      } else {
+        allChildTasks = tasksWithoutMoved;
+      }
+      break;
+    }
 
     case "move-after":
     {

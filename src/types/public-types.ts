@@ -258,10 +258,10 @@ export type OnMoveTaskAfter = (
 
 export type OnMoveTaskInside = (
   parent: Task,
-  child: TaskOrEmpty,
+  childs: readonly TaskOrEmpty[],
   dependentTasks: readonly Task[],
   parentIndex: number,
-  childIndex: number,
+  childIndexes: readonly number[],
   parents: readonly Task[],
   suggestions: readonly OnDateChangeSuggestionType[],
 ) => void;
@@ -531,6 +531,7 @@ export interface TaskListTableProps {
   colors: ColorStyles;
   columnResizeEvent: ColumnResizeEvent | null;
   columns: readonly Column[];
+  cutIdsMirror: Readonly<Record<string, true>>;
   dateSetup: DateSetup;
   dependencyMap: DependencyMap;
   distances: Distances;
@@ -543,7 +544,7 @@ export interface TaskListTableProps {
   handleDeteleTasks: (task: TaskOrEmpty[]) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
-  handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
+  handleMoveTasksInside: (parent: Task, childs: readonly TaskOrEmpty[]) => void;
   handleOpenContextMenu: (task: TaskOrEmpty, clientX: number, clientY: number) => void;
   icons?: Partial<Icons>;
   isShowTaskNumbers: boolean;
@@ -810,7 +811,9 @@ export type ChangeAction =
   | {
     type: "move-inside";
     parent: Task;
-    child: TaskOrEmpty;
+    childs: readonly TaskOrEmpty[];
+    // comparison level -> task id
+    movedIdsMap: Map<number, Set<string>>;
   };
 
 export type ChangeMetadata = [
@@ -843,7 +846,14 @@ export type ContextMenuType = {
 
 export type ActionMetaType = {
   /**
-   * 
+   * @returns List of parent tasks under cut action
+   */
+  getCutParentTasks: () => readonly TaskOrEmpty[];
+  /**
+   * @returns List of tasks under cut action
+   */
+  getCutTasks: () => readonly TaskOrEmpty[];
+  /**
    * @returns List of parent tasks
    */
   getParentTasks: () => readonly TaskOrEmpty[];

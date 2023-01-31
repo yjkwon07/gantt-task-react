@@ -43,6 +43,7 @@ export type TaskListProps = {
   colors: ColorStyles;
   columns: readonly Column[];
   columnResizeEvent: ColumnResizeEvent | null;
+  cutIdsMirror: Readonly<Record<string, true>>;
   dateSetup: DateSetup;
   dependencyMap: DependencyMap;
   distances: Distances;
@@ -56,7 +57,7 @@ export type TaskListProps = {
   handleDeteleTasks: (task: TaskOrEmpty[]) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskAfter: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
-  handleMoveTaskInside: (parent: Task, child: TaskOrEmpty) => void;
+  handleMoveTasksInside: (parent: Task, childs: readonly TaskOrEmpty[]) => void;
   handleOpenContextMenu: (task: TaskOrEmpty, clientX: number, clientY: number) => void;
   icons?: Partial<Icons>;
   isShowTaskNumbers: boolean;
@@ -86,6 +87,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
   colors,
   columnResizeEvent,
   columns,
+  cutIdsMirror,
   dateSetup,
   dependencyMap,
   distances,
@@ -99,7 +101,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
   handleDeteleTasks,
   handleEditTask,
   handleMoveTaskAfter,
-  handleMoveTaskInside,
+  handleMoveTasksInside,
   handleOpenContextMenu,
   icons = undefined,
   isShowTaskNumbers,
@@ -218,6 +220,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
                 colors={colors}
                 columnResizeEvent={columnResizeEvent}
                 columns={columns}
+                cutIdsMirror={cutIdsMirror}
                 dateSetup={dateSetup}
                 dependencyMap={dependencyMap}
                 distances={distances}
@@ -230,7 +233,7 @@ const TaskListInner: React.FC<TaskListProps> = ({
                 handleDeteleTasks={handleDeteleTasks}
                 handleEditTask={handleEditTask}
                 handleMoveTaskAfter={handleMoveTaskAfter}
-                handleMoveTaskInside={handleMoveTaskInside}
+                handleMoveTasksInside={handleMoveTasksInside}
                 handleOpenContextMenu={handleOpenContextMenu}
                 icons={icons}
                 isShowTaskNumbers={isShowTaskNumbers}

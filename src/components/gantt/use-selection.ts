@@ -7,6 +7,8 @@ import type {
   MouseEvent,
 } from 'react';
 
+import useLatest from 'use-latest';
+
 import type {
   RowIndexToTaskMap,
   TaskToRowIndexMap,
@@ -18,10 +20,14 @@ export const useSelection = (
   taskToRowIndexMap: TaskToRowIndexMap,
   rowIndexToTaskMap: RowIndexToTaskMap,
 ) => {
+  const [cutIdsMirror, setCutIdsMirror] = useState<Readonly<Record<string, true>>>(initialValue);
   const [selectedIdsMirror, setSelectedIdsMirror] = useState<Readonly<Record<string, true>>>(initialValue);
   const lastSelectedIdRef = useRef<string | null>(null);
 
+  const selectedIdsMirrorRef = useLatest(selectedIdsMirror);
+
   const selectTask = useCallback((taskId: string) => {
+    setCutIdsMirror(initialValue);
     setSelectedIdsMirror({
       [taskId]: true,
     });
@@ -30,6 +36,7 @@ export const useSelection = (
   }, []);
 
   const toggleTask = useCallback((taskId: string) => {
+    setCutIdsMirror(initialValue);
     setSelectedIdsMirror((prevValue) => {
       if (prevValue[taskId]) {
         const nextValue = {
@@ -88,6 +95,8 @@ export const useSelection = (
       return;
     }
 
+    setCutIdsMirror(initialValue);
+
     const minIndex = Math.min(lastSelectedIndex, currentSelectedIndex);
     const maxIndex = Math.max(lastSelectedIndex, currentSelectedIndex);
 
@@ -116,7 +125,8 @@ export const useSelection = (
   ]);
 
   const resetSelectedTasks = useCallback(() => {
-    setSelectedIdsMirror({});
+    setCutIdsMirror(initialValue);
+    setSelectedIdsMirror(initialValue);
     lastSelectedIdRef.current = null;
   }, []);
 
@@ -139,7 +149,22 @@ export const useSelection = (
     toggleTask,
   ]);
 
+  const cutTask = useCallback((taskId: string) => {
+    setCutIdsMirror({
+      [taskId]: true,
+    });
+    setSelectedIdsMirror(initialValue);
+  }, []);
+
+  const cutAllTasks = useCallback(() => {
+    setCutIdsMirror(selectedIdsMirrorRef.current);
+    setSelectedIdsMirror(initialValue);
+  }, [selectedIdsMirrorRef]);
+
   return {
+    cutAllTasks,
+    cutIdsMirror,
+    cutTask,
     resetSelectedTasks,
     selectTask,
     selectTaskOnMouseDown,

@@ -48,11 +48,21 @@ const collectSuggestedParents = (
       ];
 
     case "move-inside":
-      return [
-        changeAction.parent,
-        ...collectParents(changeAction.parent, tasksMap),
-        ...collectParents(changeAction.child, tasksMap),
-      ];
+    {
+      const resSet = new Set<Task>([changeAction.parent]);
+
+      collectParents(changeAction.parent, tasksMap).forEach((parentTask) => {
+        resSet.add(parentTask);
+      });
+
+      changeAction.childs.forEach((child) => {
+        collectParents(child, tasksMap).forEach((parentTask) => {
+          resSet.add(parentTask);
+        });
+      });
+
+      return [...resSet];
+    }
 
     default:
       throw new Error(`Unknown change action: ${(changeAction as ChangeAction).type}`);
