@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
 } from 'react';
 import type {
   ReactElement,
@@ -22,6 +23,7 @@ import {
 
 import type {
   ActionMetaType,
+  CheckIsAvailableMetaType,
   ContextMenuOptionType,
   ContextMenuType,
   TaskOrEmpty,
@@ -30,6 +32,8 @@ import type {
 import { MenuOption } from './menu-option';
 
 type ContextMenuProps = {
+  checkHasCopyTasks: () => boolean;
+  checkHasCutTasks: () => boolean;
   contextMenu: ContextMenuType;
   handleAction: (
     task: TaskOrEmpty,
@@ -40,6 +44,9 @@ type ContextMenuProps = {
 };
 
 export function ContextMenu({
+  checkHasCopyTasks,
+  checkHasCutTasks,
+
   contextMenu: {
     task,
     x,
@@ -50,6 +57,33 @@ export function ContextMenu({
   handleCloseContextMenu,
   options,
 }: ContextMenuProps): ReactElement {
+  const optionsForRender = useMemo(() => {
+    if (!task) {
+      return [];
+    }
+
+    const meta: CheckIsAvailableMetaType = {
+      task,
+      checkHasCopyTasks,
+      checkHasCutTasks,
+    };
+
+    return options.filter(({
+      checkIsAvailable,
+    }) => {
+      if (!checkIsAvailable) {
+        return true;
+      }
+
+      return checkIsAvailable(meta);
+    });
+  }, [
+    task,
+    checkHasCopyTasks,
+    checkHasCutTasks,
+    options,
+  ]);
+
   const handleOptionAction = useCallback((option: ContextMenuOptionType) => {
     handleCloseContextMenu();
 
@@ -125,7 +159,7 @@ export function ContextMenu({
           }}
           {...getFloatingProps()}
         >
-          {options.map((option, index) => (
+          {optionsForRender.map((option, index) => (
             <MenuOption
               handleAction={handleOptionAction}
               option={option}

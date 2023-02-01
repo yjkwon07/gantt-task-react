@@ -854,6 +854,28 @@ export type ContextMenuType = {
 
 export type ActionMetaType = {
   /**
+   * Check is task id exists at current level (1 by default)
+   */
+  checkTaskIdExists: CheckTaskIdExistsAtLevel;
+  /**
+   * Copy all selected tasks
+   */
+  copySelectedTasks: () => void;
+  /**
+   * Copy single task
+   * @param task the task
+   */
+  copyTask: (task: TaskOrEmpty) => void;
+  /**
+   * Cut all selected tasks
+   */
+  cutSelectedTasks: () => void;
+  /**
+   * Cut single task
+   * @param task the task
+   */
+  cutTask: (task: TaskOrEmpty) => void;
+  /**
    * @returns List of parent tasks under copy action
    */
   getCopyParentTasks: () => readonly TaskOrEmpty[];
@@ -885,6 +907,30 @@ export type ActionMetaType = {
    * @returns List of tasks with all their descendants
    */
   getTasksWithDescendants: () => readonly TaskOrEmpty[];
+  /**
+   * Add childs to the container task
+   * @param parent the container task
+   * @param descendants list of added childs with their descendants
+   */
+  handleAddChilds: (parent: Task, descendants: readonly TaskOrEmpty[]) => void;
+  /**
+   * Delete tasks
+   * @param tasksForDelete list of tasks for delete
+   */
+  handleDeteleTasks: (tasksForDelete: readonly TaskOrEmpty[]) => void;
+  /**
+   * Move tasks to the container task
+   * @param parent the container task
+   * @param childs list of moved tasks
+   */
+  handleMoveTasksInside: (parent: Task, childs: readonly TaskOrEmpty[]) => void;
+  /**
+   * Make copies of the list of tasks
+   */
+  makeCopies: (tasks: readonly TaskOrEmpty[]) => readonly TaskOrEmpty[];
+  /**
+   * Reset selection
+   */
   resetSelectedTasks: () => void;
   /**
    * Task that triggered context menu
@@ -892,14 +938,39 @@ export type ActionMetaType = {
   task: TaskOrEmpty;
 };
 
+export type CheckIsAvailableMetaType = {
+  /**
+   * 
+   * @returns Check are there tasks under the copy action
+   */
+  checkHasCopyTasks: () => boolean;
+  /**
+   * 
+   * @returns Check are there tasks under the cut action
+   */
+  checkHasCutTasks: () => boolean;
+  /**
+   * Context menu trigger task
+   */
+  task: TaskOrEmpty;
+};
+
 export type ContextMenuOptionType = {
+  /**
+   * Invokes on click on menu option
+   * @param meta Metadata for the action
+   */
   action: (meta: ActionMetaType) => void;
+  /**
+   * Check is the current action available. Available by default
+   * @param meta Metadata for checking
+   */
+  checkIsAvailable?: (meta: CheckIsAvailableMetaType) => void;
   label: ReactNode;
   icon?: ReactNode;
 };
 
-
-export type CheckCopiedIdExistsAtLevel = (
+export type CheckTaskIdExistsAtLevel = (
   newId: string,
   comparisonLevel?: number,
 ) => boolean;

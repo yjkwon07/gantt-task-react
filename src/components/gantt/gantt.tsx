@@ -12,7 +12,7 @@ import enDateLocale from 'date-fns/locale/en-US';
 
 import {
   ChangeAction,
-  CheckCopiedIdExistsAtLevel,
+  CheckTaskIdExistsAtLevel,
   ColorStyles,
   Column,
   ContextMenuOptionType,
@@ -89,6 +89,10 @@ import { defaultGetCopiedTaskId } from "./default-get-copied-task-id";
 
 import styles from "./gantt.module.css";
 import { copyTasks } from "../../helpers/copy-tasks";
+import { copyOption } from "../../context-menu-options/copy";
+import { cutOption } from "../../context-menu-options/cut";
+import { pasteOption } from "../../context-menu-options/paste";
+import { deleteOption } from "../../context-menu-options/delete";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -296,7 +300,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const tasksMapRef = useLatest(tasksMap);
 
-  const checkTaskIdExists = useCallback<CheckCopiedIdExistsAtLevel>((
+  const checkTaskIdExists = useCallback<CheckTaskIdExistsAtLevel>((
     newId,
     comparisonLevel = 1,
   ) => {
@@ -308,6 +312,12 @@ export const Gantt: React.FC<GanttProps> = ({
 
     return tasksAtLevelMap.has(newId);
   }, [tasksMapRef]);
+
+  const makeCopies = useCallback((tasksForCopy: readonly TaskOrEmpty[]) => copyTasks(
+    tasksForCopy,
+    getCopiedTaskId,
+    checkTaskIdExists,
+  ), [checkTaskIdExists, getCopiedTaskId]);
 
   const mapTaskToGlobalIndex = useMemo(
     () => getMapTaskToGlobalIndex(tasks),
@@ -440,11 +450,13 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const {
-    copyAllTasks,
+    checkHasCopyTasks,
+    checkHasCutTasks,
     copyIdsMirror,
+    copySelectedTasks,
     copyTask,
-    cutAllTasks,
     cutIdsMirror,
+    cutSelectedTasks,
     cutTask,
     resetSelectedTasks,
     selectTaskOnMouseDown,
@@ -452,16 +464,8 @@ export const Gantt: React.FC<GanttProps> = ({
   } = useSelection(
     taskToRowIndexMap,
     rowIndexToTaskMap,
+    checkTaskIdExists,
   );
-
-  const handleAction = useHandleAction({
-    childTasksMapRef,
-    copyIdsMirror,
-    cutIdsMirror,
-    resetSelectedTasks,
-    selectedIdsMirror,
-    tasksMapRef,
-  });
 
   const [startDate, minTaskDate, datesLength] = useMemo(() =>  ganttDateRange(
     visibleTasks,
@@ -1708,6 +1712,24 @@ export const Gantt: React.FC<GanttProps> = ({
     ],
   );
 
+  const handleAction = useHandleAction({
+    checkTaskIdExists,
+    childTasksMapRef,
+    copyIdsMirror,
+    copySelectedTasks,
+    copyTask,
+    cutIdsMirror,
+    cutSelectedTasks,
+    cutTask,
+    handleAddChilds,
+    handleDeteleTasks,
+    handleMoveTasksInside,
+    makeCopies,
+    resetSelectedTasks,
+    selectedIdsMirror,
+    tasksMapRef,
+  });
+
   const [ganttRelationEvent, handleBarRelationStart] = useCreateRelation({
     distances,
     ganttSVGRef,
@@ -1745,103 +1767,13 @@ export const Gantt: React.FC<GanttProps> = ({
     }
 
     return [
-      {
-        action: ({
-          getSelectedTasks,
-          task,
-        }) => {
-          const selectedTasks = getSelectedTasks();
-
-          if (selectedTasks.length > 0) {
-            cutAllTasks();
-            return;
-          }
-
-          cutTask(task.id);
-        },
-        icon: '✂',
-        label: 'Cut',
-      },
-
-      {
-        action: ({
-          getParentTasks,
-          task,
-        }) => {
-          const parentTasks = getParentTasks();
-
-          if (parentTasks.includes(task)) {
-            copyAllTasks();
-          } else {
-            copyTask(task.id);
-          }
-        },
-        label: 'Copy',
-      },
-
-      {
-        action: ({
-          getCopyParentTasks,
-          getCopyTasksWithDescendants,
-          getCutParentTasks,
-          resetSelectedTasks: resetSelectedTasksAction,
-          task,
-        }) => {
-          if (task.type !== 'project' && task.type !== 'task') {
-            return;
-          }
-
-          const cutParentTasks = getCutParentTasks();
-
-          if (cutParentTasks.length > 0) {
-            handleMoveTasksInside(task, cutParentTasks);
-            resetSelectedTasksAction();
-            return;
-          }
-
-          const copyParentTasks = getCopyParentTasks();
-
-          if (copyParentTasks.length > 0) {
-            const tasksForCopy = getCopyTasksWithDescendants();
-            const copiedTasks = copyTasks(
-              tasksForCopy,
-              getCopiedTaskId,
-              checkTaskIdExists,
-            );
-
-            handleAddChilds(task, copiedTasks);
-            resetSelectedTasksAction();
-          }
-        },
-        label: 'Paste',
-      },
-
-      {
-        action: ({
-          getTasksWithDescendants,
-          resetSelectedTasks: resetSelectedTasksAction,
-          task,
-        }) => {
-          const tasksWithDescendants = getTasksWithDescendants();
-
-          handleDeteleTasks(tasksWithDescendants.length === 0 ? [task] : tasksWithDescendants);
-
-          resetSelectedTasksAction();
-        },
-        icon: '×',
-        label: 'Delete',
-      },
+      cutOption,
+      copyOption,
+      pasteOption,
+      deleteOption,
     ];
   }, [
-    checkTaskIdExists,
     contextMenuOptionsProp,
-    copyAllTasks,
-    copyTask,
-    cutAllTasks,
-    getCopiedTaskId,
-    handleAddChilds,
-    handleDeteleTasks,
-    handleMoveTasksInside,
   ]);
 
   /**
@@ -2143,6 +2075,8 @@ export const Gantt: React.FC<GanttProps> = ({
       />
 
       <ContextMenu
+        checkHasCopyTasks={checkHasCopyTasks}
+        checkHasCutTasks={checkHasCutTasks}
         contextMenu={contextMenu}
         handleAction={handleAction}
         handleCloseContextMenu={handleCloseContextMenu}

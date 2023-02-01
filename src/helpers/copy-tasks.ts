@@ -1,5 +1,5 @@
 import type {
-  CheckCopiedIdExistsAtLevel,
+  CheckTaskIdExistsAtLevel,
   GetCopiedTaskId,
   TaskOrEmpty,
 } from "../types/public-types";
@@ -7,7 +7,7 @@ import type {
 export const copyTasks = (
   tasks: readonly TaskOrEmpty[],
   getCopiedTaskId: GetCopiedTaskId,
-  checkExistsAtLevel: CheckCopiedIdExistsAtLevel,
+  checkExistsAtLevel: CheckTaskIdExistsAtLevel,
 ) => {
   // comparison level -> original id -> new id
   const idToCopiedIdMap = new Map<number, Map<string, string>>();

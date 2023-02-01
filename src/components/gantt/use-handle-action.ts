@@ -11,7 +11,7 @@ import { getParentTasks } from '../../selected-tasks/get-parent-tasks';
 import { getSelectedTasks } from '../../selected-tasks/get-selected-tasks';
 
 import type {
-  ActionMetaType, ChildByLevelMap, TaskMapByLevel, TaskOrEmpty,
+  ActionMetaType, CheckTaskIdExistsAtLevel, ChildByLevelMap, Task, TaskMapByLevel, TaskOrEmpty,
 } from '../../types/public-types';
 import { getTasksWithDescendants } from '../../selected-tasks/get-tasks-with-descendants';
 
@@ -75,18 +75,36 @@ const createGetters = (
 };
 
 type UseHandleActionParams = {
+  checkTaskIdExists: CheckTaskIdExistsAtLevel;
   childTasksMapRef: MutableRefObject<ChildByLevelMap>;
   copyIdsMirror: Readonly<Record<string, true>>;
+  copySelectedTasks: () => void;
+  copyTask: (task: TaskOrEmpty) => void;
   cutIdsMirror: Readonly<Record<string, true>>;
+  cutSelectedTasks: () => void;
+  cutTask: (task: TaskOrEmpty) => void;
+  handleAddChilds: (parent: Task, descendants: readonly TaskOrEmpty[]) => void;
+  handleDeteleTasks: (tasksForDelete: readonly TaskOrEmpty[]) => void;
+  handleMoveTasksInside: (parent: Task, childs: readonly TaskOrEmpty[]) => void;
+  makeCopies: (tasksForCopy: readonly TaskOrEmpty[]) => readonly TaskOrEmpty[];
   resetSelectedTasks: () => void;
   selectedIdsMirror: Readonly<Record<string, true>>;
   tasksMapRef: MutableRefObject<TaskMapByLevel>;
 };
 
 export const useHandleAction = ({
+  checkTaskIdExists,
   childTasksMapRef,
   copyIdsMirror,
+  copySelectedTasks,
+  copyTask,
   cutIdsMirror,
+  cutSelectedTasks,
+  cutTask,
+  handleAddChilds,
+  handleDeteleTasks,
+  handleMoveTasksInside,
+  makeCopies,
   resetSelectedTasks,
   selectedIdsMirror,
   tasksMapRef,
@@ -94,6 +112,7 @@ export const useHandleAction = ({
   const selectedIdsMirrorRef = useLatest(selectedIdsMirror);
   const copyIdsMirrorRef = useLatest(copyIdsMirror);
   const cutIdsMirrorRef = useLatest(cutIdsMirror);
+  const checkTaskIdExistsRef = useLatest(checkTaskIdExists);
 
   const handleAction = useCallback((
     task: TaskOrEmpty,
@@ -129,6 +148,11 @@ export const useHandleAction = ({
     );
 
     action({
+      checkTaskIdExists: checkTaskIdExistsRef.current,
+      copySelectedTasks,
+      copyTask,
+      cutSelectedTasks,
+      cutTask,
       getCopyParentTasks: getCopyTasksWithCache,
       getCopyTasks: getCopyParentTasksWithCache,
       getCopyTasksWithDescendants: getCopyTasksWithDescendantsWithCache,
@@ -137,12 +161,25 @@ export const useHandleAction = ({
       getParentTasks: getParentTasksWithCache,
       getSelectedTasks: getSelectedTasksWithCache,
       getTasksWithDescendants: getTasksWithDescendantsWithCache,
+      handleAddChilds,
+      handleDeteleTasks,
+      handleMoveTasksInside,
+      makeCopies,
       resetSelectedTasks,
       task,
     });
   }, [
+    checkTaskIdExistsRef,
     copyIdsMirrorRef,
+    copySelectedTasks,
+    copyTask,
     cutIdsMirrorRef,
+    cutSelectedTasks,
+    cutTask,
+    handleAddChilds,
+    handleDeteleTasks,
+    handleMoveTasksInside,
+    makeCopies,
     resetSelectedTasks,
     selectedIdsMirrorRef,
     tasksMapRef,

@@ -10,7 +10,9 @@ import type {
 import useLatest from 'use-latest';
 
 import type {
+  CheckTaskIdExistsAtLevel,
   RowIndexToTaskMap,
+  TaskOrEmpty,
   TaskToRowIndexMap,
 } from '../../types/public-types';
 
@@ -19,6 +21,7 @@ const initialValue = {};
 export const useSelection = (
   taskToRowIndexMap: TaskToRowIndexMap,
   rowIndexToTaskMap: RowIndexToTaskMap,
+  checkTaskIdExists: CheckTaskIdExistsAtLevel,
 ) => {
   const [cutIdsMirror, setCutIdsMirror] = useState<Readonly<Record<string, true>>>(initialValue);
   const [copyIdsMirror, setCopyIdsMirror] = useState<Readonly<Record<string, true>>>(initialValue);
@@ -26,6 +29,8 @@ export const useSelection = (
   const lastSelectedIdRef = useRef<string | null>(null);
 
   const selectedIdsMirrorRef = useLatest(selectedIdsMirror);
+  const copyIdsMirrorRef = useLatest(copyIdsMirror);
+  const cutIdsMirrorRef = useLatest(cutIdsMirror);
 
   const selectTask = useCallback((taskId: string) => {
     setCutIdsMirror(initialValue);
@@ -150,34 +155,52 @@ export const useSelection = (
     toggleTask,
   ]);
 
-  const cutTask = useCallback((taskId: string) => {
+  const cutTask = useCallback((task: TaskOrEmpty) => {
     setCutIdsMirror({
-      [taskId]: true,
+      [task.id]: true,
     });
     setSelectedIdsMirror(initialValue);
   }, []);
 
-  const cutAllTasks = useCallback(() => {
+  const cutSelectedTasks = useCallback(() => {
     setCutIdsMirror(selectedIdsMirrorRef.current);
     setSelectedIdsMirror(initialValue);
   }, [selectedIdsMirrorRef]);
 
-  const copyTask = useCallback((taskId: string) => {
+  const copyTask = useCallback((task: TaskOrEmpty) => {
     setCopyIdsMirror({
-      [taskId]: true,
+      [task.id]: true,
     });
   }, []);
 
-  const copyAllTasks = useCallback(() => {
+  const copySelectedTasks = useCallback(() => {
     setCopyIdsMirror(selectedIdsMirrorRef.current);
   }, [selectedIdsMirrorRef]);
 
+  const checkHasCopyTasks = useCallback(
+    () => Object.keys(copyIdsMirrorRef.current).some((taskId) => checkTaskIdExists(taskId, 1)),
+    [
+      checkTaskIdExists,
+      copyIdsMirrorRef,
+    ],
+  );
+
+  const checkHasCutTasks = useCallback(
+    () => Object.keys(cutIdsMirrorRef.current).some((taskId) => checkTaskIdExists(taskId, 1)),
+    [
+      checkTaskIdExists,
+      cutIdsMirrorRef,
+    ],
+  );
+
   return {
-    copyAllTasks,
+    checkHasCopyTasks,
+    checkHasCutTasks,
     copyIdsMirror,
+    copySelectedTasks,
     copyTask,
-    cutAllTasks,
     cutIdsMirror,
+    cutSelectedTasks,
     cutTask,
     resetSelectedTasks,
     selectTask,
