@@ -2,15 +2,16 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
 } from 'react';
 import type {
+  MutableRefObject,
   ReactElement,
 } from 'react';
 
 import {
   autoUpdate,
   flip,
-  offset,
   shift,
 } from '@floating-ui/dom';
 import {
@@ -21,11 +22,15 @@ import {
   useInteractions,
 } from '@floating-ui/react';
 
+import { useOutsideClick } from 'use-dom-outside-click';
+
 import type {
   ActionMetaType,
   CheckIsAvailableMetaType,
+  ColorStyles,
   ContextMenuOptionType,
   ContextMenuType,
+  Distances,
   TaskOrEmpty,
 } from '../../types/public-types';
 
@@ -35,6 +40,8 @@ type ContextMenuProps = {
   checkHasCopyTasks: () => boolean;
   checkHasCutTasks: () => boolean;
   contextMenu: ContextMenuType;
+  colors: ColorStyles;
+  distances: Distances;
   handleAction: (
     task: TaskOrEmpty,
     action: (meta: ActionMetaType) => void,
@@ -47,12 +54,19 @@ export function ContextMenu({
   checkHasCopyTasks,
   checkHasCutTasks,
 
+  colors,
+  colors: {
+    contextMenuBgColor,
+    contextMenuBoxShadow,
+  },
+
   contextMenu: {
     task,
     x,
     y,
   },
 
+  distances,
   handleAction,
   handleCloseContextMenu,
   options,
@@ -109,7 +123,11 @@ export function ContextMenu({
     context,
   } = useFloating({
     open: Boolean(task),
-    middleware: [offset(10), flip(), shift()],
+    placement: 'bottom-start',
+    middleware: [
+      flip(),
+      shift(),
+    ],
     whileElementsMounted: autoUpdate,
   });
 
@@ -136,6 +154,17 @@ export function ContextMenu({
     role,
   ]);
 
+  const floatingRef = useRef<HTMLDivElement>();
+
+  const setFloatingRef = useCallback((el: HTMLDivElement | null) => {
+    floatingRef.current = el || undefined;
+    setFloating(el);
+  }, [setFloating]);
+
+  useOutsideClick(floatingRef as MutableRefObject<HTMLDivElement>, () => {
+    handleCloseContextMenu();
+  });
+
   return (
     <>
       <div
@@ -150,17 +179,21 @@ export function ContextMenu({
 
       {task && (
         <div
-          ref={setFloating}
+          ref={setFloatingRef}
           style={{
             position: strategy,
             top: menuY ?? 0,
             left: menuX ?? 0,
             width: 'max-content',
+            backgroundColor: contextMenuBgColor,
+            boxShadow: contextMenuBoxShadow,
           }}
           {...getFloatingProps()}
         >
           {optionsForRender.map((option, index) => (
             <MenuOption
+              colors={colors}
+              distances={distances}
               handleAction={handleOptionAction}
               option={option}
               key={index}

@@ -130,6 +130,9 @@ const defaultColors: ColorStyles = {
   holidayBackgroundColor: "rgba(233, 233, 233, 0.3)",
   selectedTaskBackgroundColor: "rgba(252, 248, 227, 0.5)",
   todayColor: "rgba(252, 248, 227, 0.5)",
+  contextMenuBoxShadow: "rgb(0 0 0 / 25%) 1px 1px 5px 1px",
+  contextMenuBgColor: "#fff",
+  contextMenuTextColor: "inherit",
 };
 
 const defaultDateFormats: DateFormats = {
@@ -147,6 +150,9 @@ const defaultDistances: Distances = {
   barCornerRadius: 3,
   barFill: 60,
   columnWidth: 60,
+  contextMenuIconWidth: 20,
+  contextMenuOptionHeight: 25,
+  contextMenuSidePadding: 10,
   dateCellWidth: 220,
   dependenciesCellWidth: 120,
   dependencyFixHeight: 20,
@@ -2077,7 +2083,9 @@ export const Gantt: React.FC<GanttProps> = ({
       <ContextMenu
         checkHasCopyTasks={checkHasCopyTasks}
         checkHasCutTasks={checkHasCutTasks}
+        colors={colorStyles}
         contextMenu={contextMenu}
+        distances={distances}
         handleAction={handleAction}
         handleCloseContextMenu={handleCloseContextMenu}
         options={contextMenuOptions}

@@ -106,6 +106,9 @@ export interface ColorStyles {
   holidayBackgroundColor: string;
   selectedTaskBackgroundColor: string;
   todayColor: string;
+  contextMenuBoxShadow: string;
+  contextMenuBgColor: string;
+  contextMenuTextColor: string;
 }
 
 /**
@@ -130,6 +133,9 @@ export interface Distances {
    */
   barFill: number;
   columnWidth: number;
+  contextMenuIconWidth: number;
+  contextMenuOptionHeight: number;
+  contextMenuSidePadding: number;
   dateCellWidth: number;
   dependenciesCellWidth: number;
   dependencyFixHeight: number;
