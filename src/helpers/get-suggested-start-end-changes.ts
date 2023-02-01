@@ -39,18 +39,32 @@ const getChildTasksByLevelMap = (
 };
 
 const getMinAndMaxDatesInDescendants = (
+  /**
+   * Cache of computed tasks
+   */
+  computedCacheMap: Map<Task, [Date, Date] | null>,
   task: Task,
   changeAction: ChangeAction,
   childTasksMap: ChildByLevelMap,
+  /**
+   * Avoid the circle of dependencies
+   */
   checkedTasks: Set<string>,
 ): [Date, Date] | null => {
+  const cachedRes = computedCacheMap.get(task);
+  if (cachedRes) {
+    return cachedRes;
+  }
+
   const {
     id,
     comparisonLevel = 1,
   } = task;
 
   if (checkedTasks.has(id)) {
-    return [task.start, task.end];
+    const res: [Date, Date] = [task.start, task.end];
+    computedCacheMap.set(task, res);
+    return res;
   }
 
   checkedTasks.add(id);
@@ -60,10 +74,13 @@ const getMinAndMaxDatesInDescendants = (
     case "change_start_and_end":
       if (task.id === changeAction.task.id) {
         if (changeAction.task.type === "empty") {
+          computedCacheMap.set(task, null);
           return null;
         }
-    
-        return [changeAction.task.start, changeAction.task.end];
+
+        const res: [Date, Date] = [changeAction.task.start, changeAction.task.end];
+        computedCacheMap.set(task, res);
+        return res;
       }
       break;
 
@@ -72,6 +89,7 @@ const getMinAndMaxDatesInDescendants = (
       const deletedTaskIdsAtLevel = changeAction.deletedIdsMap.get(comparisonLevel);
 
       if (deletedTaskIdsAtLevel && deletedTaskIdsAtLevel.has(id)) {
+        computedCacheMap.set(task, null);
         return null;
       }
 
@@ -85,7 +103,9 @@ const getMinAndMaxDatesInDescendants = (
   const taskMapByLevel = getChildTasksByLevelMap(childTasksMap, changeAction, task);
 
   if (!taskMapByLevel) {
-    return [task.start, task.end];
+    const res: [Date, Date] = [task.start, task.end];
+    computedCacheMap.set(task, res);
+    return res;
   }
 
   const childTasks = taskMapByLevel.get(id);
@@ -160,7 +180,9 @@ const getMinAndMaxDatesInDescendants = (
   }
 
   if (!allChildTasks || allChildTasks.length === 0) {
-    return [task.start, task.end];
+    const res: [Date, Date] = [task.start, task.end];
+    computedCacheMap.set(task, res);
+    return res;
   }
 
   let start: Date | null = null;
@@ -172,6 +194,7 @@ const getMinAndMaxDatesInDescendants = (
     }
 
     const descendantsResult = getMinAndMaxDatesInDescendants(
+      computedCacheMap,
       childTask,
       changeAction,
       childTasksMap,
@@ -197,10 +220,16 @@ const getMinAndMaxDatesInDescendants = (
     }
   });
 
-  return [start || task.start, end || task.end];
+  const res: [Date, Date] = [start || task.start, end || task.end];
+  computedCacheMap.set(task, res);
+  return res;
 };
 
 export const getSuggestedStartEndChanges = (
+  /**
+   * Cache of computed tasks
+   */
+  computedCacheMap: Map<Task, [Date, Date] | null>,
   task: Task,
   changeAction: ChangeAction,
   childTasksMap: ChildByLevelMap,
@@ -222,6 +251,7 @@ export const getSuggestedStartEndChanges = (
   const resIndex = typeof index === 'number' ? index : -1;
 
   const descendantsResult = getMinAndMaxDatesInDescendants(
+    computedCacheMap,
     task,
     changeAction,
     childTasksMap,

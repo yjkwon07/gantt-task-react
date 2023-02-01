@@ -82,7 +82,10 @@ export const getChangeTaskMetadata = (
     ? collectSuggestedParents(changeAction, tasksMap)
     : [];
 
+  const computedCacheMap = new Map<Task, [Date, Date] | null>();
+
   const parentSuggestions = parentSuggestedTasks.map((parentTask) => getSuggestedStartEndChanges(
+    computedCacheMap,
     parentTask,
     changeAction,
     childTasksMap,

@@ -87,12 +87,13 @@ import { ContextMenu } from "../context-menu";
 import { useHandleAction } from "./use-handle-action";
 import { defaultGetCopiedTaskId } from "./default-get-copied-task-id";
 
-import styles from "./gantt.module.css";
 import { copyTasks } from "../../helpers/copy-tasks";
 import { copyOption } from "../../context-menu-options/copy";
 import { cutOption } from "../../context-menu-options/cut";
 import { pasteOption } from "../../context-menu-options/paste";
 import { deleteOption } from "../../context-menu-options/delete";
+
+import styles from "./gantt.module.css";
 
 const defaultColors: ColorStyles = {
   arrowColor: "grey",
