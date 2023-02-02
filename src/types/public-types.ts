@@ -508,15 +508,29 @@ export interface StylingOption {
    */
   renderTopHeader?: RenderTopHeader;
   /**
-   * Round dates of task after move or resize
+   * Round end date of task after move or resize
    * @param date Date after move
    * @param viewMode current date unit
    * @returns next date
    */
-  roundDate?: (date: Date, viewMode: ViewMode) => Date;
+  roundEndDate?: (date: Date, viewMode: ViewMode) => Date;
+  /**
+   * Round start date of task after move or resize
+   * @param date Date after move
+   * @param viewMode current date unit
+   * @returns next date
+   */
+  roundStartDate?: (date: Date, viewMode: ViewMode) => Date;
 }
 
 export interface GanttProps extends EventOption, DisplayOption, StylingOption {
+  /**
+   * Check is current date holiday
+   * @param date the date
+   * @param minTaskDate lower date of all tasks
+   * @param dateSetup 
+   * @returns 
+   */
   checkIsHoliday?: (
     date: Date,
     minTaskDate: Date,
@@ -531,6 +545,10 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
    * Get new id for task after using copy-paste
    */
   getCopiedTaskId?: GetCopiedTaskId;
+  /**
+   * Move dates of tasks to working days during change
+   */
+  isAdjustToWorkingDays?: boolean;
   tasks: readonly TaskOrEmpty[];
 }
 
@@ -809,6 +827,7 @@ export type ChangeAction =
   | {
     type: "change_start_and_end"
     task: Task;
+    changedTask: Task;
     originalTask: Task;
   }
   | {
@@ -985,3 +1004,9 @@ export type GetCopiedTaskId = (
   task: TaskOrEmpty,
   checkExists: (newId: string) => boolean,
 ) => string;
+
+export type AdjustTaskToWorkingDatesParams = {
+  action: BarMoveAction;
+  changedTask: Task;
+  originalTask: Task;
+};

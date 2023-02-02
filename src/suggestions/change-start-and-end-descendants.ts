@@ -2,18 +2,28 @@ import addMilliseconds from 'date-fns/addMilliseconds';
 import differenceInMilliseconds from 'date-fns/differenceInMilliseconds';
 
 import type {
-  TaskToGlobalIndexMap,
+  AdjustTaskToWorkingDatesParams,
   OnDateChangeSuggestionType,
   Task,
   TaskOrEmpty,
+  TaskToGlobalIndexMap,
 } from '../types/public-types';
 
-export const changeStartAndEndDescendants = (
-  changedTask: Task,
-  originalTask: Task,
-  descendants: readonly TaskOrEmpty[],
-  mapTaskToGlobalIndex: TaskToGlobalIndexMap,
-): readonly OnDateChangeSuggestionType[] => {
+type ChangeStartAndEndDescendantsParams = {
+  adjustTaskToWorkingDates: (params: AdjustTaskToWorkingDatesParams) => Task;
+  changedTask: Task;
+  descendants: readonly TaskOrEmpty[];
+  mapTaskToGlobalIndex: TaskToGlobalIndexMap;
+  originalTask: Task;
+};
+
+export const changeStartAndEndDescendants = ({
+  adjustTaskToWorkingDates,
+  changedTask,
+  descendants,
+  mapTaskToGlobalIndex,
+  originalTask,
+}: ChangeStartAndEndDescendantsParams): readonly OnDateChangeSuggestionType[] => {
   const diff = differenceInMilliseconds(changedTask.start, originalTask.start);
 
   const mapTaskToGlobalIndexAtLevel = mapTaskToGlobalIndex.get(changedTask.comparisonLevel || 1);
@@ -33,9 +43,21 @@ export const changeStartAndEndDescendants = (
       throw new Error('Global index for the task is not found');
     }
 
+    const preChangedTask: Task = {
+      ...task,
+      end: addMilliseconds(task.end, diff),
+      start: addMilliseconds(task.start, diff),
+    };
+
+    const adjustedTask = adjustTaskToWorkingDates({
+      action: 'move',
+      changedTask: preChangedTask,
+      originalTask: task,
+    });
+
     res.push([
-      addMilliseconds(task.start, diff),
-      addMilliseconds(task.end, diff),
+      adjustedTask.start,
+      adjustedTask.end,
       task,
       index,
     ]);

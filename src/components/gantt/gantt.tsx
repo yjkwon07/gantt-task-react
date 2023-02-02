@@ -80,7 +80,8 @@ import { useGetTaskCurrentState } from "./use-get-task-current-state";
 import { useSelection } from "./use-selection";
 import { defaultCheckIsHoliday } from "./default-check-is-holiday";
 import { useTableResize } from "./use-table-resize";
-import { defaultRoundDate } from "./default-round-date";
+import { defaultRoundEndDate } from "./default-round-end-date";
+import { defaultRoundStartDate } from "./default-round-start-date";
 
 import { useContextMenu } from "./use-context-menu";
 import { ContextMenu } from "../context-menu";
@@ -92,6 +93,8 @@ import { copyOption } from "../../context-menu-options/copy";
 import { cutOption } from "../../context-menu-options/cut";
 import { pasteOption } from "../../context-menu-options/paste";
 import { deleteOption } from "../../context-menu-options/delete";
+
+import { useHolidays } from "./use-holidays";
 
 import styles from "./gantt.module.css";
 
@@ -199,6 +202,7 @@ export const Gantt: React.FC<GanttProps> = ({
   isShowDependencyWarnings = false,
   isShowTaskNumbers = true,
   isUnknownDates = false,
+  isAdjustToWorkingDays = true,
   onAddTask = undefined,
   onAddTaskClick = undefined,
   onArrowDoubleClick: onArrowDoubleClickProp = undefined,
@@ -218,7 +222,8 @@ export const Gantt: React.FC<GanttProps> = ({
   preStepsCount = 1,
   renderBottomHeader = undefined,
   renderTopHeader = undefined,
-  roundDate: roundDateProp = defaultRoundDate,
+  roundEndDate: roundEndDateProp = defaultRoundEndDate,
+  roundStartDate: roundStartDateProp = defaultRoundStartDate,
   rtl = false,
   tasks,
   timeStep = 300000,
@@ -257,9 +262,14 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const scrollXRef = useLatest(scrollX);
 
-  const roundDate = useCallback(
-    (date: Date) => roundDateProp(date, viewMode),
-    [roundDateProp, viewMode],
+  const roundEndDate = useCallback(
+    (date: Date) => roundEndDateProp(date, viewMode),
+    [roundEndDateProp, viewMode],
+  );
+
+  const roundStartDate = useCallback(
+    (date: Date) => roundStartDateProp(date, viewMode),
+    [roundStartDateProp, viewMode],
   );
 
   const [closedTasks, setClosedTasks] = useState(() => getInitialClosedTasks(tasks));
@@ -506,10 +516,15 @@ export const Gantt: React.FC<GanttProps> = ({
     viewMode,
   ]);
 
-  const checkIsHoliday = useCallback(
-    (date: Date) => checkIsHolidayProp(date, minTaskDate, dateSetup),
-    [checkIsHolidayProp, dateSetup, minTaskDate],
-  );
+  const {
+    checkIsHoliday,
+    adjustTaskToWorkingDates,
+  } = useHolidays({
+    checkIsHolidayProp,
+    dateSetup,
+    isAdjustToWorkingDays,
+    minTaskDate,
+  });
 
   const svgWidth = useMemo(
     () => datesLength * distances.columnWidth,
@@ -884,22 +899,24 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   const getMetadata = useCallback(
-    (changeAction: ChangeAction) => getChangeTaskMetadata(
+    (changeAction: ChangeAction) => getChangeTaskMetadata({
+      adjustTaskToWorkingDates,
       changeAction,
-      tasksMapRef.current,
-      childTasksMapRef.current,
-      mapTaskToGlobalIndexRef.current,
-      dependentMapRef.current,
+      childTasksMap: childTasksMapRef.current,
+      dependentMap: dependentMapRef.current,
+      mapTaskToGlobalIndex: mapTaskToGlobalIndexRef.current,
       isRecountParentsOnChange,
       isMoveChildsWithParent,
-    ),
+      tasksMap: tasksMapRef.current,
+    }),
     [
-      tasksMapRef,
+      adjustTaskToWorkingDates,
       childTasksMapRef,
-      mapTaskToGlobalIndexRef,
       dependentMapRef,
-      isRecountParentsOnChange,
       isMoveChildsWithParent,
+      isRecountParentsOnChange,
+      mapTaskToGlobalIndexRef,
+      tasksMapRef,
     ],
   );
 
@@ -1141,15 +1158,22 @@ export const Gantt: React.FC<GanttProps> = ({
     changedTask: Task,
     originalTask: Task,
   ) => {
+    const adjustedTask = adjustTaskToWorkingDates({
+      action,
+      changedTask,
+      originalTask,
+    });
+
     const changeAction: ChangeAction = action === "move"
       ? {
         type: "change_start_and_end",
-        task: changedTask,
+        task: adjustedTask,
+        changedTask,
         originalTask,
       }
       : {
         type: "change",
-        task: changedTask,
+        task: adjustedTask,
       };
 
     const [
@@ -1163,7 +1187,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
     if (onDateChangeProp) {
       onDateChangeProp(
-        changedTask,
+        adjustedTask,
         dependentTasks,
         taskIndex,
         parents,
@@ -1173,12 +1197,13 @@ export const Gantt: React.FC<GanttProps> = ({
 
     if (onChangeTasks) {
       const withSuggestions = prepareSuggestions(suggestions);
-      withSuggestions[taskIndex] = changedTask;
+      withSuggestions[taskIndex] = adjustedTask;
       onChangeTasks(withSuggestions, {
         type: "date_change",
       });
     }
   }, [
+    adjustTaskToWorkingDates,
     getMetadata,
     prepareSuggestions,
     onChangeTasks,
@@ -1227,7 +1252,8 @@ export const Gantt: React.FC<GanttProps> = ({
     onDateChange,
     onProgressChange,
     rtl,
-    roundDate,
+    roundEndDate,
+    roundStartDate,
     scrollToLeftStep,
     scrollToRightStep,
     scrollXRef,

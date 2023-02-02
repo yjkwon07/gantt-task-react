@@ -14,6 +14,7 @@ import { SCROLL_STEP } from "../../constants";
 import { handleTaskBySVGMouseEvent } from "../../helpers/bar-helper";
 
 import { getTaskCoordinates } from "../../helpers/get-task-coordinates";
+import { roundTaskDates } from "../../helpers/round-task-dates";
 import { BarMoveAction } from "../../types/gantt-task-actions";
 
 import {
@@ -189,7 +190,8 @@ type UseTaskDragParams = {
   mapTaskToGlobalIndex: TaskToGlobalIndexMap;
   onDateChange: (action: BarMoveAction, changedTask: Task, originalTask: Task) => void;
   onProgressChange: (task: Task) => void;
-  roundDate: (date: Date) => Date;
+  roundEndDate: (date: Date) => Date;
+  roundStartDate: (date: Date) => Date;
   rtl: boolean;
   scrollToLeftStep: () => void;
   scrollToRightStep: () => void;
@@ -210,7 +212,8 @@ export const useTaskDrag = ({
   mapTaskToGlobalIndex,
   onDateChange,
   onProgressChange,
-  roundDate,
+  roundEndDate,
+  roundStartDate,
   rtl,
   scrollToLeftStep,
   scrollToRightStep,
@@ -593,11 +596,11 @@ export const useTaskDrag = ({
         return;
       }
 
-      const roundedChangedTask = {
-        ...newChangedTask,
-        end: roundDate(newChangedTask.end),
-        start: roundDate(newChangedTask.start),
-      };
+      const roundedChangedTask = roundTaskDates(
+        newChangedTask,
+        roundStartDate,
+        roundEndDate,
+      );
 
       onDateChange(action, roundedChangedTask, task);
     };
@@ -623,7 +626,8 @@ export const useTaskDrag = ({
     onDateChange,
     onProgressChange,
     recountOnMove,
-    roundDate,
+    roundEndDate,
+    roundStartDate,
     rtl,
     setChangeInProgress,
     tasksMap,

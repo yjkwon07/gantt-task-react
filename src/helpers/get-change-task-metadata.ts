@@ -2,13 +2,14 @@ import { getDependentTasks } from "../change-metadata/get-dependent-tasks";
 import { getTaskIndexes } from "../change-metadata/get-task-indexes";
 import { changeStartAndEndDescendants } from "../suggestions/change-start-and-end-descendants";
 import type {
+  AdjustTaskToWorkingDatesParams,
   ChangeAction,
   ChangeMetadata,
   ChildByLevelMap,
   DependentMap,
-  TaskToGlobalIndexMap,
-  TaskMapByLevel,
   Task,
+  TaskMapByLevel,
+  TaskToGlobalIndexMap,
 } from "../types/public-types";
 import { collectParents } from "./collect-parents";
 import { getAllDescendants } from "./get-all-descendants";
@@ -69,15 +70,27 @@ const collectSuggestedParents = (
   }
 };
 
-export const getChangeTaskMetadata = (
-  changeAction: ChangeAction,
-  tasksMap: TaskMapByLevel,
-  childTasksMap: ChildByLevelMap,
-  mapTaskToGlobalIndex: TaskToGlobalIndexMap,
-  dependentMap: DependentMap,
-  isRecountParentsOnChange: boolean,
-  isMoveChildsWithParent: boolean,
-): ChangeMetadata => {
+type GetChangeTaskMetadataParams = {
+  adjustTaskToWorkingDates: (params: AdjustTaskToWorkingDatesParams) => Task;
+  changeAction: ChangeAction;
+  childTasksMap: ChildByLevelMap;
+  dependentMap: DependentMap;
+  isMoveChildsWithParent: boolean;
+  isRecountParentsOnChange: boolean;
+  mapTaskToGlobalIndex: TaskToGlobalIndexMap;
+  tasksMap: TaskMapByLevel;
+};
+
+export const getChangeTaskMetadata = ({
+  adjustTaskToWorkingDates,
+  changeAction,
+  childTasksMap,
+  dependentMap,
+  isMoveChildsWithParent,
+  isRecountParentsOnChange,
+  mapTaskToGlobalIndex,
+  tasksMap,
+}: GetChangeTaskMetadataParams): ChangeMetadata => {
   const parentSuggestedTasks = isRecountParentsOnChange
     ? collectSuggestedParents(changeAction, tasksMap)
     : [];
@@ -97,12 +110,13 @@ export const getChangeTaskMetadata = (
     : [];
 
   const descendantSuggestions = changeAction.type === "change_start_and_end"
-    ? changeStartAndEndDescendants(
-      changeAction.task,
-      changeAction.originalTask,
+    ? changeStartAndEndDescendants({
+      adjustTaskToWorkingDates,
+      changedTask: changeAction.changedTask,
       descendants,
       mapTaskToGlobalIndex,
-    )
+      originalTask: changeAction.originalTask,
+    })
     : [];
 
   const suggestedTasks = [...parentSuggestedTasks, ...descendants];

@@ -1,13 +1,12 @@
+import addDays from "date-fns/addDays";
 import addHours from "date-fns/addHours";
+import addMonths from "date-fns/addMonths";
+import addWeeks from "date-fns/addWeeks";
+import addYears from "date-fns/addYears";
 import differenceInDays from "date-fns/differenceInDays";
 import differenceInHours from "date-fns/differenceInHours";
 import differenceInMinutes from "date-fns/differenceInMinutes";
 import differenceInMonths from "date-fns/differenceInMonths";
-import endOfDay from "date-fns/endOfDay";
-import endOfHour from "date-fns/endOfHour";
-import endOfMonth from "date-fns/endOfMonth";
-import endOfWeek from "date-fns/endOfWeek";
-import endOfYear from "date-fns/endOfYear";
 import startOfDay from "date-fns/startOfDay";
 import startOfHour from "date-fns/startOfHour";
 import startOfMonth from "date-fns/startOfMonth";
@@ -16,7 +15,7 @@ import startOfYear from "date-fns/startOfYear";
 
 import { ViewMode } from "../../types/public-types";
 
-export const defaultRoundDate = (
+export const defaultRoundStartDate = (
   date: Date,
   viewMode: ViewMode,
 ) => {
@@ -30,7 +29,7 @@ export const defaultRoundDate = (
         return start;
       }
 
-      return endOfHour(date);
+      return addHours(start, 1);
     }
 
     case ViewMode.QuarterDay:
@@ -54,7 +53,7 @@ export const defaultRoundDate = (
         return addHours(start, 18);
       }
 
-      return endOfDay(date);
+      return addDays(start, 1);
     }
 
     case ViewMode.HalfDay:
@@ -70,7 +69,7 @@ export const defaultRoundDate = (
         return addHours(start, 12);
       }
 
-      return endOfDay(date);
+      return addDays(start, 1);
     }
 
     case ViewMode.Day:
@@ -82,7 +81,7 @@ export const defaultRoundDate = (
         return start;
       }
 
-      return endOfDay(date);
+      return addDays(start, 1);
     }
 
     case ViewMode.Week:
@@ -94,7 +93,7 @@ export const defaultRoundDate = (
         return start;
       }
 
-      return endOfWeek(date);
+      return addWeeks(start, 1);
     }
 
     case ViewMode.Month:
@@ -106,7 +105,7 @@ export const defaultRoundDate = (
         return start;
       }
 
-      return endOfMonth(date);
+      return addMonths(start, 1);
     }
 
     case ViewMode.Year:
@@ -118,7 +117,7 @@ export const defaultRoundDate = (
         return start;
       }
 
-      return endOfYear(date);
+      return addYears(start, 1);
     }
 
     default:

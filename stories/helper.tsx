@@ -2,6 +2,8 @@ import format from "date-fns/format";
 import isValid from "date-fns/isValid";
 import parse from "date-fns/parse";
 import startOfMinute from "date-fns/startOfMinute";
+import startOfDay from "date-fns/startOfDay";
+import endOfDay from "date-fns/endOfDay";
 
 import { Task, TaskOrEmpty } from "../src";
 
@@ -145,7 +147,11 @@ export function initTasks() {
     },
   ];
 
-  return tasks;
+  return tasks.map((task) => ({
+    ...task,
+    end: endOfDay(task.end),
+    start: startOfDay(task.start),
+  }));
 }
 
 export const getTaskFields = (initialValues: {
