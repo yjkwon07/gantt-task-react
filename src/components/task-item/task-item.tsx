@@ -5,6 +5,7 @@ import React, {
   useState,
   useMemo,
   useCallback,
+  Fragment
 } from "react";
 import type {
   MouseEvent,
@@ -382,7 +383,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
       )}
 
       {outOfParentWarnings && (
-        <>
+        <Fragment>
           {outOfParentWarnings.start && (
             <BarFixWidth
               x={rtl ? x2 : x1}
@@ -406,7 +407,7 @@ const TaskItemInner: React.FC<TaskItemProps> = (props) => {
               handleFixWidth={handleFixEndPosition}
             />
           )}
-        </>
+        </Fragment>
       )}
     </g>
   );

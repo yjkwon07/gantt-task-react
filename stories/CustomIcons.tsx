@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useState,
+  Fragment
 } from "react";
 
 import { DndProvider } from "react-dnd";
@@ -24,12 +25,12 @@ import {
 import "../dist/index.css";
 
 const icons: Icons = {
-  renderAddIcon: () => <>➕</>,
-  renderClosedIcon: () => <>📁</>,
-  renderDeleteIcon: () => <>➖</>,
-  renderEditIcon: () => <>🗃</>,
-  renderNoChildrenIcon: () => <>🥳</>,
-  renderOpenedIcon: () => <>📂</>,
+  renderAddIcon: () => <Fragment>➕</Fragment>,
+  renderClosedIcon: () => <Fragment>📁</Fragment>,
+  renderDeleteIcon: () => <Fragment>➖</Fragment>,
+  renderEditIcon: () => <Fragment>🗃</Fragment>,
+  renderNoChildrenIcon: () => <Fragment>🥳</Fragment>,
+  renderOpenedIcon: () => <Fragment>📂</Fragment>,
 };
 
 const distances: Partial<Distances> = {

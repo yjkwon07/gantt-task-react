@@ -2,6 +2,7 @@ import React, {
   memo,
   useCallback,
   useMemo,
+  Fragment
 } from "react";
 
 import cx from 'classnames';
@@ -227,7 +228,7 @@ const ArrowInner: React.FC<ArrowProps> = ({
       </g>
 
       {hasWarning && (
-        <>
+        <Fragment>
           <FixDependencyPosition
             x={taskToFixerPosition}
             y={toY}
@@ -249,7 +250,7 @@ const ArrowInner: React.FC<ArrowProps> = ({
             height={dependencyFixHeight}
             handleFixPosition={fixDependencyTaskFrom}
           />
-        </>
+        </Fragment>
       )}
     </g>
   );

@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  Fragment,
 } from 'react';
 import type {
   MutableRefObject,
@@ -166,7 +167,7 @@ export function ContextMenu({
   });
 
   return (
-    <>
+    <Fragment>
       <div
         {...getReferenceProps()}
         style={{
@@ -201,6 +202,6 @@ export function ContextMenu({
           ))}
         </div>
       )}
-    </>
+    </Fragment>
   );
 }

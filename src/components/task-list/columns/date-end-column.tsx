@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Fragment } from "react";
 
 import format from "date-fns/format";
 
@@ -20,17 +20,17 @@ export const DateEndColumn: React.FC<ColumnProps> = ({
 
   try {
     return (
-      <>
+      <Fragment>
         {format(task.end, dateFormats.dateColumnFormat, {
           locale: dateLocale,
         })}
-      </>
+      </Fragment>
     );
   } catch (e) {
     return (
-      <>
+      <Fragment>
         {task.end.toString()}
-      </>
+      </Fragment>
     );
   }
 };

@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useState,
+  Fragment
 } from "react";
 
 import { DndProvider } from "react-dnd";
@@ -32,10 +33,10 @@ const ProgressColumn: React.FC<ColumnProps> = ({
 }) => {
   if (task.type === "project" || task.type === "task") {
     return (
-      <>
+      <Fragment>
         {task.progress}
         %
-      </>
+      </Fragment>
     );
   }
 

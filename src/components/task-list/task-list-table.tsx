@@ -1,6 +1,7 @@
 import React, {
   memo,
   useMemo,
+  Fragment
 } from "react";
 import type {
   ReactNode,
@@ -122,7 +123,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
     }
 
     return (
-      <>
+      <Fragment>
         <div
           style={{
             height: fullRowHeight * start,
@@ -130,7 +131,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
         />
 
         {renderedList}
-      </>
+      </Fragment>
     );
   }, [
     colors,
